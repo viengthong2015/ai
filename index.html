@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="lo">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap" rel="stylesheet">
+    <title>Mini project</title>
+    <link rel="stylesheet" href="image/style.css">
+    <script src="image/js.js" defer></script>
+</head>
+
+<body>
+    <div class="progress" id="progress-bar"></div>
+    <div class="header-container">
+        <h2 class="animated-label">
+            ການຄາດຄະເນປະຊາກອນລາວ 2026-2030
+        </h2>
+        
+    </div>
+    <div class="slide-container">
+        <!-- Slide 1 -->
+        <div class="slide active">
+            <br>
+            <div class="dashboard" style="width: 96%; font-size: 20px; height: 90%;">
+                📖 ວິຊາ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ການຮຽນຮູ້ຂອງຄອມພິວເຕີ (Machine Learning) |
+                ຈຳນວນໜ່ວຍກິດ 3 (2-2-5) <br><br>
+                👤 ນັກສຶກສາ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ວຽງທອງ ຈົ່ງຫວາຊົ່ງ <br><br>
+                🆔 ລະຫັດນັກສຶກສາ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;207N0014/26 <br><br>
+                👨‍🏫 ອາຈານສອນ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ຮ.ສ, ປ.ອ ພູທອນ ວົງປະສິດ <br><br>
+
+                🎓 ຮຸ່ນ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7 (ສົກສຶກສາ 2026-2028)
+
+
+            </div>
+            <!-- <p class="dotText">My name is...</p> -->
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slide">
+            <h2>ເນື້ອໃນ</h2>
+
+            <div class="containerLR" style="font-size: 25px;">
+                <div class="leftL">
+
+                    <!-- <div class="label-row">
+                        
+                            <span class="label">1</span>
+                            <del><span class="label-text">ຫົວຂໍ້ບົດໂຄງການຂະໜາດນ້ອຍ (mini prject)</span></del>
+                        
+                    </div> -->
+                    <div class="label-row">
+                        <span class="label">1</span>
+                        <span class="label-text">ບົດນຳ (introduction)</span>
+                    </div>
+                    <div class="label-row">
+                        <span class="label">2</span>
+                        <span class="label-text">ຈຸດປະສົງ (Objectives)</span>
+                    </div>
+                    <div class="label-row">
+                        <span class="label">3</span>
+                        <span class="label-text">ຊຸດຂໍ້ມູນທີ່ໃຊ້ (Data set)</span>
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label">4</span>
+                        <span class="label-text">ການກະກຽມຂໍ້ມູນ (Data Preprocessing)</span>
+                    </div>
+
+                </div>
+
+                <div class="rightR">
+                    <div class="label-row">
+                        <span class="label">5</span>
+                        <span class="label-text">Algorithm ທີ່ໃຊ້</span>
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label">6</span>
+                        <span class="label-text">ການສ້າງແບບຈຳລອງ (Model building) ແລະ ການປຽບທຽບ</span>
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label">7</span>
+                        <span class="label-text">ຜົນໄດ້ຮັບ (Result)</span>
+                    </div>
+
+                    <div class="label-row">
+                        <span class="label">8</span>
+                        <span class="label-text">ສະຫຼຸບຜົນການສຶກສາ, ຂໍ້ສະເໜີ (ແຜນໃນອານາຄົດ)</span>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+        </div>
+        <!-- Slide 3 -->
+        <div class="slide">
+            <h2>1. ບົດນຳ (Introduction)</h2>
+            <p>
+                ໃນປັດຈຸບັນ, ລະບົບສາທາລະນະສຸກພວມກຳລັງຫັນປ່ຽນໄປສູ່ຍຸກດິຈິຕອນ ທີ່ມີການນຳໃຊ້ເຕັກໂນໂລຊີ ແລະ
+                ລະບົບຖານຂໍ້ມູນເຂົ້າໃນການຄຸ້ມຄອງບໍລິການສາທາລະນະສຸກຢ່າງກວ້າງຂວາງ.
+                ການປ່ຽນແປງນີ້ເຮັດໃຫ້ມີຂໍ້ມູນດ້ານການສາທາລະນະສຸກຖືກສະສົມໄວ້ເປັນຈຳນວນຫຼວງຫຼາຍ
+                ເຊິ່ງຊື່ງສາມາດເປັນຂໍ້ມູນພື້ນຖານ (baseline) ໃຫ້ເຮົາ ເພື່ອໄປເຮັດການຄາດຄະເນໃນອານາຄົດ ແລະ ການວາງແຜນ
+                ຕໍ່ວຽກງານການບໍລິການສາທາລະນະສຸກ. ບັນຫາທີ່ພົບເລື້ອຍໃນສະຖານທີ່ບໍລິການສາທາລະນະສຸກແມ່ນ ອັດຕາການປີ່ນປົວພະຍາດ,
+                ອັດຕາການສັກຢາກັນພະຍາດ, ...ຍັງຕ່ຳເນື່ອງມາຈາກຕົວເລກເປົ້າໝາຍກຸ່ມປະຊາກອນບໍ່ຊັດເຈນ
+                ເປັນສາຍເຫດເຮັດໃຫ້ການວາງແຜນບໍ່ຖືກຕາມສະພາບຕົວຈິງ.
+            </p>
+            <p>
+                ດ້ວຍເຫດນີ້, ການນຳໃຊ້ເຕັກນິກ ການຮຽນຮູ້ຂອງເຄື່ອງຄອມພິວເຕີ (Machine Learning)
+                ເຂົ້າໃນການພະຍາກອນຕົວເລກປະຊາກອເປົ້າໝາຍ ຈຶ່ງມີຄວາມສຳຄັນ ແລະ
+                ເປັນແນວທາງຮູບແບບໃໝ່ທີ່ມີປະສິດທິພາບສູງ. ການພະຍາກອນປະຊາກອນແບບນີ້ ຈະຊ່ວຍໃຫ້ຂະແໜງສາທາລະນະສຸກ
+                ສາມາດຮູ້ເປົ້າໝາຍປະຊາກອນທີ່ຊັດເຈນ ເພື່ອການວາງແຜນການບໍລິການສາທາລະນະສຸກໃຫ້ມີປະສິດພາບດີຂື້ນ.
+            </p>
+            <p>
+                ຄວາມສຳຄັນຂອງວຽກງານນີ້ ຈະຊ່ວຍປ່ຽນຮູບແບບການບໍລິຫານການສຸຂະພາບຈາກ <b>"ການຕັ້ງທ່າຮັບ"</b> ມາເປັນ
+                <b>"ການປ້ອງກັນ
+                    ແລະ
+                    ຄາດການລ່ວງໜ້າ"</b>.
+            </p>
+
+            <p>
+                ດັ່ງນັ້ນ, ງານວິໄຈສະບັບນີ້ຈຶ່ງມຸ່ງສຶກສາ ແລະ ພັດທະນາແບບຈຳລອງການພະຍາກອນຕົວເລກປະຊາກອນໃນອານາຄົດ
+                ເພື່ອເປັນເຄື່ອງມືສະໜັບສະໜູນການຕັດສິນໃຈ
+                ໃຫ້ແກ່ຂະແໜງສາທາລະນະສຸກໃນການພັດທະນາຄຸນນະພາບການບໍລິການສາທາລະນະສຸກໃຫ້ມີຄຸນນະພາບ ແລະ ຍືນຍົງໃນຍຸກດີຈີຕອນ.
+            </p>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide">
+            <h2>2. ຈຸດປະສົງ</h2>
+            <details class="modern-details" style=" font-size: 25px;">
+                <summary>2.1. ຈຸດປະສົງລວມ</summary>
+                <div class="content">
+                    <div class="panel-container">
+
+                        <div class="panel-card card-teal">
+                            <div class="card-day dotText">ປັດໃຈສຳຄັນຕໍ່ການວາງແຜນ</div>
+                            <div class="card-number">1</div>
+                            <p class="card-text">ເພື່ອມີຕົວເລກຄາດໝາຍທີ່ຊັດເຈນຕໍ່ການວາງແຜນການບໍລິການສາທາລະນະສຸກ</p>
+                        </div>
+
+                        <div class="panel-card card-blue">
+                            <div class="card-day dotText">ປະສິດທິພາບຂອງ models</div>
+                            <div class="card-number">2</div>
+                            <p class="card-text">ເພື່ອພັດທະນາ ແລະ ປຽບທຽບປະສິດທິພາບ ຂອງແບບຈຳລອງ (Models)
+                                ໃນການພະຍາກອນຕົວເລກປະຊາກອນ</p>
+                        </div>
+
+                        <div class="panel-card card-orange">
+                            <div class="card-day dotText">ສ້າງເຄື່ອງມື</div>
+                            <div class="card-number">3</div>
+                            <p class="card-text">ເພື່ອສ້າງເຄື່ອງມືສະໜັບສະໜູນການຕັດສິນໃຈໃຫ້ຂະແໜງສາທາລະນະສຸກ</p>
+                        </div>
+                    </div>
+
+                </div>
+            </details>
+            <details class="modern-details" style="font-size: 25px;">
+                <summary>2.2. ຈຸດປະສົງສະເພາະ</summary>
+                <div class="content">
+                    <div class="panel-container">
+
+                        <div class="panel-card card-teal">
+                            <div class="card-day dotText">ພະຍາກອນຕົວເລກປະຊາກອນໃນແຕ່ລະປີ</div>
+                            <div class="card-number">1</div>
+                            <p class="card-text">ພະຍາກອນປະຊາກອນ ປີ 2026, 2027, ..., 2030</p>
+                        </div>
+                        <div class="panel-card card-coral">
+                            <div class="card-day dotText">ປຽບທຽບຄຸນນະພາບຂອງແຕ່ລະແບບຈຳລອງ</div>
+                            <div class="card-number">2</div>
+                            <p class="card-text">ປຽບທຽບປະສິດທິບພາບຂອງແຕ່ລະແບບຈຳລອງ (Models) ແລະ
+                                ຕັດສິນໃຈເລືອກແບບຈຳລອງທີ່ຄຸນນະພາບດີທີ່ສຸດ</p>
+                        </div>
+
+                        <div class="panel-card card-blue">
+                            <div class="card-day dotText">ເຂົ້າໃຈເລິກໃນວິຊາ ML</div>
+                            <div class="card-number">3</div>
+                            <p class="card-text">ເຂົ້າໃຈຕໍ່ກັບການປັບຄ່າຕ່າງໆ (Hyperparameter Turning)
+                                ເພື່ອປະສິດທິພາບຂອງແຕ່ລະແບບຈຳລອງ</p>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide">
+            <h2>3. ຊຸດຂໍ້ມູນທີ່ໃຊ້ (Data set)</h2>
+            <p>ຊຸດຂໍ້ມູນທີ່ນຳໃຊ້ໃນການວິໄຈຄັ້ງນີ້ ແມ່ນໄດ້ມາຈາກລະບົບຖານຂໍ້ມູນຂອງກະຊວງສາທາລະນະສຸກ (DHIS2)
+                ເປັນຊຸດຂໍ້ມູນທີ່ສົມບູນແບບ (ບໍ່ມີຂໍ້ມູນຊ້ຳຊ້ອນ, ບໍ່ມີຂໍ້ມູນທີ່ຂາດຫາຍ (missing value), ...). ຂໍ້ມູນທັງໝົດ <b>23,976</b> ແຖວ (records)
+            </p>
+            <p>
+                ໂຄງສ້າງຂອງຊຸດຂໍ້ມູນ ໄດ້ຖືກຄັດເລືອກ ແລະ ແບ່ງອອກເປັນແຕ່ລະປເພດຄື:
+            <ul>
+                <li>ເປັນແຕ່ລະເມືອງໃນທົ່ວປະເທດ,</li>
+                <li>ເປັນແຕ່ລະກຸ່ມອາຍຸ (0 ປີ, 1 ປີ, 2 ປີ, ..., 80+ ປີ)</li>
+                <li> ເພດ (ຍິງ, ຊາຍ)</li>
+            </ul>
+            </p>
+
+            <details class="modern-details">
+                <summary>ລາຍລະອຽດນິຍາມຂໍ້ມູນ (Meta data)</summary>
+                <div class="content">
+                    <table border="1" style="border-collapse: collapse; width: 100%; font-family: 'Noto Sans Lao';">
+                        <thead>
+                            <tr style="background-color: #008080; color: white; text-align: left;">
+                                <th style="padding: 8px;">#</th>
+                                <th style="padding: 8px;">Feature (Column)</th>
+                                <th style="padding: 8px;">ປະເພດຂໍ້ມູນ (Data type)</th>
+                                <th style="padding: 8px;">ລາຍລະອຽດ</th>
+                                <th style="padding: 8px;">ໝາຍເຫດ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">1</td>
+                                <td style="padding: 8px;">ouName</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ເປັນຊື່ແຕ່ລະເມືອງໃນທົ່ວປະເທດ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">2</td>
+                                <td style="padding: 8px;">ouID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ເປັນລະຫັດແຕ່ລະເມືອງ (DB Id) <br>- unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">3</td>
+                                <td style="padding: 8px;">deID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງອົງປະກອບຂໍ້ມູນ<br>- unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">4</td>
+                                <td style="padding: 8px;">deName</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ຊື່ອົງປະກອບຂໍ້ມູນ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">5</td>
+                                <td style="padding: 8px;">cocID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ເປັນລະຫັດຂອງອາຍຸໃນຖານຂໍ້ມູນ <br> - unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">6</td>
+                                <td style="padding: 8px;">cocName</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ເປັນຊື່ອາຍຸແຕ່ລະປີ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">7</td>
+                                <td style="padding: 8px;">cocCode</td>
+                                <td style="padding: 8px;">int32</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງອາຍຸ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">8</td>
+                                <td style="padding: 8px;">sexID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ<br> - unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">9</td>
+                                <td style="padding: 8px;">sexName</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ເພດ (ຍິງ, ຊາຍ)</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">10</td>
+                                <td style="padding: 8px;">sexCode</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">11</td>
+                                <td style="padding: 8px;">ປີ</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ແຕ່ລະປີ (2016, 2017, ..., 2025)</td>
+                                <td style="padding: 8px;">Feature</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+            <details class="modern-details">
+                <summary>ແບບຂອງຊຸດຂໍ້ມູນ (dataDistrict.csv)</summary>
+                <div class="content" style="display: flex; justify-content: center;">
+                    <img src="image/csv.png" style="width: 680px; height: 380px;">
+                </div>
+            </details>
+        </div>
+
+        <!-- Slide 6 -->
+
+        <div class="slide">
+            <h2>4. ການກະກຽມຂໍ້ມູນ (Data Preprocessing)</h2>
+                <div class="label-row">
+                        <span class="label">1</span>
+                        <span class="label-text">ດາວໂຫຼດຂໍ້ມູນຈາກຖານຂໍ້ມູນຂອງລະບົບ DHIS2, ກະຊວງສາທາລະນະສຸກ</span>
+                </div>
+                <div class="label-row">
+                        <span class="label">2</span>
+                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນແຕ່ລະປີ (2016-2025)</span>
+                </div>
+                <div class="label-row">
+                        <span class="label">3</span>
+                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນແຕ່ລະກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)</span>
+                </div>
+                <div class="label-row">
+                        <span class="label">4</span>
+                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນແຕ່ລະເມືອງໃນທົ່ວປະເທດ</span>
+                </div>
+                <div class="label-row">
+                        <span class="label">5</span>
+                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນເພດ (ຍິງ, ຊາຍ)</span>
+                </div>
+            <b>ໝາຍເຫດ:</b>
+            <p style="font-size: 28px;">✍️ ບໍ່ໄດ້ເຮັດການທຳຄວາມສະອາດຂໍ້ມູນ
+                ເພາະຊຸດຂໍ້ມູນຂອງເຮົາແມ່ນໄດ້ມາຈາກຖານຂໍ້ມູນທີ່ສົມບູນ, ຖືກຕ້ອງ,
+                ຜ່ານການກວດສອບ, ແລະ ສະອາດແລ້ວ</p>
+        </div>
+
+        <!-- Slide 9 -->
+        <div class="slide">
+            <h2>5. Algorithm ທີ່ໃຊ້</h2>
+            <div class="panel-container">
+
+                <div class="panel-card card-teal" style="width: 520px; padding: 10px;">
+                    <div class="card-day">Machine Learning Task</div>
+                    <div class="card-number" style="font-size: 35px;">Regression</div>
+                    <p class="card-text">ຄາດຄະເນ (ພະຍາກອນ) ປະຊາກອນແຕ່ປີ 2026-2030</p>
+
+                    <div style="left: 10px; display: flex; position: relative; text-align: left;">
+                        <b class="dotText">X (Features):</b><br>
+                        <ol>
+                            <li>ຈຳນວນປະຊາກອນແຕ່ປີ 2016-2025</li>
+                            <li>ແຍກເປັນແຕ່ລະເມືອງ</li>
+                            <li>ແຍກເປັນເພດ (ຍິງ, ຊາຍ)</li>
+                            <li>ແຍກເປັນກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)</li>
+                        </ol>
+                    </div>
+                    <div style="left: 0px; display: flex; position: relative; text-align: left;">
+                        <b class="dotText">y(Target):</b><br>
+                        <ol>
+                             <li>
+                                ຈ.ນ ປະຊາກອນເປັນແຕ່ລະປີ (2026-2030),
+                            </li>
+                            <li>
+                                ຈ.ນ ປະຊາກອນເປັນແຕ່ລະເມືອງ,
+                            </li>
+                            <li>
+                                ຈ.ນ ປະຊາກອນເປັນກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)
+                            </li>
+                            <li>
+                                ຈ.ນ ປະຊາກອນແບ່ງເປັນເພດ (ຍິງ, ຊາຍ)
+                            </li>
+                        </ol>
+
+                    </div>
+
+                </div>
+
+                <div class="panel-card card-orange" style="width: 450px;">
+                    <div class="card-day">Learning Technique</div>
+                    <div class="card-number" style="font-size: 35px;">ແບບຈຳລອງ (Models)</div>
+
+                    <p class="card-text">
+
+
+                    <details class="modern-details" style="width: 100%; ">
+                        <summary>LinearRegression:</summary>
+                        <div class="content" style="text-align: left;">
+                            <ol>
+                                <li>
+                                    <p><strong>ຄຸນລັກສະນະ:</strong> ຕົວປ່ຽນເອກະລາດ (<i>x</i>) ແລະ
+                                        ຕົວປ່ຽນຕາມ (<i>y</i>) ມີຄວາມສຳພັນກັນໃນອັດຕາທີ່ ຄົງທີ່ (ຖ້າ <i>x</i> ເພີ່ມ 1
+                                        ໜ່ວຍ, <i>y</i> ຈະປ່ຽນແປງໃນຈຳນວນທີ່ເທົ່າກັນສະເໝີ)</p>
+                                </li>
+                                <li>ສົມຜົນຫຼັກ: <i>y</i> = &beta;<sub>0</sub> + &beta;<sub>1</sub><i>x</i></li>
+                                <li>ຂໍ້ດີ/ຂໍ້ເສຍ: ງ່າຍຕໍ່ການນຳໃຊ້ ແລະ ແປຜົນ,
+                                    ແຕ່ບໍ່ສາມາດໃຊ້ໄດ້ດີກັບຂໍ້ມູນທີ່ມີລັກສະນະເປັນເສັ້ນໂຄ້ງ ຫຼື ມີຄວາມຊັບຊ້ອນສູງ.</li>
+                            </ol>
+
+                        </div>
+
+                    </details>
+
+                    <details class="modern-details" style="width: 100%; ">
+                        <summary>
+                            PolynomialFeatures:
+                        </summary>
+                        <div class="content" style="text-align: left;">
+                            <ol>
+                                <li>
+                                    <p><strong>ຄຸນລັກສະນະ:</strong> ສາມາດປັບຕົວເຂົ້າກັບຂໍ້ມູນທີ່ມີການ,
+                                        ໂຄ້ງເປັນຮູບຕົວ
+                                        U, ຫຼື ມີຈຸດສູງສຸດ/ຕໍ່າສຸດໄດ້ (Non-linear relationships).
+                                        ມັນເຮັດວຽກໂດຍການປ່ຽນຄ່າ
+                                        <i>x</i> ໃຫ້ກາຍເປັນ <i>x</i><sup>2</sup>, <i>x</i><sup>3</sup>, &hellip;
+                                        ແລ້ວຈຶ່ງນຳໄປຄຳນວນແບບເສັ້ນຊື່.
+                                    </p>
+                                </li>
+                                <li>
+
+                                    <p><strong>ສົມຜົນຫຼັກ:</strong> <i>y</i> = &beta;<sub>0</sub> +
+                                        &beta;<sub>1</sub><i>x</i> + &beta;<sub>2</sub><i>x</i><sup>2</sup> + &hellip; +
+                                        &beta;<sub><i>n</i></sub><i>x</i><sup><i>n</i></sup></p>
+                                </li>
+                                <li>
+                                    <p><strong>ຂໍ້ດີ/ຂໍ້ເສຍ:</strong> ມີຄວາມຢືດຢຸ່ນສູງ ແຕ່ຕ້ອງລະວັງບັນຫາ Overfitting
+                                        ຢ່າງໜັກ
+                                        (ແບບຈຳລອງຈື່ຈຳຂໍ້ມູນເກົ່າໄດ້ດີ ແຕ່ພະຍາກອນຂໍ້ມູນໃໝ່ຜິດພາດ) ຖ້າກຳນົດຄ່າ Degree
+                                        ສູງເກີນໄປ.</p>
+                                </li>
+                            </ol>
+                        </div>
+
+                    </details>
+                    <details class="modern-details" style="width: 100%;">
+                        <summary>
+                            Exponential Growth (Log-Linear Regression)
+                        </summary>
+                        <div class="content" style="text-align: left;">
+                            <ol>
+                                <li>
+                                    <p><strong>ຄຸນລັກສະນະ:</strong> ແທນທີ່ຈະພະຍາກອນຄ່າ <i>y</i> ໂດຍກົງ,
+                                        ໂມແບບຈຳລອງຈະປ່ຽນຄ່າ <i>y</i> ໃຫ້ກາຍເປັນ Logarithm (ເຊັ່ນ ln(<i>y</i>))
+                                        ເພື່ອເຮັດໃຫ້ກເສັ້ນສະແດງທີ່ໂຄ້ງຂຶ້ນຢ່າງໄວວາກາຍເປັນເສັ້ນຊື່ ແລ້ວຈຶ່ງໃຊ້ Linear
+                                        Regression ມາຄຳນວນ.</p>
+                                </li>
+                                <li>
+                                    <p><strong>ສົມຜົນຫຼັກ:</strong> <i>y</i> = <i>a</i> &middot;
+                                        <i>e</i><sup><i>bx</i></sup> ເຊິ່ງປ່ຽນຮູບແບບໄດ້ເປັນ ln(<i>y</i>) = ln(<i>a</i>)
+                                        +
+                                        <i>bx</i>
+                                    </p>
+                                </li>
+                                <li>
+                                    <p><strong>ຂໍ້ດີ/ຂໍ້ເສຍ:</strong> ເໝາະສຳລັບຂໍ້ມູນສະເພາະທາງເຊັ່ນ:
+                                        ການເພີ່ມຂຶ້ນຂອງປະຊາກອນ,
+                                        ການແຜ່ລະບາດຂອງໄວຣັສ, ຫຼື ການເຕີບໂຕຂອງດອກເບ້ຍຕໍ່ຕົ້ນທຶນ.</p>
+                                </li>
+                            </ol>
+                        </div>
+
+                    </details>
+
+                    </p>
+                </div>
+
+                <div class="panel-card card-blue" style="width: 350px; padding: 10px;">
+                    <div class="card-day">Python</div>
+                    <div class="card-number" style="font-size: 35px;">Python's Libralies</div>
+
+                    <div style="left: 10px; display: flex; position: relative; text-align: left;">
+                        <ol>
+                            <li>pandas</li>
+                            <li>matplotlib.pyplot</li>
+                            <li>seaborn</li>
+                            <li>sklearn</li>
+                            <li>numpy</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10 -->
+        <div class="slide">
+            <h2>6. ການສ້າງແບບຈຳລອງ (Model building) ແລະ ການປຽບທຽບ</h2>
+
+            <details class="modern-details">
+                <summary>
+                    1. ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train & predict)
+                </summary>
+                <div class="content">
+
+                    <pre>
+                    <b>#import Libralies</b>
+                    import pandas as pd
+                    import numpy as np
+                    import matplotlib.pyplot as plt
+                    from sklearn.linear_model import LinearRegression
+                    from sklearn.preprocessing import PolynomialFeatures
+                    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+                    <b>
+                    # ==========================================
+                    # 1. Load Data
+                    # ==========================================
+                    </b>
+                    df = pd.read_csv('data/dataDistrict.csv')
+                    years = [str(y) for y in range(2016, 2026)]
+                    yearly_pop = df[years].sum()
+
+                    X = np.array(range(2016, 2026)).reshape(-1, 1)
+                    y = yearly_pop.values
+                    X_future = np.array(range(2026, 2031)).reshape(-1, 1)
+                    X_all = np.array(range(2016, 2031)).reshape(-1, 1)
+
+
+                    <b>
+                    # ==========================================
+                    # 2. Build Models
+                    # ==========================================
+                    </b>
+
+                    <b># Model 1: Linear Regression</b>
+                    lr = LinearRegression()
+                    lr.fit(X, y)
+                    y_pred_lr_train = lr.predict(X)
+                    y_pred_lr_future = lr.predict(X_future)
+                    y_pred_lr_all = lr.predict(X_all)
+
+                    <b># Model 2: Polynomial Regression (Degree 2)</b>
+                    poly = PolynomialFeatures(degree=2)
+                    X_poly = poly.fit_transform(X)
+                    X_all_poly = poly.transform(X_all)
+                    pr = LinearRegression()
+                    pr.fit(X_poly, y)
+                    y_pred_pr_train = pr.predict(X_poly)
+                    y_pred_pr_future = pr.predict(poly.transform(X_future))
+                    y_pred_pr_all = pr.predict(X_all_poly)
+
+                <b># Model 3: Exponential Growth (Log-Linear Regression)</b>
+                    log_y = np.log(y)
+                    exp_model = LinearRegression()
+                    exp_model.fit(X, log_y)
+                    y_pred_exp_train = np.exp(exp_model.predict(X))
+                    y_pred_exp_future = np.exp(exp_model.predict(X_future))
+                    y_pred_exp_all = np.exp(exp_model.predict(X_all))
+
+
+                    </pre>
+                </div>
+
+            </details>
+
+            <details class="modern-details">
+                <summary>
+                    2. ການວິເຄາະຂໍ້ຜິດພາດ ແລະ ຄວາມຖືກຕ້ອງ (Error Analysis & Accuracy)
+                </summary>
+                <pre>
+                # ==========================================
+                # 3. Calculate Metrics (Accuracy & Errors)
+                # ==========================================
+                def calc_metrics(y_true, y_pred):
+                    mae = mean_absolute_error(y_true, y_pred)
+                    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
+                    mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+                    
+                    # R-squared Score (ຍິ່ງໃກ້ 1.0 ຍິ່ງດີ)
+                    r2 = r2_score(y_true, y_pred)
+                    
+                    # ຄິດໄລ່ Accuracy ຈາກ MAPE
+                    accuracy = 100 - mape 
+                    
+                    return mae, rmse, mape, r2, accuracy
+
+                metrics_lr = calc_metrics(y, y_pred_lr_train)
+                metrics_pr = calc_metrics(y, y_pred_pr_train)
+                metrics_exp = calc_metrics(y, y_pred_exp_train)
+
+                print("\n=== Model Performance (2016-2025) ===")
+                print(f"Linear:      R² = {metrics_lr[3]:.4f} | Accuracy = {metrics_lr[4]:.4f}% | MAPE = {metrics_lr[2]:.4f}% | RMSE = {metrics_lr[1]:.4f}")
+                print(f"Polynomial:  R² = {metrics_pr[3]:.4f} | Accuracy = {metrics_pr[4]:.4f}% | MAPE = {metrics_pr[2]:.4f}% | RMSE = {metrics_pr[1]:.4f}")
+                print(f"Exponential: R² = {metrics_exp[3]:.4f} | Accuracy = {metrics_exp[4]:.4f}% | MAPE = {metrics_exp[2]:.4f}% | RMSE = {metrics_exp[1]:.4f}")
+                print("=====================================\n")
+
+                print("=== Predictions (2026-2030) ===")
+                print(f"Linear:      {np.round(y_pred_lr_future).astype(int)}")
+                print(f"Polynomial:  {np.round(y_pred_pr_future).astype(int)}")
+                print(f"Exponential: {np.round(y_pred_exp_future).astype(int)}")
+                print("===============================\n")
+
+                </pre>
+                <b>ສະແດງຜົນ</b>
+                <pre>
+                === Model Performance (2016-2025) ===
+                Linear:      R² = 0.9995 | Accuracy = 99.9179% | MAPE = 0.0821% | RMSE = 6760.6901
+                Polynomial:  R² = 1.0000 | Accuracy = 99.9975% | MAPE = 0.0025% | RMSE = 202.3716
+                Exponential: R² = 0.9983 | Accuracy = 99.8491% | MAPE = 0.1509% | RMSE = 12451.0152
+                =====================================
+
+                === Predictions (2026-2030) ===
+                Linear:      [7863120 7969638 8076155 8182673 8289191]
+                Polynomial:  [7842660 7938018 8031516 8123154 8212931]
+                Exponential: [7881541 7997971 8116121 8236016 8357682]
+                ===============================
+                </pre>
+                <hr>
+                <div class="content"
+                    style="width: 100%; display: flex; gap: 15px; justify-content: center;align-items: center;">
+
+                    <div class="panel-card card-teal" style="width: 380px;">
+                        <div class="card-day">Error Analysis & Accuracy</div>
+                        <div class="card-number" style="font-size: 30px;">Linear Regression</div>
+                        <div class="card-text" style="text-align: left;">
+                            <ul>
+                                <li>
+                                    <span class="metric-tooltip" tabindex="0"
+                                        aria-describedby="linear-r2-tooltip">
+                                        R²: 0.9995
+                                        <span class="metric-tooltip-content" id="linear-r2-tooltip" role="tooltip">
+                                            <strong>Coefficient of Determination (R²)</strong>
+                                            Measures how much variation in the actual values the model explains. Values closer to 1 indicate a better fit.
+                                        </span>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="metric-tooltip" tabindex="0"
+                                        aria-describedby="linear-accuracy-tooltip">
+                                        Accuracy: 99.9179%
+                                        <span class="metric-tooltip-content" id="linear-accuracy-tooltip" role="tooltip">
+                                            <strong>Accuracy (100 − MAPE)</strong>
+                                            Shows the model's average percentage closeness to the actual values. Higher values indicate closer predictions.
+                                        </span>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="metric-tooltip" tabindex="0"
+                                        aria-describedby="linear-mae-tooltip">
+                                        MAE: 5963.04
+                                        <span class="metric-tooltip-content" id="linear-mae-tooltip" role="tooltip">
+                                            <strong>Mean Absolute Error (MAE)</strong>
+                                            The average absolute difference between actual and predicted values. Lower values indicate smaller errors.
+                                        </span>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="metric-tooltip" tabindex="0"
+                                        aria-describedby="linear-rmse-tooltip">
+                                        RMSE: 6760.69
+                                        <span class="metric-tooltip-content" id="linear-rmse-tooltip" role="tooltip">
+                                            <strong>Root Mean Squared Error (RMSE)</strong>
+                                            Measures prediction error while giving more weight to large mistakes. Lower values indicate a better fit.
+                                        </span>
+                                    </span>
+                                </li>
+                                <li>
+                                    <span class="metric-tooltip" tabindex="0"
+                                        aria-describedby="linear-mape-tooltip">
+                                        MAPE: 0.0821%
+                                        <span class="metric-tooltip-content" id="linear-mape-tooltip" role="tooltip">
+                                            <strong>Mean Absolute Percentage Error (MAPE)</strong>
+                                            The average absolute prediction error expressed as a percentage of actual values. Lower values are better.
+                                        </span>
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="panel-card card-blue" style="width: 380px;">
+                        <div class="card-day">Error Analysis & Accuracy</div>
+                        <div class="card-number" style="font-size: 30px;">Polynomial Feature</div>
+                        <div class="card-text" style="text-align: center;">
+                            <div style="width: 100%; display: block; font-size: 25px;text-align: left;">
+                                <ul>
+                                    <li>R²: 1.000</li>
+                                    <li>Accuracy: 99.9975%</li>
+                                    <li>MAE: 181.85</li>
+                                    <li>RMSE: 202.37</li>
+                                    <li>MAPE: 0.0025%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-card card-orange" style="width: 380px;">
+                        <div class="card-day">Error Analysis & Accuracy</div>
+                        <div class="card-number" style="font-size: 30px;">Exponential Growth</div>
+                        <div class="card-text" style="text-align: center;">
+                            <div style="width: 100%; display: block; font-size: 25px; text-align: left;">
+                                <ul>
+                                    <li>R²: 0.9983</li>
+                                    <li>Accuracy: 99.8491%</li>
+                                    <li>MAE: 10968.39</li>
+                                    <li>RMSE: 12451.02</li>
+                                    <li>MAPE: 0.1509%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <br>
+                <div class="dotText"
+                    style="width: 100%; display: flex; gap: 15px; justify-content: center;align-items: center;">
+                    <b>ສະຫຼຸບ: </b>ຈາກການປຽບທຽບທັງ 3 ແບບຈຳລອງ, ເຫັນວ່າ <b>Polynomial Regression (Degree 2)</b>
+                    ແມ່ນໃຫ້ຜົນໄດ້ຮັບທີ່ແທດເໝາະກັບຊຸດຂໍ້ມູນນີ້ຫຼາຍທີ່ສຸດ ໂດຍມີຄ່າຄວາມຜິດພາດຕໍ່າສຸດ (MAPE ພຽງ 0.0025%).
+                    ແບບຈຳລອງນີ້ຊີ້ໃຫ້ເຫັນວ່າ ເຖິງແມ່ນວ່າປະຊາກອນຈະຍັງຄົງເພີ່ມຂຶ້ນ
+                    ແຕ່ອັດຕາການເຕີບໂຕອາດຈະມີທ່າອ່ຽງຊ້າລົງເລັກນ້ອຍໃນອະນາຄົດ (Curve ຊັນໜ້ອຍລົງ)
+                    ເມື່ອທຽບກັບການຄາດຄະເນແບບເສັ້ນຊື່ (Linear).
+                </div>
+            </details>
+
+        </div>
+
+
+        <!-- Slide 11 -->
+        <div class="slide">
+            <h2>7. ຜົນໄດ້ຮັບ (Result)</h2>
+            <details class="modern-details">
+                <summary>ເສັ້ນສະແດງຂອງ Model Errors (Actual - Predict)</summary>
+                <div class="content" style="display: flex; justify-content: center;">
+                    <img src="image/error.png">
+                </div>
+            </details>
+
+
+            <details class="modern-details">
+                <summary>ສົມທຽບການຄ່າກະຕວງ (predict) ແລະ ຄ່າຕົວ (actual) - ແບບເສັ້ນສະແດງ</summary>
+                <div class="content" style="display: flex; justify-content: center;">
+                    <img src="image/act_pre.png">
+                </div>
+                <hr>
+                <div class="content" style="display: flex; justify-content: center;">
+                    <img src="image/actVSPre.png">
+                </div>
+            </details>
+
+            <details class="modern-details">
+                <summary>ຜົນໄດ້ຮັບຂອງການພະຍາກອນປະຊາກອນລາວ (ທົ່ວປະເທດ) 2026-2030</summary>
+                <table border="1" style="border-collapse: collapse; width: 100%; font-family: 'Noto Sans Lao';">
+                    <thead style="background-color: #008080; color: white;">
+                        <th style="padding: 8px;">ແບບຈຳລອງ (Models)</th>
+                        <th style="padding: 8px;">2026</th>
+                        <th style="padding: 8px;">2027</th>
+                        <th style="padding: 8px;">2028</th>
+                        <th style="padding: 8px;">2029</th>
+                        <th style="padding: 8px;">2030</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="text-align: center;">
+
+                            <td style="padding: 8px;">LinearRegression</td>
+                            <td style="padding: 8px;">7,863,120</td>
+                            <td style="padding: 8px;">7,969,638</td>
+                            <td style="padding: 8px;">8,076,155</td>
+                            <td style="padding: 8px;">8,182,673</td>
+                            <td style="padding: 8px;">8,289,191</td>
+
+
+                        </tr>
+                        <tr style="text-align: center; background-color: #c4cfee; color: rgb(2, 42, 12);">
+                            <td style="padding: 8px;">PolynomialFeatures</td>
+
+                            <td style="padding: 8px;">7,842,660</td>
+                            <td style="padding: 8px;">7,938,018</td>
+                            <td style="padding: 8px;">8,031,516</td>
+                            <td style="padding: 8px;">8,123,154</td>
+                            <td style="padding: 8px;">8,212,931</td>
+
+                        </tr>
+                        <tr style="text-align: center;">
+                            <td style="padding: 8px;">Exponential Growth</td>
+                            <td style="padding: 8px;">7,881,541</td>
+                            <td style="padding: 8px;">7,997,971</td>
+                            <td style="padding: 8px;">8,116,121</td>
+                            <td style="padding: 8px;">8,236,016</td>
+                            <td style="padding: 8px;">8,357,682</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </details>
+        </div>
+
+
+        <!-- Slide 14 -->
+        <div class="slide">
+            <h2>8. ສະຫຼຸບຜົນການສຶກສາ ແລະ ຂໍ້ສະເໜີ (ແຜນໃນອານາຄົດ)</h2>
+
+            <details class="modern-details">
+                <summary>ສະຫຼຸບຜົນການສຶກສາ</summary>
+                <div class="label-row" style="font-size: 20px;">
+                    <div class="label">1</div>
+                    <div class="label-text">
+                        ສາມາດສ້າງແບບຈຳລອງ (Model) ໄດ້ຕາມຈຸດປະສົງ
+                    </div>
+                </div>
+                <div class="label-row" style="font-size: 20px;">
+                    <div class="label">2</div>
+                    <div class="label-text">
+                        ແບບຈຳລອງຊ່ວຍພະຍາກອນ (predict) ໄດ້ດີ ຢູ່ລະດັບ 99.9975% ເປັນແບບຈຳລອງ <b>"PolynomialFeatures"</b> ທີ່ເລືອກນຳມາໃຊ້
+                    </div>
+                </div>
+                <div class="label-row" style="font-size: 20px;">
+                    <div class="label">3</div>
+                    <div class="label-text">
+                        ໄດ້ປະສົບການຫຼາຍທີ່ສຸດຕໍ່ກັບການເຮັດ mini project ໃນຄັ້ງນີ້ ແລະ
+                        ຈະນຳໄປຜັນຂະຫຍາຍຕໍ່ໃນວຽກງານທີ່ຕົນເອງຮັບຜິດຊອບ
+                    </div>
+                </div>
+                <div class="label-row" style="font-size: 20px;">
+                    <div class="label">4</div>
+                    <div class="label-text">
+                        ສືບຕໍ່ເຮັດເປັນສະບັບ paper, ຖ້າຫາກມີຄວາມເໝາະສົມພຽງພໍ
+                    </div>
+                </div>
+            </details>
+
+            <details class="modern-details">
+                <summary>ຂໍ້ສະເໜີ ແລະ ແຜນໃນອານາຄົດ</summary>
+                <div class="label-row" style="font-size: 25px;">
+                    <div class="label">1</div>
+                    <div class="label-text">
+                        ຂໍສະເໜີເອົາບົດໂຄງການຂະໜາດນ້ອຍນີ້ ຂະຫຍາຍຂອບເຂດ ແລະ ໜ້າວຽກຕື່ມ ເພື່ອສືບຕໍ່ເຮັດເປັນ paper ແລະ
+                        ບົດໂຄງການຈົບຊັ້ນ
+                    </div>
+                </div>
+                <div class="label-row" style="font-size: 25px;">
+                    <div class="label">2</div>
+                    <div class="label-text">
+                        ຈະນຳເອົາຜົນການພະຍາກອນນີ້ໄປນຳສະເໜີຕໍ່ຫ້ອງການທີ່ຕົນເອງສັງກັດ ເພື່ອນຳໄປເປັນຂໍ້ມູນໃນການວາງແຜນ
+                        ແລະ ຈັດຕັ້ງປະຕິບັດ ໃຫ້ແທດເໝາະກັບຄວາມຕ້ອງການຂອງຂະແໜງສາທາລະນະສຸກ ແລະ ຂະແໜງການອື່ນໆ ຕາມເຫັນສົມຄວນ
+                    </div>
+                </div>
+                <div class="label-row" style="font-size: 25px;">
+                    <div class="label">3</div>
+                    <div class="label-text">
+                        ຄວນທົດລອງໃຊ້ຫຼາຍ model ກວ່ານີ້ ເພື່ອປະເມີນປະສິດທິພາບຂອງແຕ່ລະ model ຕື່ມອີກ
+                    </div>
+                </div>
+                <div class="label-row" style="font-size: 25px;">
+                    <div class="label">4</div>
+                    <div class="label-text">
+                        ຈະສືບຕໍ່ເຮັດເປັນ application (deploy)
+                    </div>
+                </div>
+            </details>
+
+
+        </div>
+
+
+        <div class="slide">
+            <center>
+                <h1>ຈົບ, ຂອບໃຈ</h1>
+                <h1>ຖາມ & ຕອບ</h1>
+            </center>
+        </div>
+
+
+
+    </div>
+
+    <div class="controls">
+        <button onclick="changeSlide(-1)" style="font-family: 'Noto Sans Lao';">
+            🞀 ກັບຄືນ</button>
+        <!-- ⏪⏩ -->
+        <button onclick="changeSlide(1)" style="font-family: 'Noto Sans Lao';">ຕໍ່ໄປ 🞂</button>
+    </div>
+
+    <div class="slide-number" id="slide-num">1 / 11</div>
+
+</body>
+
+</html>

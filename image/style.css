@@ -1,0 +1,1021 @@
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #027235;
+    --text-color: #333;
+    --bg-color: #f4f7f6;
+}
+
+body {
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    overflow: hidden;
+    color: var(--text-color);
+}
+
+table{
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+    border-collapse: collapse; 
+    width: 100%; 
+}
+
+.slide-container {
+    width: 100vw;
+    height: calc(100vh - 120px);
+    /* Adjusted: Compensates for the larger header margin */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-top: 110px;
+    /* Increased from 65px: Pushes content cleanly down below the header */
+}
+
+.slide {
+    opacity: 0;
+    display: none;
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    right: 15px;
+    bottom: 50px;
+    /* Changed from 120px: Keeps slide contents cleanly in frame */
+    width: auto;
+    height: auto;
+    padding: 30px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f8f6f6 98%, #027235 2%);
+    box-shadow: 0 10px 25px rgba(2, 111, 26, 0.1);
+    overflow-y: auto;
+}
+
+.slide.active {
+    display: block;
+}
+
+/* NEXT */
+.slide-next {
+    animation: slideNext 0.5s ease forwards;
+}
+
+/* BACK */
+.slide-back {
+    animation: slideBack 0.5s ease forwards;
+}
+
+@keyframes slideNext {
+    from {
+        opacity: 0;
+        transform: translateX(360px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideBack {
+    from {
+        opacity: 0;
+        transform: translateX(-360px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+h1 {
+    /* color: var(--primary-color); */
+    color: #027235;
+    /* border-bottom: 3px solid var(--secondary-color); */
+    padding-bottom: 10px;
+    width: 100%;
+
+}
+
+h2 {
+    color: #027235;
+    /* border-bottom: 1px solid #1e02bd; */
+}
+
+h4 {
+    padding-left: 80px;
+    font-size: 18px;
+    font-weight: lighter;
+}
+
+p,
+li {
+    font-size: 1.2rem;
+    line-height: 1.6;
+
+}
+
+.controls {
+    position: absolute;
+    bottom: 15px;
+    width: 99%;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    background: linear-gradient(135deg, #afd7e3 93%, #027235 7%);
+    border-bottom-right-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: 0.3s;
+    width: 120px;
+    height: 35px;
+    background: #012073
+}
+
+button:hover {
+    background: #027235;
+}
+
+.progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 5px;
+    background: #027235;
+    transition: width 1s;
+    z-index: 2000;
+    /* Added: Ensures it sits above the header container */
+}
+
+.slide-number {
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+    font-size: 0.9rem;
+    color: white;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    /* fix */
+    gap: 12px;
+    margin: 15px;
+}
+
+.label-text {
+    letter-spacing: 1px;
+    line-height: 1.5;
+}
+
+.label {
+    color: white;
+    font-weight: bold;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    background: #027235;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right,
+            rgba(255, 255, 255, 0),
+            #027235,
+            rgba(255, 255, 255, 0));
+}
+
+
+
+
+/* PANEL */
+.st-panel {
+    width: 100%;
+    max-width: 800px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e9f0;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.35s ease;
+    position: relative;
+    /* background: linear-gradient(135deg, #f8f6f6 98%, #027235 2%); */
+}
+
+/* FULLSCREEN */
+.st-panel.fullscreen {
+    position: fixed;
+    inset: 15px;
+    width: auto;
+    max-width: none;
+    height: auto;
+    z-index: 9999;
+    border-radius: 20px;
+    animation: zoomIn 0.25s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.96);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* HEADER */
+.st-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg,
+            #ffffff,
+            #f8fbff);
+    border-bottom: 1px solid #edf1f7;
+}
+
+.left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* ACTIONS */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #eef3f8;
+
+    cursor: pointer;
+
+    font-size: 16px;
+    color: #374151;
+
+    transition: 0.25s;
+}
+
+.icon-btn:hover {
+    background: #dde7f1;
+    transform: translateY(-2px);
+}
+
+/* CONTENT */
+.st-content {
+    padding: 24px;
+    color: #4b5563;
+    line-height: 1.8;
+    overflow: auto;
+    max-height: 500px;
+    transition: all 0.3s ease;
+}
+
+.fullscreen .st-content {
+    max-height: calc(100vh - 120px);
+}
+
+/* MINIMIZE */
+.st-panel.minimized .st-content {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+/* BADGE */
+.badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 18px;
+}
+
+.modern-label {
+    display: inline-block;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+
+    background: linear-gradient(135deg, #027235, #04a54f);
+
+    /* border-radius: 12px 12px 0px 0px; */
+    border-radius: 12px;
+    box-shadow:
+        0 4px 12px rgba(2, 114, 53, 0.25),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.modern-label:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 18px rgba(2, 114, 53, 0.35),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+
+.dashboard {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 12px 20px;
+
+    background: white;
+    border-left: 5px solid #027235;
+
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background: #04a54f;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #04a54f;
+    display: flex;
+}
+
+.dotText {
+    display: inline-flex;
+    align-items: center;
+    /* Centers the dot vertically with the text */
+    gap: 8px;
+    /* Adds space between the dot and the text */
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+}
+
+/* This automatically creates the dot before the text */
+.dotText::before {
+    content: "";
+    /* Required for pseudo-elements to show up */
+    width: 10px;
+    height: 10px;
+    background: #04a54f;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #04a54f;
+    flex-shrink: 0;
+    /* Prevents the dot from distorting */
+}
+
+
+.header-container {
+    position: fixed;
+    top: 10px;
+    left: 26px;
+    width: 98%;
+
+    display: flex;
+    justify-content: center;
+
+    z-index: 1000;
+}
+
+.animated-label {
+    width: 100%;
+    margin: 0;
+
+    padding: 12px 24px;
+
+    color: white;
+    font-weight: bold;
+    text-align: center;
+
+    background: linear-gradient(270deg,
+            #054e27,
+            #04a54f,
+            #04a54f,
+            #6defaa);
+
+    background-size: 400% 400%;
+
+    border-radius: 12px 12px 0px 0px;
+
+    animation: gradientMove 6s ease infinite;
+
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+.code-box {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 15px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-family: Consolas, monospace;
+}
+
+
+/* Container for the entire cell */
+.jupyter-cell {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin-bottom: 1em;
+    display: flex;
+    flex-direction: column;
+    /* border: 1px solid #027235; */
+
+    border: grey 1px solid;
+    border-radius: 8px;
+    margin-bottom: 17px;
+    box-shadow: inset 0px 0px 20px #aaaaaa;
+    background-color: #f9f9f9;
+    padding: 10px;
+}
+
+/* Common prompt style (The In [ ]: part) */
+.prompt {
+    min-width: 90px;
+    padding: 0.4em;
+    margin: 0;
+    font-family: monospace;
+    font-size: 14px;
+    text-align: right;
+    line-height: 1.21429em;
+}
+
+/* Input Area (Code) */
+.input-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.input-prompt {
+    color: #303F9F;
+}
+
+.code-area {
+    flex: 1;
+    background-color: #f7f7f7;
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    padding: 0.1em;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 20px;
+    line-height: 1.21429em;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* Output Area */
+.output-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    margin-top: -1px;
+    /* Overlap borders slightly */
+}
+
+.output-prompt {
+    color: #D84315;
+}
+
+.output-area {
+    flex: 1;
+    padding: 0.1em;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 20px;
+    line-height: 1.21429em;
+    white-space: pre-wrap;
+    color: #000;
+    border: 1px solid #ad6f5c;
+}
+
+.modern-details {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    /* Removed general padding so the summary background spans edge-to-edge */
+    border-left: 5px solid #027235;
+    border-bottom: 2px solid #02d461;
+    padding: 15px;
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+}
+
+.modern-details:hover {
+    box-shadow: 0 4
+}
+
+.modern-details:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Summary header */
+.modern-details summary {
+    list-style: none;
+    /* Hides default arrow in most browsers */
+    padding: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    background-color: #f4f7f7;
+    border-radius: 10px 10px 0 0;
+
+}
+
+/* Hides the default arrow in Safari */
+.modern-details summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Custom Indicator (The Arrow) */
+.modern-details summary::after {
+    content: '🞂';
+    /* Or use a SVG/icon */
+    transition: transform 0.3s ease;
+    color: #64748b;
+}
+
+/* Rotate arrow when open */
+.modern-details[open] summary::after {
+    transform: rotate(90deg);
+
+}
+
+/* Inner content padding */
+.modern-details .content {
+    padding: 0 1rem 1rem 1rem;
+    line-height: 1.6;
+    color: #475569;
+    border-top: 1px solid #f1f5f9;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* .modern-details[open] .content {
+    border-left: 2px solid #64748b;
+    border-right: 2px solid #64748b;
+    border-bottom: 2px solid #64748b;
+    padding-top: 1rem; 
+} */
+
+
+/* Simple fade-in animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ນຳເຂົ້າ Font ລາວເພື່ອຄວາມງາມ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
+
+/* body {
+            background-color: #f0f4f5;
+            font-family: 'Noto Sans Lao', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+        } */
+
+/* Container ຈັດລຽງ Card ທັງໝົດ */
+.panel-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    /* flex-wrap: wrap; */
+    /* ໃຫ້ມັນລົງແຖວໃໝ່ອັດຕະໂນມັດຖ້າໜ້າຈໍນ້ອຍ */
+    /* max-width: 1200px; */
+    width: 100%;
+    /* margin: 0 auto; */
+    margin: 0px;
+    /* height: 100%; */
+
+}
+
+/* Style ພື້ນຖານຂອງ Card */
+.panel-card {
+    background-color: #f4f7f7;
+    /* ສີພື້ນຫຼັງຂາວອົມເທົາ/ຟ້າອ່ອນໆ */
+    border-radius: 16px;
+    /* ມົນມຸມ */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    /* ເງົາອ່ອນໆດ້ານລຸ່ມ */
+    width: 220px;
+    min-height: 280px;
+    padding: 24px 20px;
+    /* padding: 5px 5px; */
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+
+}
+
+/* ເອັບເຟັກເວລາເອົາເມົ້າສ໌ໄປຊີ້ (Hover) */
+.panel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+/* ກຳນົດສີຂອບດ້ານເທິງຂອງແຕ່ລະ Card ໃຫ້ຄືໃນຮູບ */
+.card-teal {
+    border-top: 10px solid #237b76;
+}
+
+.card-blue {
+    border-top: 10px solid #70b2bc;
+}
+
+.card-orange {
+    border-top: 10px solid #f1a429;
+}
+
+.card-coral {
+    border-top: 10px solid #f18a6f;
+}
+
+.card-purple {
+    border-top: 10px solid #947ba7;
+}
+
+.card-green1 {
+    border-top: 10px solid #05cf42;
+}
+
+.card-green2 {
+    border-top: 10px solid #0544f2;
+}
+
+/* ໂຕໜັງສື "ມື້ທີ" */
+.card-day {
+    font-size: 14px;
+    color: #8a9a9d;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+/* ຕົວເລກຂະໜາດໃຫຍ່ */
+.card-number {
+    font-size: 72px;
+    font-weight: bold;
+    color: #1a5163;
+    /* ສີຟ້າເຂັ້ມ */
+    line-height: 1;
+    margin: 15px 0;
+}
+
+/* ເນື້ອຫາດ້ານລຸ່ມ */
+.card-text {
+    font-size: 16px;
+    color: #1a5163;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 0;
+
+    /* ເພີ່ມ 2 ແຖວນີ້ເຂົ້າໄປ */
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    /* padding: 30px;
+            text-wrap:wrap;
+            flex-wrap: wrap; */
+}
+
+/* Accessible explanations for model-performance metrics. */
+.metric-tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dashed currentColor;
+    cursor: help;
+    outline: none;
+}
+
+.metric-tooltip-content {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    z-index: 20;
+    width: min(280px, 70vw);
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #163b49;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, 5px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.metric-tooltip-content::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    border: 6px solid transparent;
+    border-top-color: #163b49;
+    content: "";
+    transform: translateX(-50%);
+}
+
+.metric-tooltip:hover .metric-tooltip-content,
+.metric-tooltip:focus .metric-tooltip-content,
+.metric-tooltip:focus-visible .metric-tooltip-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+}
+
+.metric-tooltip:focus-visible {
+    border-radius: 3px;
+    box-shadow: 0 0 0 3px rgba(35, 123, 118, 0.3);
+}
+
+
+
+
+
+.panel-cardS {
+    background-color: #f4f7f7;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+    width: 151px;
+    height: 151px;
+
+    padding: 10px;
+    box-sizing: border-box;
+
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif;
+}
+
+/* Hover effect */
+.panel-cardS:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+/* Top border colors */
+.card-tealS {
+    border-top: 6px solid #237b76;
+}
+
+.card-blueS {
+    border-top: 6px solid #70b2bc;
+}
+
+.card-orangeS {
+    border-top: 6px solid #f1a429;
+}
+
+.card-coralS {
+    border-top: 6px solid #f18a6f;
+}
+
+.card-purpleS {
+    border-top: 6px solid #947ba7;
+}
+
+.card-green1S {
+    border-top: 6px solid #05cf42;
+}
+
+.card-green2S {
+    border-top: 6px solid #0544f2;
+}
+
+/* Day text */
+.card-dayS {
+    font-size: 10px;
+    color: #8a9a9d;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Big number */
+.card-numberS {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1a5163;
+    line-height: 1;
+    margin: 2px 0;
+}
+
+/* Bottom text */
+.card-textS {
+    font-size: 10px;
+    color: #1a5163;
+    font-weight: 700;
+    line-height: 1.2;
+
+    overflow-wrap: break-word;
+    word-break: break-word;
+    margin: 0;
+}
+
+
+
+
+.containerLR {
+    display: flex;
+    /* height: 100vh; */
+    /* full screen height */
+}
+
+.leftL {
+    width: 60%;
+    /* background: lightblue; */
+    padding: 15px;
+}
+
+.rightR {
+    width: 40%;
+    /* background: lightgreen; */
+    padding: 10px;
+}
+
+
+
+.progress1 {
+    width: 300px;
+    height: 30px;
+    background-color: #e0e0e0;
+    /* Slightly lighter gray to make shadows pop */
+    border-radius: 15px;
+    overflow: hidden;
+
+    /* TUNNEL EFFECT STEP 1: Deep inset shadow on the container
+       This creates the "sunken ditch" look. */
+    box-shadow: inset 2px 4px 6px rgba(0, 0, 0, 0.25),
+        inset -1px -1px 3px rgba(255, 255, 255, 0.5);
+
+    position: relative;
+}
+
+.progress-bar1 {
+    height: 100%;
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+    line-height: 30px;
+    width: 65%;
+    /* Example width to show it working */
+    border-radius: 15px 0 0 15px;
+    /* Round the left side to match the container */
+
+    /* TUNNEL EFFECT STEP 2: Inset shadow inside the green bar 
+       This makes the green part look like it is also deep inside the tunnel, 
+       rather than floating flat on top. */
+    box-shadow: inset 2px 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+.ring-chart {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+
+    /* 90deg shifts the starting point to 3 o'clock (Geometric 0°) */
+    background: conic-gradient(from 90deg, var(--color) var(--percentage), #e0e0e0 0);
+
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The inner mask to make it a ring */
+.ring-chart::after {
+    content: "";
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+.ring-label {
+    position: relative;
+    z-index: 1;
+    font-family: sans-serif;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+
+
+.well {
+    width: 100%;
+    min-height: 20px;
+    padding: 9px;
+    margin-bottom: 5px;
+    background-color: #f5f5f5;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px 2px 2px 2px #006aae;
+}
+
+.textStyle {
+    border: grey 1px solid;
+    border-radius: 8px;
+    margin-bottom: 17px;
+    box-shadow: inset 0px 0px 20px #aaaaaa;
+    background-color: #f9f9f9;
+    padding: 15px;
+}
