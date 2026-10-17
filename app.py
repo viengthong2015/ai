@@ -95,7 +95,7 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
     fig, (forecast_axis, residual_axis) = plt.subplots(
-        2, 1, figsize=(12, 9), gridspec_kw={"height_ratios": [2, 1]}
+        2, 1, figsize=(12, 11), gridspec_kw={"height_ratios": [2, 1.5]}
     )
     forecast_axis.plot(
         HISTORICAL_YEARS,
@@ -115,37 +115,48 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
         )
     forecast_axis.axvline(2025, color="gray", linestyle="--", alpha=0.7)
     forecast_axis.axvspan(2025, result.all_years[-1], color="#e9ecef", alpha=0.45)
-    forecast_axis.set_title("Population forecast")
-    forecast_axis.set_ylabel("Total population")
+    forecast_axis.set_title("ຜົນການຄາດຄະເນປະຊາກອນ")
+    forecast_axis.set_ylabel("ປະຊາກອນ (ຄົນ)")
     forecast_axis.ticklabel_format(axis="y", style="plain")
     forecast_axis.legend(ncol=2)
     forecast_axis.grid(alpha=0.25)
 
+    year_spacing = 1.35
+    year_positions = np.arange(len(HISTORICAL_YEARS)) * year_spacing
+    group_width = 0.78
+    bar_width = group_width / len(selected_models)
     for model_position, name in enumerate(selected_models):
-        residuals = result.actual - result.fitted[name]
-        residual_axis.plot(
-            HISTORICAL_YEARS,
-            residuals,
-            marker="o",
-            label=MODEL_LABELS[name],
-            **MODEL_STYLES[name],
+        residuals = np.asarray(result.actual - result.fitted[name], dtype=float)
+        bar_positions = (
+            year_positions
+            - group_width / 2
+            + bar_width / 2
+            + model_position * bar_width
         )
-        series_offset = (model_position - (len(selected_models) - 1) / 2) * 9
-        for year, residual in zip(HISTORICAL_YEARS, residuals):
+        bars = residual_axis.bar(
+            bar_positions,
+            residuals,
+            width=bar_width,
+            color=MODEL_STYLES[name]["color"],
+            edgecolor="white",
+            linewidth=0.7,
+            label=MODEL_LABELS[name],
+            zorder=3,
+        )
+        for bar, residual in zip(bars, residuals):
             rounded_residual = int(np.rint(residual))
             value_label = (
                 "0"
                 if rounded_residual == 0
                 else f"{rounded_residual:+,}".replace("-", "−")
             )
-            point_offset = (8 if residual >= 0 else -12) + series_offset
             residual_axis.annotate(
                 value_label,
-                xy=(year, residual),
-                xytext=(0, point_offset),
+                xy=(bar.get_x() + bar.get_width() / 2, residual),
+                xytext=(0, 4 if residual >= 0 else -4),
                 textcoords="offset points",
                 ha="center",
-                va="bottom" if point_offset >= 0 else "top",
+                va="bottom" if residual >= 0 else "top",
                 fontsize=8 if len(selected_models) == 1 else 7,
                 color=MODEL_STYLES[name]["color"],
                 bbox={
@@ -155,12 +166,22 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
                     "alpha": 0.75,
                 },
             )
-    residual_axis.axhline(0, color="black", linewidth=1)
-    residual_axis.set_title("Yearly residuals (actual − predicted)")
-    residual_axis.set_xlabel("Year")
-    residual_axis.set_ylabel("People")
+    for divider_position in (year_positions[:-1] + year_positions[1:]) / 2:
+        residual_axis.axvline(
+            divider_position,
+            color="#ced4da",
+            linewidth=0.8,
+            alpha=0.7,
+            zorder=1,
+        )
+    residual_axis.axhline(0, color="black", linewidth=1, zorder=4)
+    residual_axis.set_title("ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການພຄາດຄະເນ)")
+    residual_axis.set_xlabel("ປີ")
+    residual_axis.set_ylabel("ປະຊາກອນ (ຄົນ)")
+    residual_axis.set_xticks(year_positions, HISTORICAL_YEARS)
     residual_axis.legend(ncol=3)
-    residual_axis.grid(alpha=0.25)
+    residual_axis.grid(axis="y", alpha=0.25, zorder=0)
+    residual_axis.set_axisbelow(True)
     residual_axis.margins(y=0.22)
     fig.tight_layout()
     return fig
@@ -322,10 +343,9 @@ def show_outlier_check(
     )
 
 
-st.title("Laos Population Forecast")
+st.title("ການຄາດຄະເນປະຊາກອນລາວ (ແຍກເປັນ: ເມືອງ, ອາຍຸ ແລະ ເພດ)")
 st.caption(
-    "Interactive implementation of `estimatePop.ipynb`: compare three models, "
-    "inspect errors, and export district-level forecasts."
+    "ຂໍ້ມູນຈາກ: ກົມແຜນການ ແລະ ການເງິນ, ກະຊວງສາທາລະນະສຸກ"
 )
 
 st.sidebar.header("Data and forecast")
@@ -368,12 +388,17 @@ future_years = list(range(2026, future_end + 1))
 
 summary_column_count = 3 if selected_model_option == ALL_MODELS_OPTION else 4
 summary_columns = st.columns(summary_column_count)
-summary_columns[0].metric("Rows", f"{len(filtered_data):,}")
-summary_columns[1].metric("Population in 2016", f"{result.actual[0]:,.0f}")
-summary_columns[2].metric("Population in 2025", f"{result.actual[-1]:,.0f}")
+summary_columns[0].metric("ຈຳນວນຂໍ້ມູນ (Rows)", f"{len(filtered_data):,}")
+summary_columns[1].metric("ປະຊາກອນ ປີ 2016", f"{result.actual[0]:,.0f}")
+summary_columns[2].metric("ປະຊາກອນ ປີ 2025", f"{result.actual[-1]:,.0f}")
+
+st.markdown(
+            '<hr style="border: none; border-top: 2px solid #2196F3;">',
+            unsafe_allow_html=True
+        )
 if selected_model_option == ALL_MODELS_OPTION:
     best_model = result.metrics.loc[selected_models, "MAPE (%)"].idxmin()
-    st.subheader("All-model accuracy summary")
+    st.subheader("ຜົນສະຫຼຸບຂອງແຕ່ລະແບບຈຳລອງ (models)")
     all_model_summary = result.metrics.loc[list(MODEL_NAMES)].reset_index()
     all_model_summary["Model"] = all_model_summary["Model"].map(MODEL_LABELS)
     st.dataframe(
@@ -390,11 +415,17 @@ if selected_model_option == ALL_MODELS_OPTION:
         width="stretch",
         height=143,
     )
-    st.caption(f"Best fit by MAPE: {MODEL_LABELS[best_model]}")
+    # st.caption(f"Best fit by MAPE: {MODEL_LABELS[best_model]}")
+    st.markdown(
+        '<hr style="border: none; border-top: 2px solid #2196F3;">',
+        unsafe_allow_html=True
+    )
+    # st.divider()
 else:
     selected_mape = result.metrics.loc[selected_model_option, "MAPE (%)"]
     summary_columns[3].metric("Selected model MAPE", f"{selected_mape:.4f}%")
-st.caption(f"Source: {source_name} · {len(data):,} total source rows")
+# st.caption(f"Source: {source_name} · {len(data):,} total source rows")
+
 
 overview_tab, data_tab, export_tab = st.tabs(
     ["Forecast overview", "Source data & outliers", "Row-level exports"]
@@ -404,42 +435,53 @@ with overview_tab:
     forecast_chart = forecast_figure(result, selected_models)
     st.pyplot(forecast_chart, width="stretch")
     plt.close(forecast_chart)
+    st.markdown(
+            '<hr style="border: none; border-top: 2px solid #2196F3;">',
+            unsafe_allow_html=True
+        )
+    # performance_title = (
+    #     "Model accuracy comparison on 2016–2025 data"
+    #     if selected_model_option == ALL_MODELS_OPTION
+    #     else f"{MODEL_LABELS[selected_model_option]} accuracy on 2016–2025 data"
+    # )
+    # st.subheader(performance_title)
+    # metrics = result.metrics.loc[selected_models].reset_index()
+    # metrics["Model"] = metrics["Model"].map(MODEL_LABELS)
+    # st.dataframe(
+    #     metrics.style.format(
+    #         {
+    #             "MAE": "{:,.2f}",
+    #             "RMSE": "{:,.2f}",
+    #             "MAPE (%)": "{:.4f}",
+    #             "R²": "{:.4f}",
+    #             "Accuracy (%)": "{:.4f}",
+    #         }
+    #     ),
+    #     hide_index=True,
+    #     width="stretch",
+    # )
+    # st.markdown(
+    #         '<hr style="border: none; border-top: 2px solid #2196F3;">',
+    #         unsafe_allow_html=True
+    #     )
+    # st.caption(
+    #     "Accuracy is shown as 100 − MAPE, matching the notebook. It is an "
+    #     "in-sample descriptive score, not a validation-set accuracy measure."
+    # )
 
-    performance_title = (
-        "Model accuracy comparison on 2016–2025 data"
-        if selected_model_option == ALL_MODELS_OPTION
-        else f"{MODEL_LABELS[selected_model_option]} accuracy on 2016–2025 data"
-    )
-    st.subheader(performance_title)
-    metrics = result.metrics.loc[selected_models].reset_index()
-    metrics["Model"] = metrics["Model"].map(MODEL_LABELS)
-    st.dataframe(
-        metrics.style.format(
-            {
-                "MAE": "{:,.2f}",
-                "RMSE": "{:,.2f}",
-                "MAPE (%)": "{:.4f}",
-                "R²": "{:.4f}",
-                "Accuracy (%)": "{:.4f}",
-            }
-        ),
-        hide_index=True,
-        width="stretch",
-    )
-    st.caption(
-        "Accuracy is shown as 100 − MAPE, matching the notebook. It is an "
-        "in-sample descriptive score, not a validation-set accuracy measure."
-    )
-
-    st.subheader("Actual and predicted values")
+    st.subheader("ສົມທຽບລະຫວ່າງຂໍ້ມູນຈິງ ແລະ ຜົນການຄາດຄະເນ (2016–2025), ຕາມແຕ່ລະແບບຈຳລອງ")
     actual_predicted_chart = actual_vs_predicted_figure(result, selected_models)
     st.pyplot(actual_predicted_chart, width="stretch")
     plt.close(actual_predicted_chart)
 
-    st.subheader("Predicted totals")
+    st.markdown(
+            '<hr style="border: none; border-top: 2px solid #2196F3;">',
+            unsafe_allow_html=True
+        )
+    st.subheader("ສະຫຼຸບການຄາດຄະເນ ປະຊາກອນໂດຍລວມ ປີ 2026-{future_end}, ຕາມແຕ່ລະແບບຈຳລອງ".format(future_end=future_end))
     future_table = pd.DataFrame(
         {
-            "Year": future_years,
+            "ປີ": future_years,
             **{
                 MODEL_LABELS[name]: np.rint(result.future[name])
                 .clip(min=0)
@@ -521,9 +563,7 @@ with data_tab:
 
 with export_tab:
     st.write(
-        "Generate predictions for every currently filtered row. The CSV includes "
-        "all three models; the HTML export follows the notebook and keeps the "
-        "Polynomial forecast with row and grand totals."
+        "ຜົນການຄາດຄະເນປະຊາກອນ ສາມາດດາວໂຫຼດໄດ້ໃນແບບ CSV ຫຼື HTML. ປະກອບມີຂໍ້ມູນການຄາດຄະເນທັງໝົດ ຕາມແຕ່ລະແບບ Linear Regression, Polynomial Regression, ແລະ Exponential Growth."
     )
     predicted = cached_row_forecast(filtered_data, future_end)
     html_table = polynomial_html_table(predicted, future_end)
@@ -535,10 +575,10 @@ with export_tab:
         if not column.endswith(prediction_suffixes)
         or column.endswith(selected_suffixes)
     ]
-    st.caption(
-        "The preview follows the selected model option. The all-model CSV continues to "
-        "include Linear Regression, Polynomial Regression, and Exponential Growth."
-    )
+    # st.caption(
+    #     "The preview follows the selected model option. The all-model CSV continues to "
+    #     "include Linear Regression, Polynomial Regression, and Exponential Growth."
+    # )
     st.dataframe(
         predicted[preview_columns], hide_index=True, width="stretch", height=480
     )
