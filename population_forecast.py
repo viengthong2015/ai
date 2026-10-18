@@ -27,6 +27,24 @@ class ForecastResult:
     metrics: pd.DataFrame
 
 
+def annual_growth_rates(values: np.ndarray) -> np.ndarray:
+    """Return year-over-year percentage changes, excluding the first value."""
+    population = np.asarray(values, dtype=float)
+    if population.ndim != 1:
+        raise ValueError("Population values must be a one-dimensional series.")
+    if population.size < 2:
+        return np.asarray([], dtype=float)
+
+    previous = population[:-1]
+    changes = population[1:] - previous
+    return np.divide(
+        changes,
+        previous,
+        out=np.full(changes.shape, np.nan, dtype=float),
+        where=previous != 0,
+    ) * 100
+
+
 def validate_population_data(df: pd.DataFrame) -> pd.DataFrame:
     """Validate and normalize the ten historical population columns."""
     missing = [column for column in HISTORICAL_COLUMNS if column not in df.columns]

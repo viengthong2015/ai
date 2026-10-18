@@ -19,6 +19,7 @@ from population_forecast import (
     HISTORICAL_COLUMNS,
     HISTORICAL_YEARS,
     MODEL_NAMES,
+    annual_growth_rates,
     dataframe_to_csv_bytes,
     dataframe_to_html_bytes,
     forecast_each_row,
@@ -226,6 +227,26 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
     residual_axis.margins(y=0.22)
     fig.tight_layout()
     return fig
+
+
+def population_growth_rate_summary(
+    result, selected_models: list[str]
+) -> tuple[pd.DataFrame, dict[str, float]]:
+    """Build a compact annual-growth table and series averages."""
+    years = np.asarray(result.all_years[1:])
+    actual_rates = annual_growth_rates(result.actual)
+    actual_column = np.full(years.shape, np.nan, dtype=float)
+    actual_column[: actual_rates.size] = actual_rates
+
+    table_data = {"Year": years, "Actual": actual_column}
+    averages = {"Actual": float(np.nanmean(actual_rates))}
+    for name in selected_models:
+        label = MODEL_LABELS[name]
+        rates = annual_growth_rates(result.predictions[name])
+        table_data[label] = rates
+        averages[label] = float(np.nanmean(rates))
+
+    return pd.DataFrame(table_data), averages
 
 
 def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure:
@@ -591,6 +612,63 @@ st.markdown(
         outline: 3px solid rgba(2, 136, 209, 0.28) !important;
         outline-offset: 2px;
     }
+
+    div[data-testid="stTabs"] div[data-baseweb="tab-list"] {
+        gap: 0.55rem;
+        padding: 0.42rem;
+        overflow-x: auto;
+        border: 1px solid #dbe5f0;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, #f8fbff 0%, #f1f5f9 100%);
+        box-shadow: 0 8px 24px rgba(15, 76, 129, 0.08);
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"] {
+        flex: 1 0 auto;
+        min-height: 3rem;
+        padding: 0.65rem 1rem;
+        border: 1px solid #dbe5f0;
+        border-radius: 0.75rem;
+        background: #ffffff;
+        color: #475569;
+        font-weight: 650;
+        letter-spacing: 0.01em;
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease,
+            background 160ms ease,
+            color 160ms ease;
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"]:hover {
+        border-color: #bfdbfe;
+        color: #1565c0;
+        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.12);
+        transform: translateY(-1px);
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+        border-color: transparent;
+        background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%);
+        color: #ffffff;
+        box-shadow:
+            0 8px 20px rgba(21, 101, 192, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        transform: translateY(-1px);
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] * {
+        color: #ffffff !important;
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"]:focus-visible {
+        outline: 3px solid rgba(2, 136, 209, 0.28);
+        outline-offset: 2px;
+    }
+
+    div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] {
+        display: none;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -776,7 +854,7 @@ else:
 
 overview_tab, pyramid_tab, data_tab, export_tab = st.tabs(
     [
-        "Forecast overview",
+        "Forecast Overview",
         "Population pyramid",
         "Source data & outliers",
         "Row-level exports",
@@ -853,6 +931,32 @@ with overview_tab:
         ),
         hide_index=True,
         width="stretch",
+    )
+
+    st.markdown(
+        '<hr style="border: none; border-top: 2px solid #2196F3;">',
+        unsafe_allow_html=True,
+    )
+    st.subheader("ອັດຕາການຂະຫຍາຍຕົວ ແລະ ອັດຕາສະເລ່ຍ")
+    growth_rate_table, average_growth_rates = population_growth_rate_summary(
+        result, selected_models
+    )
+    average_columns = st.columns(len(average_growth_rates))
+    for column, (label, average_rate) in zip(
+        average_columns, average_growth_rates.items()
+    ):
+        column.metric(f"{label} average", f"{average_rate:+.2f}%")
+
+    growth_columns = [column for column in growth_rate_table if column != "Year"]
+    st.dataframe(
+        growth_rate_table.style.format(
+            {column: "{:+.2f}%" for column in growth_columns}, na_rep="—"
+        ),
+        hide_index=True,
+        width="stretch",
+    )
+    st.caption(
+        "ແຕ່ລະຄ່າແມ່ນອັດຕາການປ່ຽນແປງ (ເຕີບໂຕ) ທຽບກັບປີຕໍ່ປີ (Year-over-Year). ຕົວເລກຕົວຈິງແມ່ນຮອດ ປີ 2025; ຕົວເລກຄາດຄະເນຂອງແບບຈຳລອງແມ່ນສືບຕໍ່ໄປຈົນຮອດປີທີເລືອກໄວ້."
     )
 
 with pyramid_tab:

@@ -23,7 +23,7 @@
         <div class="slide active">
             <br>
             <div class="dashboard" style="width: 96%; font-size: 20px; height: 90%;">
-                📖 ວິຊາ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AI Developer - Sumsung Compus innovation<br><br>
+                📖 ວິຊາ:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AI Developer | Sumsung Compus innovation<br><br>
                 🧑‍🤝‍🧑 ກຸ່ມທີ່ II:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ວຽງທອງ ຈົ່ງຫວາຊົ່ງ <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 ບູນສີຊົ່ງ ເຍ່ຍລູກ<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 ກົ້ງເມັ່ງ ທໍ່
@@ -310,6 +310,7 @@
 
         <div class="slide">
             <h2>4. ການກະກຽມຂໍ້ມູນ (Data Preprocessing)</h2>
+            <div style="font-size: 28px;">
                 <div class="label-row">
                         <span class="label">1</span>
                         <span class="label-text">ດາວໂຫຼດຂໍ້ມູນຈາກຖານຂໍ້ມູນຂອງລະບົບ DHIS2, ກະຊວງສາທາລະນະສຸກ</span>
@@ -334,6 +335,7 @@
             <p style="font-size: 28px;">✍️ ບໍ່ໄດ້ເຮັດການທຳຄວາມສະອາດຂໍ້ມູນ
                 ເພາະຊຸດຂໍ້ມູນຂອງເຮົາແມ່ນໄດ້ມາຈາກຖານຂໍ້ມູນທີ່ສົມບູນ, ຖືກຕ້ອງ,
                 ຜ່ານການກວດສອບ, ແລະ ສະອາດແລ້ວ</p>
+            </div>
         </div>
 
         <!-- Slide 9 -->
@@ -558,6 +560,19 @@ def forecast_totals(df, future_end=2030):
     metrics.index.name = "Model"
     return ForecastResult(y, all_years, predictions, fitted, future, metrics)
                     </pre>
+
+                    <div class="result-note" style="margin-top: 16px;">
+                        <b>ສະຫຼຸບ:</b>
+                        <ul style="margin: 8px 0 0 24px;">
+                            <li>ກວດສອບຊຸດຂໍ້ມູນປະຊາກອນປີ 2016–2025 ແລະ ນຳ Filter
+                                ທີ່ຜູ້ໃຊ້ເລືອກມາໃຊ້ກ່ອນການຄຳນວນ.</li>
+                            <li>ລວມຈຳນວນປະຊາກອນເປັນຍອດລວມລາຍປີ ແລະ ກຽມຂໍ້ມູນສຳລັບການຝຶກສອນ.</li>
+                            <li>ສ້າງ ແລະ ຝຶກສອນ 3 ແບບຈຳລອງ: Linear Regression,
+                                Polynomial Regression ລະດັບ 2 ແລະ Exponential Growth.</li>
+                            <li>ສ້າງຄ່າຄາດຄະເນສຳລັບຊ່ວງຂໍ້ມູນເກົ່າ ແລະ ປີໃນອະນາຄົດ
+                                ພ້ອມປະເມີນແຕ່ລະ Model ດ້ວຍ MAE, RMSE, MAPE, R² ແລະ Accuracy.</li>
+                        </ul>
+                    </div>
                 </div>
 
             </details>
@@ -607,6 +622,20 @@ def forecast_each_row(df, future_end=2030):
             result[f"{year}_{suffix}"] = rounded[:, position]
     return result
                     </pre>
+
+                    <div class="result-note" style="margin-top: 16px;">
+                        <b>ສະຫຼຸບ:</b>
+                        <ul style="margin: 8px 0 0 24px;">
+                            <li>ພະຍາກອນປະຊາກອນແຍກຕາມແຕ່ລະແຖວຂອງຂໍ້ມູນທີ່ຜ່ານ Filter
+                                ເຊັ່ນ: ເມືອງ, ເພດ ແລະ ອາຍຸ.</li>
+                            <li>ໃຊ້ການຄຳນວນແບບ Vectorized Multi-output ເພື່ອຝຶກສອນ ແລະ ຄາດຄະເນ
+                                Linear, Polynomial ແລະ Exponential ໃຫ້ທຸກແຖວພ້ອມກັນ.</li>
+                            <li>ປ້ອງກັນບັນຫາ log(0), ຕັດຄ່າຕິດລົບເປັນ 0 ແລະ ປັດຜົນຄາດຄະເນ
+                                ເປັນຈຳນວນເຕັມຂອງປະຊາກອນ.</li>
+                            <li>ເພີ່ມຖັນຜົນຄາດຄະເນຕາມປີ ແລະ Model ເຂົ້າໃນຕາຕະລາງ
+                                ເພື່ອດາວໂຫຼດເປັນ CSV ຫຼື HTML ໂດຍໃຊ້ Cache ຊ່ວຍຫຼຸດເວລາຄຳນວນຊ້ຳ.</li>
+                        </ul>
+                    </div>
                 </div>
             </details>
 
@@ -649,7 +678,7 @@ future_values = {
     for name in MODEL_NAMES
 }
                 </pre>
-                <b>ຜົນຄຳນວນສົດຈາກ Demo ສະແດງຢູ່ໃນ cards ແລະ tables ດ້ານລຸ່ມ.</b>
+                <b>ຜົນຄຳນວນຈາກ Demo ສະແດງຢູ່ໃນ cards ແລະ tables ດ້ານລຸ່ມ.</b>
                 <hr>
                 <div class="content"
                     style="width: 100%; display: flex; gap: 15px; justify-content: center;align-items: center;">
