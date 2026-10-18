@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import base64
 from io import BytesIO
+import json
+import mimetypes
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import StrMethodFormatter
+from matplotlib.ticker import FuncFormatter, StrMethodFormatter
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -27,6 +30,7 @@ from population_forecast import (
 
 APP_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA = APP_DIR / "data" / "dataDistrict.csv"
+PRESENTATION_FILE = APP_DIR / "index.html"
 MODEL_STYLES = {
     "Linear": {"color": "#e63946", "linestyle": "--"},
     "Polynomial": {"color": "#2a9d5b", "linestyle": "-."},
@@ -60,6 +64,43 @@ def load_default_data(path: str, modified_time: float) -> pd.DataFrame:
 @st.cache_data(show_spinner=False)
 def load_uploaded_data(content: bytes) -> pd.DataFrame:
     return pd.read_csv(BytesIO(content))
+
+
+@st.cache_data(show_spinner=False)
+def load_embedded_presentation(
+    html_modified_time: float,
+    css_modified_time: float,
+    js_modified_time: float,
+    image_modified_times: tuple[tuple[str, float], ...],
+    live_results_json: str,
+) -> str:
+    """Build a self-contained presentation for Streamlit's HTML component."""
+    del html_modified_time, css_modified_time, js_modified_time, image_modified_times
+    html = PRESENTATION_FILE.read_text(encoding="utf-8")
+    css = (APP_DIR / "image" / "style.css").read_text(encoding="utf-8")
+    javascript = (APP_DIR / "image" / "js.js").read_text(encoding="utf-8")
+    html = html.replace(
+        '<link rel="stylesheet" href="image/style.css">',
+        f"<style>{css}</style>",
+    )
+    html = html.replace('<script src="image/js.js" defer></script>', "")
+
+    for image_path in (APP_DIR / "image").iterdir():
+        mime_type, _ = mimetypes.guess_type(image_path.name)
+        if not mime_type or not mime_type.startswith("image/"):
+            continue
+        encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
+        html = html.replace(
+            f'src="image/{image_path.name}"',
+            f'src="data:{mime_type};base64,{encoded}"',
+        )
+    encoded_results = base64.b64encode(live_results_json.encode("utf-8")).decode("ascii")
+    live_results_script = (
+        "<script>window.PRESENTATION_RESULTS = JSON.parse("
+        f"decodeURIComponent(escape(atob('{encoded_results}'))));</script>"
+    )
+    html = html.replace("</head>", f"{live_results_script}</head>")
+    return html.replace("</body>", f"<script>{javascript}</script></body>")
 
 
 @st.cache_data(show_spinner="Calculating row-level forecasts…")
@@ -285,6 +326,137 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
     return fig
 
 
+def population_pyramid_figure(
+    df: pd.DataFrame,
+    district: str | None,
+    year: int,
+    year_label: str | None = None,
+    age_display: str = "By age group",
+) -> tuple[plt.Figure, int, int]:
+    """Build a population pyramid for the requested district and age bands."""
+    required_columns = {"ouName", "cocCode", "sexCode", str(year)}
+    missing_columns = sorted(required_columns.difference(df.columns))
+    if missing_columns:
+        raise ValueError(
+            "The population pyramid requires these columns: "
+            + ", ".join(missing_columns)
+        )
+
+    district_data = (
+        df.copy()
+        if district is None
+        else df[df["ouName"].astype(str).eq(district)].copy()
+    )
+    if district_data.empty:
+        raise ValueError(f"No population records were found for {district}.")
+
+    numeric_ages = pd.to_numeric(
+        district_data["cocCode"]
+        .astype(str)
+        .str.extract(r"(\d+)", expand=False),
+        errors="coerce",
+    )
+    if numeric_ages.isna().any():
+        raise ValueError("The cocCode column contains an unrecognized age value.")
+    if age_display == "By age group":
+        profile_column = "Age group"
+        profile_labels = ["0–4", "5–18", "19–25", "26–40", "41–60", "61–80+"]
+        district_data[profile_column] = pd.cut(
+            numeric_ages,
+            bins=[-1, 4, 18, 25, 40, 60, np.inf],
+            labels=profile_labels,
+        )
+        y_axis_label = "Age group"
+        figure_height = 7.0
+    elif age_display == "By single age":
+        profile_column = "Age"
+        district_data[profile_column] = district_data["cocCode"].astype(str).str.strip()
+        profile_labels = sorted(
+            district_data[profile_column].unique(),
+            key=lambda age: (
+                int("".join(character for character in age if character.isdigit()) or -1),
+                "+" in age,
+            ),
+        )
+        y_axis_label = "Age"
+        figure_height = max(12.0, len(profile_labels) * 0.22)
+    else:
+        raise ValueError(f"Unknown age display option: {age_display}.")
+    district_data["Population"] = pd.to_numeric(
+        district_data[str(year)], errors="coerce"
+    )
+    if district_data["Population"].isna().any():
+        raise ValueError(f"The {year} population column contains non-numeric values.")
+
+    profile = district_data.pivot_table(
+        index=profile_column,
+        columns="sexCode",
+        values="Population",
+        aggfunc="sum",
+        fill_value=0,
+        observed=False,
+    ).reindex(profile_labels, fill_value=0)
+
+    sex_codes = {str(code).strip().upper(): code for code in profile.columns}
+    if "M" not in sex_codes or "F" not in sex_codes:
+        raise ValueError("The population pyramid requires M and F values in sexCode.")
+
+    male_values = profile[sex_codes["M"]].to_numpy(dtype=float)
+    female_values = profile[sex_codes["F"]].to_numpy(dtype=float)
+    positions = np.arange(len(profile.index))
+
+    figure, axis = plt.subplots(figsize=(12, figure_height))
+    axis.barh(
+        positions,
+        -male_values,
+        height=0.82,
+        color="#277da1",
+        edgecolor="white",
+        linewidth=0.35,
+        label="Male",
+    )
+    axis.barh(
+        positions,
+        female_values,
+        height=0.82,
+        color="#e76f91",
+        edgecolor="white",
+        linewidth=0.35,
+        label="Female",
+    )
+    axis.axvline(0, color="#495057", linewidth=0.9)
+    axis.set_yticks(positions, profile.index)
+    axis.tick_params(axis="y", labelsize=7)
+    axis.xaxis.set_major_formatter(
+        FuncFormatter(lambda value, _position: f"{abs(value):,.0f}")
+    )
+    population_limit = max(float(male_values.max()), float(female_values.max()), 1.0)
+    axis.set_xlim(-population_limit * 1.12, population_limit * 1.12)
+    axis.set_xlabel("Population (people)")
+    axis.set_ylabel(y_axis_label)
+    location_label = district if district is not None else "All districts"
+    axis.set_title(
+        f"Population pyramid — {location_label} ({year_label or year})",
+        fontsize=15,
+        fontweight="bold",
+        pad=14,
+    )
+    axis.grid(axis="x", linestyle="--", linewidth=0.7, alpha=0.3)
+    axis.set_axisbelow(True)
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.legend(loc="upper right", frameon=False, ncol=2)
+    figure.tight_layout()
+    return figure, int(np.rint(male_values.sum())), int(np.rint(female_values.sum()))
+
+
+def figure_to_data_uri(figure: plt.Figure) -> str:
+    """Serialize a live Matplotlib result for the embedded presentation."""
+    buffer = BytesIO()
+    figure.savefig(buffer, format="png", dpi=110, bbox_inches="tight")
+    encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
 def filter_outlier_results(results: pd.DataFrame, visible_data: pd.DataFrame) -> pd.DataFrame:
     """Apply display filters without changing nationwide reference thresholds."""
     visible = results
@@ -311,7 +483,7 @@ def show_outlier_check(
     results: pd.DataFrame,
     visible_data: pd.DataFrame,
     years: list[int],
-) -> None:
+) -> pd.DataFrame:
     st.markdown(f"#### {title}")
     st.caption(description)
     visible = filter_outlier_results(results, visible_data)
@@ -319,7 +491,7 @@ def show_outlier_check(
     st.metric("Flagged observations", f"{len(visible):,}")
     if visible.empty:
         st.success("No observations exceed the selected robust-score threshold.")
-        return
+        return visible
     st.bar_chart(visible.groupby("Year").size().rename("Flags"), height=220)
     st.dataframe(
         visible.style.format(
@@ -341,7 +513,137 @@ def show_outlier_check(
         mime="text/csv",
         key=f"download-{title}",
     )
+    return visible
 
+
+st.markdown(
+    """
+    <style>
+    div[data-testid="stButtonGroup"] {
+        margin: 0.35rem 0 1.25rem;
+    }
+
+    div[data-testid="stButtonGroup"] [role="radiogroup"] {
+        gap: 0.55rem !important;
+        padding: 0.42rem !important;
+        border: 1px solid #dbe5f0;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, #f8fbff 0%, #f1f5f9 100%);
+        box-shadow: 0 8px 24px rgba(15, 76, 129, 0.08);
+    }
+
+    div[data-testid="stButtonGroup"] button {
+        min-height: 3.15rem;
+        position: relative;
+        border: 1px solid #dbe5f0 !important;
+        border-radius: 0.75rem !important;
+        background: #ffffff !important;
+        color: #475569 !important;
+        font-weight: 650 !important;
+        letter-spacing: 0.01em;
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease,
+            background 160ms ease,
+            color 160ms ease !important;
+    }
+
+    div[data-testid="stButtonGroup"] button:hover {
+        border-color: #bfdbfe !important;
+        background: #ffffff !important;
+        color: #1565c0 !important;
+        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.12);
+        transform: translateY(-1px);
+    }
+
+    div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"],
+    div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {
+        border-color: transparent !important;
+        background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%) !important;
+        color: #ffffff !important;
+        box-shadow:
+            0 8px 20px rgba(21, 101, 192, 0.32),
+            inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        transform: translateY(-1px);
+    }
+
+    div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"] *,
+    div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] * {
+        color: #ffffff !important;
+    }
+
+    div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"]::after,
+    div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"]::after {
+        content: "✓";
+        display: inline-grid;
+        place-items: center;
+        width: 1.35rem;
+        height: 1.35rem;
+        margin-left: 0.5rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 800;
+    }
+
+    div[data-testid="stButtonGroup"] button:focus-visible {
+        outline: 3px solid rgba(2, 136, 209, 0.28) !important;
+        outline-offset: 2px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+app_view = st.segmented_control(
+    "Page",
+    ["Presentation", "Demo"],
+    default="Demo",
+    format_func=lambda view: (
+        "🎞️  Presentation" if view == "Presentation" else "📊  Demo"
+    ),
+    label_visibility="collapsed",
+    width="stretch",
+)
+
+if app_view == "Presentation":
+    if not PRESENTATION_FILE.exists():
+        st.error(f"Presentation file not found: {PRESENTATION_FILE}")
+        st.stop()
+    st.markdown(
+        """
+        <style>
+        .stAppHeader { display: none; }
+        [data-testid="stMainBlockContainer"] {
+            max-width: none;
+            padding: 0.5rem;
+        }
+        iframe[title="st.iframe"] {
+            height: calc(100vh - 4.5rem) !important;
+            border-radius: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    presentation_html = load_embedded_presentation(
+        PRESENTATION_FILE.stat().st_mtime,
+        (APP_DIR / "image" / "style.css").stat().st_mtime,
+        (APP_DIR / "image" / "js.js").stat().st_mtime,
+        tuple(
+            (path.name, path.stat().st_mtime)
+            for path in (APP_DIR / "image").iterdir()
+            if path.is_file()
+        ),
+        json.dumps(
+            st.session_state.get("presentation_results", {}),
+            ensure_ascii=False,
+            sort_keys=True,
+        ),
+    )
+    st.iframe(presentation_html, height=900, width="stretch")
+    st.stop()
 
 st.title("ການຄາດຄະເນປະຊາກອນລາວ (ແຍກເປັນ: ເມືອງ, ອາຍຸ ແລະ ເພດ)")
 st.caption(
@@ -386,6 +688,51 @@ if filtered_data.empty:
 result = forecast_totals(filtered_data, future_end)
 future_years = list(range(2026, future_end + 1))
 
+live_results = {
+    "source_name": source_name,
+    "row_count": f"{len(filtered_data):,}",
+    "population_2016": f"{result.actual[0]:,.0f}",
+    "population_2025": f"{result.actual[-1]:,.0f}",
+    "future_end": str(future_end),
+    "forecast_period": f"2026–{future_end}",
+    "selected_model": MODEL_LABELS.get(selected_model_option, selected_model_option),
+    "future_years": future_years,
+    "future_table_models": [
+        {
+            "name": MODEL_LABELS[name],
+            "key": name,
+            "values": [
+                f"{value:,.0f}" for value in np.rint(result.future[name]).clip(min=0)
+            ],
+        }
+        for name in selected_models
+    ],
+}
+presentation_best_model = result.metrics["MAPE (%)"].idxmin()
+live_results["best_model"] = MODEL_LABELS[presentation_best_model]
+live_results["best_model_mape"] = (
+    f"{result.metrics.loc[presentation_best_model, 'MAPE (%)']:.4f}%"
+)
+for model_name in MODEL_NAMES:
+    model_key = model_name.lower()
+    model_metrics = result.metrics.loc[model_name]
+    live_results.update(
+        {
+            f"{model_key}_mae": f"{model_metrics['MAE']:,.2f}",
+            f"{model_key}_rmse": f"{model_metrics['RMSE']:,.2f}",
+            f"{model_key}_mape": f"{model_metrics['MAPE (%)']:.4f}%",
+            f"{model_key}_r2": f"{model_metrics['R²']:.4f}",
+            f"{model_key}_accuracy": f"{model_metrics['Accuracy (%)']:.4f}%",
+        }
+    )
+    for year in range(2026, 2031):
+        if year <= future_end:
+            value = result.future[model_name][year - 2026]
+            live_results[f"{model_key}_{year}"] = f"{value:,.0f}"
+        else:
+            live_results[f"{model_key}_{year}"] = "—"
+st.session_state["presentation_results"] = live_results
+
 summary_column_count = 3 if selected_model_option == ALL_MODELS_OPTION else 4
 summary_columns = st.columns(summary_column_count)
 summary_columns[0].metric("ຈຳນວນຂໍ້ມູນ (Rows)", f"{len(filtered_data):,}")
@@ -427,12 +774,18 @@ else:
 # st.caption(f"Source: {source_name} · {len(data):,} total source rows")
 
 
-overview_tab, data_tab, export_tab = st.tabs(
-    ["Forecast overview", "Source data & outliers", "Row-level exports"]
+overview_tab, pyramid_tab, data_tab, export_tab = st.tabs(
+    [
+        "Forecast overview",
+        "Population pyramid",
+        "Source data & outliers",
+        "Row-level exports",
+    ]
 )
 
 with overview_tab:
     forecast_chart = forecast_figure(result, selected_models)
+    live_results["forecast_chart_src"] = figure_to_data_uri(forecast_chart)
     st.pyplot(forecast_chart, width="stretch")
     plt.close(forecast_chart)
     st.markdown(
@@ -471,8 +824,12 @@ with overview_tab:
 
     st.subheader("ສົມທຽບລະຫວ່າງຂໍ້ມູນຈິງ ແລະ ຜົນການຄາດຄະເນ (2016–2025), ຕາມແຕ່ລະແບບຈຳລອງ")
     actual_predicted_chart = actual_vs_predicted_figure(result, selected_models)
+    live_results["actual_predicted_chart_src"] = figure_to_data_uri(
+        actual_predicted_chart
+    )
     st.pyplot(actual_predicted_chart, width="stretch")
     plt.close(actual_predicted_chart)
+    st.session_state["presentation_results"] = live_results
 
     st.markdown(
             '<hr style="border: none; border-top: 2px solid #2196F3;">',
@@ -497,6 +854,85 @@ with overview_tab:
         hide_index=True,
         width="stretch",
     )
+
+with pyramid_tab:
+    st.subheader("Population pyramid by district")
+    st.caption(
+        "Compare male and female populations in the age groups 0–4, 5–18, "
+        "19–25, 26–40, 41–60, and 61–80+."
+    )
+    if "ouName" not in data.columns:
+        st.error("The uploaded data must contain an ouName district column.")
+    else:
+        pyramid_districts = sorted(data["ouName"].dropna().astype(str).unique())
+        district_column, year_column, age_display_column = st.columns(3)
+        selected_pyramid_district = district_column.selectbox(
+            "District",
+            ["All", *pyramid_districts],
+            key="population_pyramid_district",
+            help="Choose All for the nationwide pyramid or select one district.",
+        )
+        selected_pyramid_year = year_column.selectbox(
+            "Year",
+            [*HISTORICAL_YEARS, *future_years],
+            index=len(HISTORICAL_YEARS) - 1,
+            key="population_pyramid_year",
+        )
+        selected_age_display = age_display_column.selectbox(
+            "Age display",
+            ["By age group", "By single age"],
+            key="population_pyramid_age_display",
+        )
+        pyramid_data = data
+        pyramid_year_label = str(selected_pyramid_year)
+        if selected_pyramid_year > HISTORICAL_YEARS[-1]:
+            pyramid_model = (
+                presentation_best_model
+                if selected_model_option == ALL_MODELS_OPTION
+                else selected_model_option
+            )
+            pyramid_predictions = cached_row_forecast(data, future_end)
+            prediction_column = (
+                f"{selected_pyramid_year}{MODEL_EXPORT_SUFFIXES[pyramid_model]}"
+            )
+            pyramid_data = pyramid_predictions.copy()
+            pyramid_data[str(selected_pyramid_year)] = pyramid_data[prediction_column]
+            pyramid_year_label = (
+                f"{selected_pyramid_year} forecast · {MODEL_LABELS[pyramid_model]}"
+            )
+            if selected_model_option == ALL_MODELS_OPTION:
+                st.info(
+                    "All models is selected, so this future pyramid uses the current "
+                    f"lowest-MAPE model: {MODEL_LABELS[pyramid_model]}."
+                )
+            else:
+                st.caption(
+                    f"The {selected_pyramid_year} pyramid uses the selected "
+                    f"{MODEL_LABELS[pyramid_model]} forecast."
+                )
+        try:
+            pyramid_chart, pyramid_male_total, pyramid_female_total = (
+                population_pyramid_figure(
+                    pyramid_data,
+                    None
+                    if selected_pyramid_district == "All"
+                    else selected_pyramid_district,
+                    selected_pyramid_year,
+                    pyramid_year_label,
+                    selected_age_display,
+                )
+            )
+        except ValueError as error:
+            st.error(str(error))
+        else:
+            male_total_column, female_total_column, combined_total_column = st.columns(3)
+            male_total_column.metric("Male population", f"{pyramid_male_total:,}")
+            female_total_column.metric("Female population", f"{pyramid_female_total:,}")
+            combined_total_column.metric(
+                "Total population", f"{pyramid_male_total + pyramid_female_total:,}"
+            )
+            st.pyplot(pyramid_chart, width="stretch")
+            plt.close(pyramid_chart)
 
 with data_tab:
     st.subheader("Filtered source data")
@@ -524,6 +960,11 @@ with data_tab:
     )
     if not selected_outlier_years:
         st.info("Select at least one year to display outlier results.")
+        visible_outlier_results = {
+            "nationwide": pd.DataFrame(),
+            "historical": pd.DataFrame(),
+            "demographic": pd.DataFrame(),
+        }
     else:
         outlier_results = cached_outlier_checks(data, threshold)
         nationwide_check, historical_check, demographic_check = st.tabs(
@@ -534,7 +975,7 @@ with data_tab:
             ]
         )
         with nationwide_check:
-            show_outlier_check(
+            visible_nationwide = show_outlier_check(
                 "Nationwide district comparison",
                 "For each age, sex, and year, compares that group's share of its "
                 "district population across all districts using median-based robust scores.",
@@ -543,7 +984,7 @@ with data_tab:
                 selected_outlier_years,
             )
         with historical_check:
-            show_outlier_check(
+            visible_historical = show_outlier_check(
                 "Historical change",
                 "Compares each age 1–79 population with the same birth cohort in the "
                 "previous year, then evaluates that change against all districts.",
@@ -552,7 +993,7 @@ with data_tab:
                 selected_outlier_years,
             )
         with demographic_check:
-            show_outlier_check(
+            visible_demographic = show_outlier_check(
                 "Demographic consistency",
                 "Combines unusual male-share checks with sharp local breaks between "
                 "adjacent ages. The open-ended 80+ group is excluded from age-neighbor checks.",
@@ -560,6 +1001,36 @@ with data_tab:
                 filtered_data,
                 selected_outlier_years,
             )
+        visible_outlier_results = {
+            "nationwide": visible_nationwide,
+            "historical": visible_historical,
+            "demographic": visible_demographic,
+        }
+
+    live_results.update(
+        {
+            "outlier_threshold": f"{threshold:g}",
+            "outlier_years": (
+                f"{min(selected_outlier_years)}–{max(selected_outlier_years)}"
+                if selected_outlier_years
+                else "None"
+            ),
+        }
+    )
+    for check_name, visible_results in visible_outlier_results.items():
+        live_results[f"outlier_{check_name}"] = f"{len(visible_results):,}"
+        year_counts = (
+            visible_results.groupby("Year").size().to_dict()
+            if not visible_results.empty
+            else {}
+        )
+        for year in HISTORICAL_YEARS:
+            live_results[f"outlier_{check_name}_{year}"] = (
+                f"{int(year_counts.get(year, 0)):,}"
+                if year in selected_outlier_years
+                else "—"
+            )
+    st.session_state["presentation_results"] = live_results
 
 with export_tab:
     st.write(

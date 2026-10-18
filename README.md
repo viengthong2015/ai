@@ -12,6 +12,7 @@ including signed percentage-difference labels for every predicted value.
 
 ```powershell
 python -m pip install -r requirements.txt
+python -m pip install streamlit
 streamlit run app.py
 ```
 
