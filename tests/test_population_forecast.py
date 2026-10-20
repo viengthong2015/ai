@@ -1,8 +1,9 @@
 import unittest
 
 import numpy as np
+import pandas as pd
 
-from population_forecast import annual_growth_rates
+from population_forecast import annual_growth_rates, dataframe_to_html_bytes
 
 
 class AnnualGrowthRatesTests(unittest.TestCase):
@@ -20,6 +21,30 @@ class AnnualGrowthRatesTests(unittest.TestCase):
     def test_rejects_multidimensional_input(self):
         with self.assertRaisesRegex(ValueError, "one-dimensional"):
             annual_growth_rates(np.array([[100.0, 110.0]]))
+
+
+class HtmlExportTests(unittest.TestCase):
+    def test_generates_styled_standalone_report(self):
+        table = pd.DataFrame(
+            {
+                "District": ["Example", "Grand Total"],
+                "2026_Poly": [1234, 1234],
+                "Total": [5678, 5678],
+            }
+        )
+
+        html = dataframe_to_html_bytes(table).decode("utf-8")
+
+        self.assertTrue(html.startswith("<!doctype html>"))
+        self.assertIn('<meta name="viewport"', html)
+        self.assertIn('class="dataframe population-table"', html)
+        self.assertIn("Polynomial Population Forecast", html)
+        self.assertIn("position: sticky", html)
+        self.assertIn("1,234", html)
+        self.assertIn("Grand Total", html)
+        self.assertIn('id="download-csv"', html)
+        self.assertIn("Download table as CSV", html)
+        self.assertIn('link.download = "Polynomial_Population_Forecast.csv"', html)
 
 
 if __name__ == "__main__":

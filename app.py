@@ -157,7 +157,7 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
         )
     forecast_axis.axvline(2025, color="gray", linestyle="--", alpha=0.7)
     forecast_axis.axvspan(2025, result.all_years[-1], color="#e9ecef", alpha=0.45)
-    forecast_axis.set_title("ຜົນການຄາດຄະເນປະຊາກອນ")
+    forecast_axis.set_title("ສົມທຽບຄວາມຊັດເຈນຂອງ ຜົນການຄາດຄະເນປະຊາກອນ")
     forecast_axis.set_ylabel("ປະຊາກອນ (ຄົນ)")
     forecast_axis.ticklabel_format(axis="y", style="plain")
     forecast_axis.legend(ncol=2)
@@ -217,6 +217,7 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
             zorder=1,
         )
     residual_axis.axhline(0, color="black", linewidth=1, zorder=4)
+    
     residual_axis.set_title("ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການພຄາດຄະເນ)")
     residual_axis.set_xlabel("ປີ")
     residual_axis.set_ylabel("ປະຊາກອນ (ຄົນ)")
@@ -540,6 +541,53 @@ def show_outlier_check(
 st.markdown(
     """
     <style>
+    @keyframes global-loading-pulse {
+        0%, 100% {
+            box-shadow: 0 10px 30px rgba(21, 101, 192, 0.22);
+            transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+            box-shadow: 0 12px 34px rgba(2, 136, 209, 0.38);
+            transform: translate(-50%, -50%) scale(1.025);
+        }
+    }
+
+    .stApp[data-test-script-state="running" i]::before {
+        content: "⏳ Loading, please wait…";
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        z-index: 999999;
+        padding: 1.15rem 1.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.38);
+        border-radius: 999px;
+        background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%);
+        color: #ffffff;
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        line-height: 1.25;
+        pointer-events: none;
+        animation: global-loading-pulse 1.15s ease-in-out infinite;
+    }
+
+    @media (max-width: 640px) {
+        .stApp[data-test-script-state="running" i]::before {
+            max-width: calc(100vw - 2rem);
+            padding: 0.95rem 1.25rem;
+            font-size: 1.1rem;
+            text-align: center;
+            white-space: nowrap;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .stApp[data-test-script-state="running" i]::before {
+            animation: none;
+            transform: translate(-50%, -50%);
+        }
+    }
+
     div[data-testid="stButtonGroup"] {
         margin: 0.35rem 0 1.25rem;
     }

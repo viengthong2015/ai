@@ -177,6 +177,201 @@ def dataframe_to_csv_bytes(df: pd.DataFrame) -> bytes:
 
 
 def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
+    """Return a styled, standalone HTML report suitable for browser viewing."""
     buffer = StringIO()
-    df.to_html(buffer, index=False)
-    return buffer.getvalue().encode("utf-8")
+    numeric_columns = [
+        position + 1
+        for position, column in enumerate(df.columns)
+        if pd.api.types.is_numeric_dtype(df[column])
+    ]
+    numeric_alignment = "\n".join(
+        f"th:nth-child({position}), td:nth-child({position}) "
+        "{ text-align: right; font-variant-numeric: tabular-nums; }"
+        for position in numeric_columns
+    )
+
+    def format_number(value: object) -> str:
+        if pd.isna(value):
+            return ""
+        number = float(value)
+        return f"{number:,.0f}" if number.is_integer() else f"{number:,.2f}"
+
+    formatters = {
+        column: format_number
+        for column in df.columns
+        if pd.api.types.is_numeric_dtype(df[column])
+    }
+    df.to_html(
+        buffer,
+        index=False,
+        border=0,
+        classes="population-table",
+        formatters=formatters,
+    )
+    table_html = buffer.getvalue()
+    document = f"""<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Polynomial Population Forecast</title>
+    <style>
+        :root {{
+            color-scheme: light;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: #eef4f9;
+            color: #172033;
+        }}
+        * {{ box-sizing: border-box; }}
+        body {{
+            margin: 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, #eef6ff 0%, #f8fbff 100%);
+        }}
+        .report {{
+            width: min(100%, 1600px);
+            margin: 0 auto;
+            overflow: hidden;
+            border: 1px solid #d9e5f1;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 18px 50px rgba(15, 76, 129, 0.13);
+        }}
+        .report-header {{
+            padding: 1.4rem 1.6rem;
+            background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%);
+            color: #ffffff;
+        }}
+        .report-header h1 {{
+            margin: 0;
+            font-size: clamp(1.35rem, 3vw, 2rem);
+            line-height: 1.2;
+        }}
+        .report-header p {{
+            margin: 0.45rem 0 0;
+            color: rgba(255, 255, 255, 0.88);
+        }}
+        .report-toolbar {{
+            display: flex;
+            justify-content: flex-end;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #d9e5f1;
+            background: #f8fbff;
+        }}
+        .download-button {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: 2.65rem;
+            padding: 0.65rem 1rem;
+            border: 0;
+            border-radius: 0.7rem;
+            background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%);
+            color: #ffffff;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(21, 101, 192, 0.22);
+            transition: transform 150ms ease, box-shadow 150ms ease;
+        }}
+        .download-button:hover {{
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(21, 101, 192, 0.3);
+        }}
+        .download-button:focus-visible {{
+            outline: 3px solid rgba(2, 136, 209, 0.3);
+            outline-offset: 3px;
+        }}
+        .table-wrap {{
+            max-height: calc(100vh - 11rem);
+            overflow: auto;
+        }}
+        .population-table {{
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.9rem;
+        }}
+        .population-table th,
+        .population-table td {{
+            padding: 0.72rem 0.85rem;
+            border-right: 1px solid #e5edf5;
+            border-bottom: 1px solid #e5edf5;
+            text-align: left;
+            white-space: nowrap;
+        }}
+        .population-table thead th {{
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #0f4c81;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }}
+        .population-table tbody tr:nth-child(even) {{ background: #f6faff; }}
+        .population-table tbody tr:hover {{ background: #e8f4ff; }}
+        .population-table tbody tr:last-child {{
+            background: #dff3e7;
+            color: #14532d;
+            font-weight: 800;
+        }}
+        .population-table th:last-child,
+        .population-table td:last-child {{ border-right: 0; }}
+        {numeric_alignment}
+        @media (max-width: 700px) {{
+            body {{ padding: 0.75rem; }}
+            .report {{ border-radius: 12px; }}
+            .report-header {{ padding: 1.1rem; }}
+            .population-table {{ font-size: 0.82rem; }}
+            .population-table th,
+            .population-table td {{ padding: 0.6rem 0.7rem; }}
+        }}
+        @media print {{
+            body {{ padding: 0; background: #ffffff; }}
+            .report {{ width: 100%; border: 0; box-shadow: none; }}
+            .report-toolbar {{ display: none; }}
+            .table-wrap {{ max-height: none; overflow: visible; }}
+            .population-table thead th {{ position: static; }}
+        }}
+    </style>
+</head>
+<body>
+    <main class="report">
+        <header class="report-header">
+            <h1>Polynomial Population Forecast</h1>
+            <p>Historical population and polynomial regression forecast results</p>
+        </header>
+        <div class="report-toolbar">
+            <button class="download-button" id="download-csv" type="button">
+                <span aria-hidden="true">⬇</span>
+                Download table as CSV
+            </button>
+        </div>
+        <div class="table-wrap">
+            {table_html}
+        </div>
+    </main>
+    <script>
+        document.getElementById("download-csv").addEventListener("click", () => {{
+            const table = document.querySelector(".population-table");
+            const csv = Array.from(table.rows, row =>
+                Array.from(row.cells, cell =>
+                    `"${{cell.textContent.trim().replaceAll('"', '""')}}"`
+                ).join(",")
+            ).join("\\r\\n");
+            const blob = new Blob(["\ufeff", csv], {{ type: "text/csv;charset=utf-8" }});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "Polynomial_Population_Forecast.csv";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }});
+    </script>
+</body>
+</html>
+"""
+    return document.encode("utf-8")
