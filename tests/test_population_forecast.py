@@ -45,6 +45,11 @@ class HtmlExportTests(unittest.TestCase):
         self.assertIn('id="download-csv"', html)
         self.assertIn("Download table as CSV", html)
         self.assertIn('link.download = "Polynomial_Population_Forecast.csv"', html)
+        self.assertIn('id="page-size"', html)
+        self.assertIn('id="previous-page"', html)
+        self.assertIn('id="next-page"', html)
+        self.assertIn("function renderPage()", html)
+        self.assertIn("row.hidden =", html)
 
 
 if __name__ == "__main__":

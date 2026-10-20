@@ -3,6 +3,61 @@ let currentSlide = 0;
 const slides = document.querySelectorAll('.slide');
 const progressBar = document.getElementById('progress-bar');
 const slideNumDisplay = document.getElementById('slide-num');
+let polynomialTablePage = 1;
+
+function renderPolynomialTable() {
+    const results = window.PRESENTATION_RESULTS || {};
+    const table = document.getElementById('live-polynomial-table');
+    const pageSizeSelect = document.getElementById('polynomial-page-size');
+    if (!table || !pageSizeSelect) return;
+
+    const years = results.future_years || [];
+    const rows = results.polynomial_table_rows || [];
+    const pageSize = Number(pageSizeSelect.value);
+    const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+    polynomialTablePage = Math.min(Math.max(polynomialTablePage, 1), pageCount);
+
+    const headerRow = table.tHead.rows[0];
+    headerRow.replaceChildren();
+    ['ouName', 'deName', 'cocName', 'sexName', ...years].forEach(column => {
+        const header = document.createElement('th');
+        header.textContent = column;
+        headerRow.appendChild(header);
+    });
+
+    const tableBody = table.tBodies[0];
+    tableBody.replaceChildren();
+    const firstRow = (polynomialTablePage - 1) * pageSize;
+    rows.slice(firstRow, firstRow + pageSize).forEach(values => {
+        const row = document.createElement('tr');
+        values.forEach(value => {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+        tableBody.appendChild(row);
+    });
+
+    if (!rows.length) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4 + years.length;
+        cell.textContent = 'ບໍ່ມີຂໍ້ມູນສຳລັບ filter ທີ່ເລືອກ';
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+    }
+
+    const lastRow = Math.min(firstRow + pageSize, rows.length);
+    document.getElementById('polynomial-row-status').textContent = rows.length
+        ? `${(firstRow + 1).toLocaleString()}–${lastRow.toLocaleString()} of ${rows.length.toLocaleString()} rows`
+        : '0 rows';
+    document.getElementById('polynomial-page-status').textContent =
+        `Page ${polynomialTablePage.toLocaleString()} of ${pageCount.toLocaleString()}`;
+    document.getElementById('polynomial-first-page').disabled = polynomialTablePage === 1;
+    document.getElementById('polynomial-previous-page').disabled = polynomialTablePage === 1;
+    document.getElementById('polynomial-next-page').disabled = polynomialTablePage === pageCount;
+    document.getElementById('polynomial-last-page').disabled = polynomialTablePage === pageCount;
+}
 
 function applyLiveResults() {
     const results = window.PRESENTATION_RESULTS || {};
@@ -53,7 +108,33 @@ function applyLiveResults() {
             tableBody.appendChild(row);
         });
     }
+
+    polynomialTablePage = 1;
+    renderPolynomialTable();
 }
+
+document.getElementById('polynomial-page-size')?.addEventListener('change', () => {
+    polynomialTablePage = 1;
+    renderPolynomialTable();
+});
+document.getElementById('polynomial-first-page')?.addEventListener('click', () => {
+    polynomialTablePage = 1;
+    renderPolynomialTable();
+});
+document.getElementById('polynomial-previous-page')?.addEventListener('click', () => {
+    polynomialTablePage -= 1;
+    renderPolynomialTable();
+});
+document.getElementById('polynomial-next-page')?.addEventListener('click', () => {
+    polynomialTablePage += 1;
+    renderPolynomialTable();
+});
+document.getElementById('polynomial-last-page')?.addEventListener('click', () => {
+    const rows = (window.PRESENTATION_RESULTS || {}).polynomial_table_rows || [];
+    const pageSize = Number(document.getElementById('polynomial-page-size').value);
+    polynomialTablePage = Math.max(1, Math.ceil(rows.length / pageSize));
+    renderPolynomialTable();
+});
 
 function showSlide(index, direction = "next") {
 

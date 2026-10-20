@@ -253,10 +253,58 @@ def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
         }}
         .report-toolbar {{
             display: flex;
-            justify-content: flex-end;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
             padding: 0.85rem 1rem;
             border-bottom: 1px solid #d9e5f1;
             background: #f8fbff;
+        }}
+        .pagination-controls {{
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.45rem;
+        }}
+        .pagination-controls label {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 650;
+        }}
+        .page-size,
+        .page-button {{
+            min-height: 2.35rem;
+            border: 1px solid #cbd9e7;
+            border-radius: 0.6rem;
+            background: #ffffff;
+            color: #0f4c81;
+            font: inherit;
+            font-weight: 700;
+        }}
+        .page-size {{ padding: 0.4rem 0.6rem; }}
+        .page-button {{
+            min-width: 2.5rem;
+            padding: 0.4rem 0.7rem;
+            cursor: pointer;
+        }}
+        .page-button:hover:not(:disabled) {{
+            border-color: #0288d1;
+            background: #e8f4ff;
+        }}
+        .page-button:disabled {{
+            cursor: not-allowed;
+            opacity: 0.42;
+        }}
+        .page-status {{
+            min-width: 8.5rem;
+            color: #334155;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-align: center;
         }}
         .download-button {{
             display: inline-flex;
@@ -323,6 +371,9 @@ def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
             body {{ padding: 0.75rem; }}
             .report {{ border-radius: 12px; }}
             .report-header {{ padding: 1.1rem; }}
+            .report-toolbar {{ align-items: stretch; }}
+            .pagination-controls {{ width: 100%; justify-content: center; }}
+            .download-button {{ width: 100%; justify-content: center; }}
             .population-table {{ font-size: 0.82rem; }}
             .population-table th,
             .population-table td {{ padding: 0.6rem 0.7rem; }}
@@ -343,6 +394,22 @@ def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
             <p>Historical population and polynomial regression forecast results</p>
         </header>
         <div class="report-toolbar">
+            <nav class="pagination-controls" aria-label="Table pagination">
+                <label>
+                    Rows per page
+                    <select class="page-size" id="page-size">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="250">250</option>
+                    </select>
+                </label>
+                <button class="page-button" id="first-page" type="button" aria-label="First page">«</button>
+                <button class="page-button" id="previous-page" type="button" aria-label="Previous page">‹</button>
+                <span class="page-status" id="page-status" aria-live="polite"></span>
+                <button class="page-button" id="next-page" type="button" aria-label="Next page">›</button>
+                <button class="page-button" id="last-page" type="button" aria-label="Last page">»</button>
+            </nav>
             <button class="download-button" id="download-csv" type="button">
                 <span aria-hidden="true">⬇</span>
                 Download table as CSV
@@ -353,8 +420,46 @@ def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
         </div>
     </main>
     <script>
+        const table = document.querySelector(".population-table");
+        const rows = Array.from(table.tBodies[0].rows);
+        const pageSizeSelect = document.getElementById("page-size");
+        const pageStatus = document.getElementById("page-status");
+        const firstPageButton = document.getElementById("first-page");
+        const previousPageButton = document.getElementById("previous-page");
+        const nextPageButton = document.getElementById("next-page");
+        const lastPageButton = document.getElementById("last-page");
+        let currentPage = 1;
+
+        function renderPage() {{
+            const pageSize = Number(pageSizeSelect.value);
+            const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+            currentPage = Math.min(Math.max(currentPage, 1), pageCount);
+            const firstVisibleRow = (currentPage - 1) * pageSize;
+            const lastVisibleRow = firstVisibleRow + pageSize;
+
+            rows.forEach((row, index) => {{
+                row.hidden = index < firstVisibleRow || index >= lastVisibleRow;
+            }});
+            pageStatus.textContent = `Page ${{currentPage.toLocaleString()}} of ${{pageCount.toLocaleString()}}`;
+            firstPageButton.disabled = currentPage === 1;
+            previousPageButton.disabled = currentPage === 1;
+            nextPageButton.disabled = currentPage === pageCount;
+            lastPageButton.disabled = currentPage === pageCount;
+        }}
+
+        pageSizeSelect.addEventListener("change", () => {{
+            currentPage = 1;
+            renderPage();
+        }});
+        firstPageButton.addEventListener("click", () => {{ currentPage = 1; renderPage(); }});
+        previousPageButton.addEventListener("click", () => {{ currentPage -= 1; renderPage(); }});
+        nextPageButton.addEventListener("click", () => {{ currentPage += 1; renderPage(); }});
+        lastPageButton.addEventListener("click", () => {{
+            currentPage = Math.ceil(rows.length / Number(pageSizeSelect.value));
+            renderPage();
+        }});
+
         document.getElementById("download-csv").addEventListener("click", () => {{
-            const table = document.querySelector(".population-table");
             const csv = Array.from(table.rows, row =>
                 Array.from(row.cells, cell =>
                     `"${{cell.textContent.trim().replaceAll('"', '""')}}"`
@@ -370,6 +475,8 @@ def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
             link.remove();
             URL.revokeObjectURL(url);
         }});
+
+        renderPage();
     </script>
 </body>
 </html>

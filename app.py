@@ -553,7 +553,7 @@ st.markdown(
     }
 
     .stApp[data-test-script-state="running" i]::before {
-        content: "⏳ Loading, please wait…";
+        content: "⏳ ກຳລັງດຳເນີນການ, ກະລຸນາລໍຖ້າ…";
         position: fixed;
         left: 50%;
         top: 50%;
@@ -586,6 +586,24 @@ st.markdown(
             animation: none;
             transform: translate(-50%, -50%);
         }
+    }
+
+    .baseline-caption {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 0.15rem;
+        padding: 0.45rem 0.85rem;
+        border: 1px solid #bfdbfe;
+        border-left: 4px solid #0288d1;
+        border-radius: 0.55rem;
+        # border-radius: 10px 10px 0px 0px;
+        background: linear-gradient(135deg, #eff8ff 0%, #e8f4ff 100%);
+        color: #0f4c81;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.1);
+        # width: 100%;
     }
 
     div[data-testid="stButtonGroup"] {
@@ -773,7 +791,8 @@ if app_view == "Presentation":
 
 st.title("ການຄາດຄະເນປະຊາກອນລາວ (ແຍກເປັນ: ເມືອງ, ອາຍຸ ແລະ ເພດ)")
 st.caption(
-    "ຂໍ້ມູນຈາກ: ກົມແຜນການ ແລະ ການເງິນ, ກະຊວງສາທາລະນະສຸກ"
+    '<span class="baseline-caption">ຂໍ້ມູນພື້ນຖານ (baseline)</span>',
+    unsafe_allow_html=True,
 )
 
 st.sidebar.header("Data and forecast")
@@ -813,6 +832,24 @@ if filtered_data.empty:
 
 result = forecast_totals(filtered_data, future_end)
 future_years = list(range(2026, future_end + 1))
+row_predictions = cached_row_forecast(filtered_data, future_end)
+polynomial_year_columns = [f"{year}_Poly" for year in future_years]
+polynomial_identity_columns = ["ouName", "deName", "cocName", "sexName"]
+polynomial_table = row_predictions.reindex(
+    columns=[*polynomial_identity_columns, *polynomial_year_columns]
+)
+
+polynomial_table_rows = []
+for row in polynomial_table.itertuples(index=False, name=None):
+    identity_values = [
+        "" if pd.isna(value) else str(value)
+        for value in row[: len(polynomial_identity_columns)]
+    ]
+    forecast_values = [
+        "" if pd.isna(value) else f"{int(value):,}"
+        for value in row[len(polynomial_identity_columns) :]
+    ]
+    polynomial_table_rows.append([*identity_values, *forecast_values])
 
 live_results = {
     "source_name": source_name,
@@ -823,6 +860,7 @@ live_results = {
     "forecast_period": f"2026–{future_end}",
     "selected_model": MODEL_LABELS.get(selected_model_option, selected_model_option),
     "future_years": future_years,
+    "polynomial_table_rows": polynomial_table_rows,
     "future_table_models": [
         {
             "name": MODEL_LABELS[name],
@@ -859,11 +897,13 @@ for model_name in MODEL_NAMES:
             live_results[f"{model_key}_{year}"] = "—"
 st.session_state["presentation_results"] = live_results
 
-summary_column_count = 3 if selected_model_option == ALL_MODELS_OPTION else 4
+summary_column_count = 4 if selected_model_option == ALL_MODELS_OPTION else 4
 summary_columns = st.columns(summary_column_count)
 summary_columns[0].metric("ຈຳນວນຂໍ້ມູນ (Rows)", f"{len(filtered_data):,}")
 summary_columns[1].metric("ປະຊາກອນ ປີ 2016", f"{result.actual[0]:,.0f}")
 summary_columns[2].metric("ປະຊາກອນ ປີ 2025", f"{result.actual[-1]:,.0f}")
+
+summary_columns[3].metric("ແຫຼ່ງຂໍ້ມູນ", f"DHIS2, ກສສ")
 
 st.markdown(
             '<hr style="border: none; border-top: 2px solid #2196F3;">',
@@ -1188,7 +1228,7 @@ with export_tab:
     st.write(
         "ຜົນການຄາດຄະເນປະຊາກອນ ສາມາດດາວໂຫຼດໄດ້ໃນແບບ CSV ຫຼື HTML. ປະກອບມີຂໍ້ມູນການຄາດຄະເນທັງໝົດ ຕາມແຕ່ລະແບບ Linear Regression, Polynomial Regression, ແລະ Exponential Growth."
     )
-    predicted = cached_row_forecast(filtered_data, future_end)
+    predicted = row_predictions
     html_table = polynomial_html_table(predicted, future_end)
     prediction_suffixes = tuple(MODEL_EXPORT_SUFFIXES[name] for name in MODEL_NAMES)
     selected_suffixes = tuple(MODEL_EXPORT_SUFFIXES[name] for name in selected_models)
