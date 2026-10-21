@@ -903,7 +903,7 @@ summary_columns[0].metric("ຈຳນວນຂໍ້ມູນ (Rows)", f"{len(fil
 summary_columns[1].metric("ປະຊາກອນ ປີ 2016", f"{result.actual[0]:,.0f}")
 summary_columns[2].metric("ປະຊາກອນ ປີ 2025", f"{result.actual[-1]:,.0f}")
 
-summary_columns[3].metric("ແຫຼ່ງຂໍ້ມູນ", f"DHIS2, ກສສ")
+summary_columns[3].metric("ແຫຼ່ງຂໍ້ມູນ", f"DHIS2, ກສທ")
 
 st.markdown(
             '<hr style="border: none; border-top: 2px solid #2196F3;">',
