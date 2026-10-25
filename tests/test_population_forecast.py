@@ -3,7 +3,13 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from population_forecast import annual_growth_rates, dataframe_to_html_bytes
+from population_forecast import (
+    HISTORICAL_YEARS,
+    _polynomial_design,
+    annual_growth_rates,
+    dataframe_to_html_bytes,
+    forecast_totals,
+)
 
 
 class AnnualGrowthRatesTests(unittest.TestCase):
@@ -21,6 +27,27 @@ class AnnualGrowthRatesTests(unittest.TestCase):
     def test_rejects_multidimensional_input(self):
         with self.assertRaisesRegex(ValueError, "one-dimensional"):
             annual_growth_rates(np.array([[100.0, 110.0]]))
+
+
+class PolynomialForecastStabilityTests(unittest.TestCase):
+    def test_polynomial_design_is_centered_and_well_conditioned(self):
+        design = _polynomial_design(HISTORICAL_YEARS)
+        design_with_intercept = np.column_stack((np.ones(len(design)), design))
+
+        self.assertEqual(design.dtype, np.float64)
+        self.assertLess(np.linalg.cond(design_with_intercept), 20)
+
+    def test_quadratic_history_is_fitted_without_rank_loss(self):
+        offsets = np.arange(len(HISTORICAL_YEARS), dtype=float)
+        population = 1_000_000 + 10_000 * offsets + 250 * offsets**2
+        frame = pd.DataFrame(
+            [{str(year): value for year, value in zip(HISTORICAL_YEARS, population)}]
+        )
+
+        result = forecast_totals(frame)
+
+        self.assertLess(result.metrics.loc["Polynomial", "MAPE (%)"], 1e-10)
+        self.assertTrue(np.isfinite(result.future["Polynomial"]).all())
 
 
 class HtmlExportTests(unittest.TestCase):

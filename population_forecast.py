@@ -9,12 +9,12 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.preprocessing import PolynomialFeatures
 
 
 HISTORICAL_YEARS = list(range(2016, 2026))
 HISTORICAL_COLUMNS = [str(year) for year in HISTORICAL_YEARS]
 MODEL_NAMES = ("Linear", "Polynomial", "Exponential")
+POLYNOMIAL_YEAR_ORIGIN = float(np.mean(HISTORICAL_YEARS))
 
 
 @dataclass(frozen=True)
@@ -83,6 +83,20 @@ def _metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     }
 
 
+def _polynomial_design(years: np.ndarray | list[int]) -> np.ndarray:
+    """Return a stable degree-two design matrix for calendar years.
+
+    Centering prevents the year and year-squared columns from becoming nearly
+    collinear.  Without it, solver precision or platform differences can cause
+    the quadratic term to be discarded and produce different forecasts.
+    """
+    centered_years = (
+        np.asarray(years, dtype=np.float64).reshape(-1, 1)
+        - POLYNOMIAL_YEAR_ORIGIN
+    )
+    return np.hstack((centered_years, centered_years**2))
+
+
 def forecast_totals(df: pd.DataFrame, future_end: int = 2030) -> ForecastResult:
     """Fit the notebook's three models to population totals."""
     if future_end < 2026:
@@ -95,8 +109,7 @@ def forecast_totals(df: pd.DataFrame, future_end: int = 2030) -> ForecastResult:
 
     linear = LinearRegression().fit(historical_x, y)
 
-    polynomial_features = PolynomialFeatures(degree=2)
-    historical_poly = polynomial_features.fit_transform(historical_x)
+    historical_poly = _polynomial_design(HISTORICAL_YEARS)
     polynomial = LinearRegression().fit(historical_poly, y)
 
     # This matches the notebook, while preventing log(0) for an empty subgroup.
@@ -104,7 +117,7 @@ def forecast_totals(df: pd.DataFrame, future_end: int = 2030) -> ForecastResult:
 
     predictions = {
         "Linear": linear.predict(all_x),
-        "Polynomial": polynomial.predict(polynomial_features.transform(all_x)),
+        "Polynomial": polynomial.predict(_polynomial_design(all_years)),
         "Exponential": np.exp(exponential.predict(all_x)),
     }
     train_size = len(HISTORICAL_YEARS)
@@ -128,12 +141,9 @@ def forecast_each_row(df: pd.DataFrame, future_end: int = 2030) -> pd.DataFrame:
     linear = LinearRegression().fit(historical_x, values)
     linear_predictions = linear.predict(future_x).T
 
-    polynomial_features = PolynomialFeatures(degree=2)
-    historical_poly = polynomial_features.fit_transform(historical_x)
+    historical_poly = _polynomial_design(HISTORICAL_YEARS)
     polynomial = LinearRegression().fit(historical_poly, values)
-    polynomial_predictions = polynomial.predict(
-        polynomial_features.transform(future_x)
-    ).T
+    polynomial_predictions = polynomial.predict(_polynomial_design(future_years)).T
 
     safe_values = np.where(values <= 0, 0.1, values)
     exponential = LinearRegression().fit(historical_x, np.log(safe_values))
