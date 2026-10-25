@@ -596,14 +596,12 @@ st.markdown(
         border: 1px solid #bfdbfe;
         border-left: 4px solid #0288d1;
         border-radius: 0.55rem;
-        # border-radius: 10px 10px 0px 0px;
         background: linear-gradient(135deg, #eff8ff 0%, #e8f4ff 100%);
         color: #0f4c81;
         font-size: 1rem;
         font-weight: 700;
         letter-spacing: 0.01em;
         box-shadow: 0 4px 12px rgba(21, 101, 192, 0.1);
-        # width: 100%;
     }
 
     div[data-testid="stButtonGroup"] {

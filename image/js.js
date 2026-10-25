@@ -182,9 +182,64 @@ function changeSlide(step) {
 
 // Keyboard support
 document.addEventListener('keydown', (e) => {
+    if (document.getElementById('slide-overview')?.open) return;
     if (e.key === "ArrowRight") changeSlide(1);
     if (e.key === "ArrowLeft") changeSlide(-1);
 });
+
+function buildSlideOverview() {
+    const grid = document.getElementById('slide-overview-grid');
+    if (!grid || grid.childElementCount) return;
+
+    slides.forEach((slide, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'slide-overview-card';
+        button.setAttribute('aria-label', `Go to slide ${index + 1}`);
+        button.addEventListener('click', () => selectOverviewSlide(index));
+
+        const frame = document.createElement('span');
+        frame.className = 'slide-overview-frame';
+        frame.setAttribute('aria-hidden', 'true');
+
+        const preview = slide.cloneNode(true);
+        preview.classList.remove('active', 'slide-next', 'slide-back');
+        preview.classList.add('slide-overview-preview');
+        preview.removeAttribute('id');
+        preview.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+        preview.querySelectorAll('button, input, select, textarea, a, summary, [tabindex]')
+            .forEach(element => element.setAttribute('tabindex', '-1'));
+        frame.appendChild(preview);
+
+        const label = document.createElement('span');
+        label.className = 'slide-overview-label';
+        label.textContent = `Slide ${index + 1}`;
+
+        button.append(frame, label);
+        grid.appendChild(button);
+    });
+}
+
+function openSlideOverview() {
+    const dialog = document.getElementById('slide-overview');
+    if (!dialog) return;
+    buildSlideOverview();
+    dialog.showModal();
+
+    const cards = dialog.querySelectorAll('.slide-overview-card');
+    cards.forEach((card, index) => card.classList.toggle('is-current', index === currentSlide));
+    cards[currentSlide]?.scrollIntoView({ block: 'center', inline: 'center' });
+    cards[currentSlide]?.focus({ preventScroll: true });
+}
+
+function closeSlideOverview() {
+    document.getElementById('slide-overview')?.close();
+}
+
+function selectOverviewSlide(index) {
+    closeSlideOverview();
+    showSlide(index, index >= currentSlide ? 'next' : 'back');
+}
 
 function togglePresentationFullscreen() {
     if (!document.fullscreenElement) {

@@ -1020,9 +1020,23 @@ future_values = {
         <button onclick="changeSlide(1)" style="font-family: 'Noto Sans Lao';">ຕໍ່ໄປ 🞂</button>
         <button id="presentation-fullscreen" onclick="togglePresentationFullscreen()"
             style="font-family: 'Noto Sans Lao';">⛶ ເຕັມຈໍ</button>
+        <button id="presentation-overview" class="overview-button" type="button" onclick="openSlideOverview()"
+            style="font-family: 'Noto Sans Lao';" aria-haspopup="dialog">▦ Overall</button>
     </div>
 
     <div class="slide-number" id="slide-num">1 / 14</div>
+
+    <dialog id="slide-overview" class="slide-overview" aria-labelledby="slide-overview-title">
+        <div class="slide-overview-header">
+            <div>
+                <span class="slide-overview-eyebrow">OVERALL</span>
+                <h2 id="slide-overview-title">ສະໄລດ໌ທັງໝົດ</h2>
+            </div>
+            <button class="slide-overview-close" type="button" onclick="closeSlideOverview()"
+                aria-label="Close slide overview">✕</button>
+        </div>
+        <div id="slide-overview-grid" class="slide-overview-grid"></div>
+    </dialog>
 
 </body>
 
