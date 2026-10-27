@@ -192,6 +192,106 @@
             </div>
             <p class="short-slide-note">ຊຸດຂໍ້ມູນທົ່ວປະເທດທີ່ແຍກເປັນແຕ່ລະເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ (ສາມາດ filter
                 ໄດ້ຕາມທີ່ຕ້ອງການ)</p>
+
+
+                <details class="modern-details">
+                <summary>ລາຍລະອຽດນິຍາມຂໍ້ມູນ (Meta data)</summary>
+                <div class="content">
+                    <table border="1" style="border-collapse: collapse; width: 100%; font-family: 'Noto Sans Lao';">
+                        <thead>
+                            <tr style="background-color: #008080; color: white; text-align: left;">
+                                <th style="padding: 8px;">#</th>
+                                <th style="padding: 8px;">Feature (Column)</th>
+                                <th style="padding: 8px;">ປະເພດຂໍ້ມູນ (Data type)</th>
+                                <th style="padding: 8px;">ລາຍລະອຽດ</th>
+                                <th style="padding: 8px;">ໝາຍເຫດ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">1</td>
+                                <td style="padding: 8px;">ouName</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ເປັນຊື່ແຕ່ລະເມືອງໃນທົ່ວປະເທດ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">2</td>
+                                <td style="padding: 8px;">ouID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ເປັນລະຫັດແຕ່ລະເມືອງ (DB Id) <br>- unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">3</td>
+                                <td style="padding: 8px;">deID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງອົງປະກອບຂໍ້ມູນ<br>- unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">4</td>
+                                <td style="padding: 8px;">deName</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ຊື່ອົງປະກອບຂໍ້ມູນ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">5</td>
+                                <td style="padding: 8px;">cocID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ເປັນລະຫັດຂອງອາຍຸໃນຖານຂໍ້ມູນ <br> - unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">6</td>
+                                <td style="padding: 8px;">cocName</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ເປັນຊື່ອາຍຸແຕ່ລະປີ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">7</td>
+                                <td style="padding: 8px;">cocCode</td>
+                                <td style="padding: 8px;">int32</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງອາຍຸ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">8</td>
+                                <td style="padding: 8px;">sexID</td>
+                                <td style="padding: 8px;">string</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ<br> - unique</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">9</td>
+                                <td style="padding: 8px;">sexName</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ເພດ (ຍິງ, ຊາຍ)</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr style="background-color: #f2f2f2;">
+                                <td style="padding: 8px; text-align: center;">10</td>
+                                <td style="padding: 8px;">sexCode</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ</td>
+                                <td style="padding: 8px;">Attribute</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; text-align: center;">11</td>
+                                <td style="padding: 8px;">ປີ</td>
+                                <td style="padding: 8px;">Object</td>
+                                <td style="padding: 8px;">- ແຕ່ລະປີ (2016, 2017, ..., 2025)</td>
+                                <td style="padding: 8px;">Feature</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+
         </div>
 
         <div class="slide correction-method-slide correction-results-slide">
