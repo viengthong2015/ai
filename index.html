@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap" rel="stylesheet">
-    <title>Mini project</title>
+    <title>ໂຄງການຂະໜາດນ້ອຍ (Mini Project)</title>
     <link rel="stylesheet" href="image/style.css">
     <script src="image/js.js" defer></script>
 </head>
@@ -16,7 +16,7 @@
         <h2 class="animated-label">
             ການຄາດຄະເນປະຊາກອນລາວ <span data-result-key="forecast_period">—</span>
         </h2>
-        
+
     </div>
     <div class="slide-container">
         <!-- Slide 1 -->
@@ -27,52 +27,46 @@
             <div class="ai-cover-shell">
                 <main class="ai-cover-main">
                     <section class="ai-cover-copy">
-                        <div class="ai-cover-eyebrow">
+                        <div class="ai-cover-eyebrow" style="font-family: 'Noto Sans Lao';">
                             <span class="ai-live-dot" aria-hidden="true"></span>
-                            MINI PROJECT · 2026
+                            ໂຄງການຮຽນຮູ້ນັກພັດທະນາປັນຍາປະດິດ (AI DEVELOPER LEARNING PROJECT) · 2026
                         </div>
-                        <p class="ai-cover-role">AI DEVELOPER</p>
                         <h1 class="ai-cover-title">
                             ການຄາດຄະເນ
                             <span>ປະຊາກອນລາວ</span>
                         </h1>
-                        <p class="ai-cover-description">
-                            ນຳໃຊ້ Machine Learning ເພື່ອປ່ຽນຂໍ້ມູນປະຊາກອນ
-                            ໃຫ້ເປັນຂໍ້ມູນຄາດຄະເນສຳລັບການວາງແຜນ
-                        </p>
-                        <div class="ai-cover-tags" aria-label="Project technologies">
-                            <span>Machine Learning</span>
-                            <span>Population Data</span>
-                            <span>Forecasting</span>
-                        </div>
+
                         <div class="ai-course-card">
-                            <span class="ai-course-label">COURSE</span>
+                            <span class="ai-course-label">ຫຼັກສູດ (COURSE)</span>
                             <strong>AI Developer</strong>
                             <span class="ai-course-divider">|</span>
-                            <span>Sumsung Compus innovation</span>
+                            <span>Samsung Campus Innovation</span>
                         </div>
                     </section>
 
-                    <section class="ai-cover-visual" aria-label="AI forecasting illustration">
+                    <section class="ai-cover-visual"
+                        aria-label="ພາບປະກອບການຄາດຄະເນດ້ວຍ AI (AI forecasting illustration)">
                         <div class="ai-code-window">
                             <div class="ai-code-toolbar">
                                 <div class="ai-window-dots" aria-hidden="true">
                                     <span></span><span></span><span></span>
                                 </div>
                                 <span>population_forecast.py</span>
-                                <span class="ai-code-status">● LIVE</span>
+                                <span class="ai-code-status">● ສົດ (LIVE)</span>
                             </div>
                             <div class="ai-code-body" aria-hidden="true">
-                                <div><span class="code-purple">from</span> sklearn.preprocessing <span class="code-purple">import</span> PolynomialFeatures</div>
-                                <div><span class="code-blue">model</span> = PolynomialFeatures(<span class="code-orange">degree=2</span>)</div>
-                                <div><span class="code-blue">forecast</span> = model.predict(</div>
-                                <div class="code-indent"><span class="code-green">years</span>=<span data-result-key="forecast_period">—</span></div>
-                                <div>)</div>
-                                <div class="ai-code-output">✓ Forecast generated successfully</div>
+                                <div><span class="code-blue">validation</span> = time_holdout_validation(data)</div>
+                                <div><span class="code-blue">best_model</span> = validation.metrics[<span
+                                        class="code-green">"MAPE (%)"</span>].idxmin()</div>
+                                <div><span class="code-blue">forecast</span> = forecast_totals(</div>
+                                <div class="code-indent">data, <span class="code-green">future_end</span>=2030</div>
+                                <div>) <span class="code-purple"># ຝຶກສອນຄືນໃໝ່ (retrain) 2016–2025</span></div>
+                                <div class="ai-code-output">✓ ສ້າງຜົນຄາດຄະເນສຳເລັດ (Forecast generated successfully)
+                                </div>
                             </div>
                             <div class="ai-forecast-card">
                                 <div>
-                                    <span>MODEL</span>
+                                    <span>ແບບຈຳລອງ (MODEL)</span>
                                     <strong>Polynomial Regression</strong>
                                 </div>
                                 <div class="ai-mini-chart" aria-hidden="true">
@@ -93,7 +87,6 @@
 
                 <footer class="ai-cover-footer">
                     <div class="ai-team-heading">
-                        <span>TEAM 02</span>
                         <strong>ກຸ່ມທີ່ II</strong>
                     </div>
                     <div class="ai-team-members">
@@ -102,7 +95,7 @@
                         <span>ກົ້ງເມັ່ງ ທໍ່</span>
                     </div>
                     <div class="ai-cohort">
-                        <span>COHORT</span>
+                        <span>ຮຸ່ນ (COHORT)</span>
                         <strong>2</strong>
                         <small>ມີນາ – ພະຈິກ 2026</small>
                     </div>
@@ -110,316 +103,386 @@
             </div>
         </div>
 
-        <!-- Slide 2 -->
-        <div class="slide">
+        <div class="slide short-overview-slide">
             <h2>ເນື້ອໃນ</h2>
-
-            <div class="containerLR" style="font-size: 25px;">
-                <div class="leftL">
-
-                    <!-- <div class="label-row">
-                        
-                            <span class="label">1</span>
-                            <del><span class="label-text">ຫົວຂໍ້ບົດໂຄງການຂະໜາດນ້ອຍ (mini prject)</span></del>
-                        
-                    </div> -->
-                    <div class="label-row">
-                        <span class="label">1</span>
-                        <span class="label-text">ບົດນຳ (introduction)</span>
-                    </div>
-                    <div class="label-row">
-                        <span class="label">2</span>
-                        <span class="label-text">ຈຸດປະສົງ (Objectives)</span>
-                    </div>
-                    <div class="label-row">
-                        <span class="label">3</span>
-                        <span class="label-text">ຊຸດຂໍ້ມູນທີ່ໃຊ້ (Data set)</span>
-                    </div>
-
-                    <div class="label-row">
-                        <span class="label">4</span>
-                        <span class="label-text">ການກະກຽມຂໍ້ມູນ (Data Preprocessing)</span>
-                    </div>
-
-                </div>
-
-                <div class="rightR">
-                    <div class="label-row">
-                        <span class="label">5</span>
-                        <span class="label-text">Algorithm ທີ່ໃຊ້</span>
-                    </div>
-
-                    <div class="label-row">
-                        <span class="label">6</span>
-                        <span class="label-text">ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train &amp; Predict)</span>
-                    </div>
-
-                    <div class="label-row">
-                        <span class="label">7</span>
-                        <span class="label-text">ຜົນໄດ້ຮັບ (Result)</span>
-                    </div>
-
-                    <div class="label-row">
-                        <span class="label">8</span>
-                        <span class="label-text">ສະຫຼຸບຜົນການສຶກສາ, ຂໍ້ສະເໜີ (ແຜນໃນອານາຄົດ)</span>
-                    </div>
-                </div>
-            </div>
-
-
-
-
-
-        </div>
-        <!-- Slide 3 -->
-        <div class="slide">
-            <h2>1. ບົດນຳ (Introduction)</h2>
-            <p>
-                ໃນປັດຈຸບັນ, ລະບົບສາທາລະນະສຸກພວມກຳລັງຫັນປ່ຽນໄປສູ່ຍຸກດິຈິຕອນ ທີ່ມີການນຳໃຊ້ເຕັກໂນໂລຊີ ແລະ
-                ລະບົບຖານຂໍ້ມູນເຂົ້າໃນການຄຸ້ມຄອງບໍລິການສາທາລະນະສຸກຢ່າງກວ້າງຂວາງ.
-                ການປ່ຽນແປງນີ້ເຮັດໃຫ້ມີຂໍ້ມູນດ້ານການສາທາລະນະສຸກຖືກສະສົມໄວ້ເປັນຈຳນວນຫຼວງຫຼາຍ
-                ເຊິ່ງຊື່ງສາມາດເປັນຂໍ້ມູນພື້ນຖານ (baseline) ໃຫ້ເຮົາ ເພື່ອໄປເຮັດການຄາດຄະເນໃນອານາຄົດ ແລະ ການວາງແຜນ
-                ຕໍ່ວຽກງານການບໍລິການສາທາລະນະສຸກ. ບັນຫາທີ່ພົບເລື້ອຍໃນສະຖານທີ່ບໍລິການສາທາລະນະສຸກແມ່ນ ອັດຕາການປີ່ນປົວພະຍາດ,
-                ອັດຕາການສັກຢາກັນພະຍາດ, ...ຍັງຕ່ຳເນື່ອງມາຈາກຕົວເລກເປົ້າໝາຍກຸ່ມປະຊາກອນບໍ່ຊັດເຈນ
-                ເປັນສາຍເຫດເຮັດໃຫ້ການວາງແຜນບໍ່ຖືກຕາມສະພາບຕົວຈິງ.
-            </p>
-            <p>
-                ດ້ວຍເຫດນີ້, ການນຳໃຊ້ເຕັກນິກ ການຮຽນຮູ້ຂອງເຄື່ອງຄອມພິວເຕີ (Machine Learning)
-                ເຂົ້າໃນການພະຍາກອນຕົວເລກປະຊາກອເປົ້າໝາຍ ຈຶ່ງມີຄວາມສຳຄັນ ແລະ
-                ເປັນແນວທາງຮູບແບບໃໝ່ທີ່ມີປະສິດທິພາບສູງ. ການພະຍາກອນປະຊາກອນແບບນີ້ ຈະຊ່ວຍໃຫ້ຂະແໜງສາທາລະນະສຸກ
-                ສາມາດຮູ້ເປົ້າໝາຍປະຊາກອນທີ່ຊັດເຈນ ເພື່ອການວາງແຜນການບໍລິການສາທາລະນະສຸກໃຫ້ມີປະສິດພາບດີຂື້ນ.
-            </p>
-            <p>
-                ຄວາມສຳຄັນຂອງວຽກງານນີ້ ຈະຊ່ວຍປ່ຽນຮູບແບບການບໍລິຫານການສຸຂະພາບຈາກ <b>"ການຕັ້ງທ່າຮັບ"</b> ມາເປັນ
-                <b>"ການປ້ອງກັນ
-                    ແລະ
-                    ຄາດການລ່ວງໜ້າ"</b>.
-            </p>
-
-            <p>
-                ດັ່ງນັ້ນ, ງານວິໄຈສະບັບນີ້ຈຶ່ງມຸ່ງສຶກສາ ແລະ ພັດທະນາແບບຈຳລອງການພະຍາກອນຕົວເລກປະຊາກອນໃນອານາຄົດ
-                ເພື່ອເປັນເຄື່ອງມືສະໜັບສະໜູນການຕັດສິນໃຈ
-                ໃຫ້ແກ່ຂະແໜງສາທາລະນະສຸກໃນການພັດທະນາຄຸນນະພາບການບໍລິການສາທາລະນະສຸກໃຫ້ມີຄຸນນະພາບ ແລະ ຍືນຍົງໃນຍຸກດີຈີຕອນ.
-            </p>
-        </div>
-
-        <!-- Slide 4 -->
-        <div class="slide">
-            <h2>2. ຈຸດປະສົງ</h2>
-            <details class="modern-details" style=" font-size: 25px;">
-                <summary>2.1. ຈຸດປະສົງລວມ</summary>
-                <div class="content">
-                    <div class="panel-container">
-
-                        <div class="panel-card card-teal">
-                            <div class="card-day dotText">ປັດໃຈສຳຄັນຕໍ່ການວາງແຜນ</div>
-                            <div class="card-number">1</div>
-                            <p class="card-text">ເພື່ອມີຕົວເລກຄາດໝາຍທີ່ຊັດເຈນຕໍ່ການວາງແຜນການບໍລິການສາທາລະນະສຸກ</p>
-                        </div>
-
-                        <div class="panel-card card-blue">
-                            <div class="card-day dotText">ປະສິດທິພາບຂອງ models</div>
-                            <div class="card-number">2</div>
-                            <p class="card-text">ເພື່ອພັດທະນາ ແລະ ປຽບທຽບປະສິດທິພາບ ຂອງແບບຈຳລອງ (Models)
-                                ໃນການພະຍາກອນຕົວເລກປະຊາກອນ</p>
-                        </div>
-
-                        <div class="panel-card card-orange">
-                            <div class="card-day dotText">ສ້າງເຄື່ອງມື</div>
-                            <div class="card-number">3</div>
-                            <p class="card-text">ເພື່ອສ້າງເຄື່ອງມືສະໜັບສະໜູນການຕັດສິນໃຈໃຫ້ຂະແໜງສາທາລະນະສຸກ</p>
-                        </div>
-                    </div>
-
-                </div>
-            </details>
-            <details class="modern-details" style="font-size: 25px;">
-                <summary>2.2. ຈຸດປະສົງສະເພາະ</summary>
-                <div class="content">
-                    <div class="panel-container">
-                        <div class="panel-card card-teal">
-                            <div class="card-day dotText">ເຂົ້າໃຈວິຊາ AI developer</div>
-                            <div class="card-number">1</div>
-                            <p class="card-text">ເພື່ອໃຫ້ເຂົ້າໃຈເລິກວິຊາ AI developer ແລະ ສາມາດນຳໄປໃຊ້ກັບວຽກງານຕົວຈິງໄດ້ຢ່າງມີປະສິດທິພາບ</p>
-                        </div>
-
-                        <div class="panel-card card-teal">
-                            <div class="card-day dotText">ພະຍາກອນຕົວເລກປະຊາກອນ</div>
-                            <div class="card-number">2</div>
-                            <p class="card-text">ພະຍາກອນປະຊາກອນ ປີ <span data-result-key="forecast_period">—</span></p>
-                        </div>
-                        <div class="panel-card card-coral">
-                            <div class="card-day dotText">ປຽບທຽບຄຸນນະພາບຂອງແຕ່ລະແບບຈຳລອງ</div>
-                            <div class="card-number">3</div>
-                            <p class="card-text">ປຽບທຽບປະສິດທິບພາບຂອງແຕ່ລະແບບຈຳລອງ (Models) ແລະ
-                                ຕັດສິນໃຈເລືອກແບບຈຳລອງທີ່ຄຸນນະພາບດີທີ່ສຸດ</p>
-                        </div>
-
-                        <div class="panel-card card-blue">
-                            <div class="card-day dotText">ເຂົ້າໃຈເລິກໃນວິຊາ ML</div>
-                            <div class="card-number">4</div>
-                            <p class="card-text">ເຂົ້າໃຈຕໍ່ກັບການປັບຄ່າຕ່າງໆ (Hyperparameter Turning)
-                                ເພື່ອປະສິດທິພາບຂອງແຕ່ລະແບບຈຳລອງ</p>
-                        </div>
-                    </div>
-                </div>
-            </details>
-        </div>
-
-        <!-- Slide 5 -->
-        <div class="slide">
-            <h2>3. ຊຸດຂໍ້ມູນທີ່ໃຊ້ (Data set)</h2>
-            <p>ຊຸດຂໍ້ມູນທີ່ນຳໃຊ້ໃນການວິໄຈຄັ້ງນີ້ ແມ່ນໄດ້ມາຈາກລະບົບຖານຂໍ້ມູນຂອງກະຊວງສາທາລະນະສຸກ (DHIS2)
-                ເປັນຊຸດຂໍ້ມູນທີ່ສົມບູນແບບ (ບໍ່ມີຂໍ້ມູນຊ້ຳຊ້ອນ, ບໍ່ມີຂໍ້ມູນທີ່ຂາດຫາຍ (missing value), ...). ຂໍ້ມູນທັງໝົດ <b data-result-key="row_count">—</b> ແຖວ (records)
-            </p>
-            <p>
-                ໂຄງສ້າງຂອງຊຸດຂໍ້ມູນ ໄດ້ຖືກຄັດເລືອກ ແລະ ແບ່ງອອກເປັນແຕ່ລະປເພດຄື:
-            <ul>
-                <li>ເປັນແຕ່ລະເມືອງໃນທົ່ວປະເທດ,</li>
-                <li>ເປັນແຕ່ລະກຸ່ມອາຍຸ (0 ປີ, 1 ປີ, 2 ປີ, ..., 80+ ປີ)</li>
-                <li> ເພດ (ຍິງ, ຊາຍ)</li>
-            </ul>
-            </p>
-
-            <details class="modern-details">
-                <summary>ລາຍລະອຽດນິຍາມຂໍ້ມູນ (Meta data)</summary>
-                <div class="content">
-                    <table border="1" style="border-collapse: collapse; width: 100%; font-family: 'Noto Sans Lao';">
-                        <thead>
-                            <tr style="background-color: #008080; color: white; text-align: left;">
-                                <th style="padding: 8px;">#</th>
-                                <th style="padding: 8px;">Feature (Column)</th>
-                                <th style="padding: 8px;">ປະເພດຂໍ້ມູນ (Data type)</th>
-                                <th style="padding: 8px;">ລາຍລະອຽດ</th>
-                                <th style="padding: 8px;">ໝາຍເຫດ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">1</td>
-                                <td style="padding: 8px;">ouName</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ເປັນຊື່ແຕ່ລະເມືອງໃນທົ່ວປະເທດ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">2</td>
-                                <td style="padding: 8px;">ouID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ເປັນລະຫັດແຕ່ລະເມືອງ (DB Id) <br>- unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">3</td>
-                                <td style="padding: 8px;">deID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງອົງປະກອບຂໍ້ມູນ<br>- unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">4</td>
-                                <td style="padding: 8px;">deName</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ຊື່ອົງປະກອບຂໍ້ມູນ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">5</td>
-                                <td style="padding: 8px;">cocID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ເປັນລະຫັດຂອງອາຍຸໃນຖານຂໍ້ມູນ <br> - unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">6</td>
-                                <td style="padding: 8px;">cocName</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ເປັນຊື່ອາຍຸແຕ່ລະປີ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">7</td>
-                                <td style="padding: 8px;">cocCode</td>
-                                <td style="padding: 8px;">int32</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງອາຍຸ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">8</td>
-                                <td style="padding: 8px;">sexID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ<br> - unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">9</td>
-                                <td style="padding: 8px;">sexName</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ເພດ (ຍິງ, ຊາຍ)</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">10</td>
-                                <td style="padding: 8px;">sexCode</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">11</td>
-                                <td style="padding: 8px;">ປີ</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ແຕ່ລະປີ (2016, 2017, ..., 2025)</td>
-                                <td style="padding: 8px;">Feature</td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-                </div>
-            </details>
-            <details class="modern-details">
-                <summary>ແບບຂອງຊຸດຂໍ້ມູນ (dataDistrict.csv)</summary>
-                <div class="content" style="display: flex; justify-content: center;">
-                    <img src="image/csv.png" style="width: 680px; height: 380px;">
-                </div>
-            </details>
-        </div>
-
-        <!-- Slide 6 -->
-
-        <div class="slide">
-            <h2>4. ການກະກຽມຂໍ້ມູນ (Data Preprocessing)</h2>
-            <div style="font-size: 28px;">
-                <div class="label-row">
-                        <span class="label">1</span>
-                        <span class="label-text">ດາວໂຫຼດຂໍ້ມູນຈາກຖານຂໍ້ມູນຂອງລະບົບ DHIS2, ກະຊວງສາທາລະນະສຸກ</span>
-                </div>
-                <div class="label-row">
-                        <span class="label">2</span>
-                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນແຕ່ລະປີ (2016-2025)</span>
-                </div>
-                <div class="label-row">
-                        <span class="label">3</span>
-                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນແຕ່ລະກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)</span>
-                </div>
-                <div class="label-row">
-                        <span class="label">4</span>
-                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນແຕ່ລະເມືອງໃນທົ່ວປະເທດ</span>
-                </div>
-                <div class="label-row">
-                        <span class="label">5</span>
-                        <span class="label-text">ຈັດສັນຂໍ້ມູນເປັນເພດ (ຍິງ, ຊາຍ)</span>
-                </div>
-            <b>ໝາຍເຫດ:</b>
-            <p style="font-size: 28px;">✍️ ບໍ່ໄດ້ເຮັດການທຳຄວາມສະອາດຂໍ້ມູນ
-                ເພາະຊຸດຂໍ້ມູນຂອງເຮົາແມ່ນໄດ້ມາຈາກຖານຂໍ້ມູນທີ່ສົມບູນ, ຖືກຕ້ອງ,
-                ຜ່ານການກວດສອບ, ແລະ ສະອາດແລ້ວ</p>
+            <p class="short-slide-lead">ພາບລວມເນື້ອໃນການນຳສະເໜີ</p>
+            <div class="short-overview-grid" aria-label="ຫົວຂໍ້ສະໄລດ໌ນຳສະເໜີ (Presentation slide titles)">
+                <article><span>01</span><strong>ຈຸດປະສົງ</strong><small>ເພື່ອໃຫ້ບັນລຸຈຸດປະສົງຂອງການຮຽນວິຊານັກພັດທະນາ AI
+                        (AI Developer)</small></article>
+                <article><span>02</span><strong>ຂັ້ນຕອນການຊອກ ຂໍ້ມູນ &amp; CRISP-DM</strong><small>ແຫຼ່ງຂໍ້ມູນ ແລະ
+                        ຂະບວນການ</small></article>
+                <article><span>03</span><strong>ການກະກຽມຂໍ້ມູນ &amp;
+                        ການກວດຄ່າຜິດປົກກະຕິ</strong><small>ການກວດກາຄຸນນະພາບຂໍ້ມູນ ແລະ ການແກ້ໄຂ-ປັບປຸງ</small></article>
+                <article><span>04</span><strong>Algorithm ແລະ ແບບຈຳລອງ (Modeling)
+                        ເພື່ອນຳໄປໃຊ້ຕົວຈິງ</strong><small>ເລືອກ 3 ແບບຈຳລອງມາທົດລອງ</small></article>
+                <article><span>05</span><strong>ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train &
+                        Predict)</strong><small>ການຝຶກສອນ ແລະ
+                        ການທົດລອງຄວາມສາມາດຂອງແບບຈຳລອງ</small></article>
+                <article><span>06</span><strong>ຜົນການຄາດຄະເນ (Result)
+                        ຕາມແບບຈຳລອງທີ່ຖືກເລືອກ</strong><small>ນຳເອົາແບບລອງທີ່ຖືກເລືອກໄປເຮັດການຄາດຄະເນປະຊາກອນລາວ</small>
+                </article>
+                <article><span>07</span><strong>ສະຫຼຸບ, ການນຳໄປໃຊ້ງານຕົວຈິງ ແລະ
+                        ຂໍ້ສະເໜີແນະ</strong><small>ການນຳໄປໃຊ້ງານຈິງ ແລະ
+                        ຂໍ້ຈຳກັດ</small></article>
+                <article><span>08</span><strong>ເອກະສານອ້າງອິງ</strong><small>ກະສານທີ່ໄດ້ອ່ານ ແລະ ຄົ້ນຄວ້າ</small>
+                </article>
+                <article><span>09</span><strong>ຄຳຖາມ&amp;ຕອບ</strong><small>ການສາທິດລະບົບຕົວຈິງ</small></article>
             </div>
         </div>
 
-        <!-- Slide 9 -->
-        <div class="slide">
-            <h2>5. Algorithm ທີ່ໃຊ້</h2>
+        <div class="slide short-story-slide">
+            <h2>1. ຈຸດປະສົງ</h2>
+            <p class="short-slide-lead">ເພື່ອບັນລຸເປົ້າໝາຍການຮຽນຮູ້ຂອງນັກພັດທະນາ AI (AI Developer)
+                ໂດຍການຊ່ວຍໃຫ້ນັກຮຽນທຸກຄົນເຂົ້າໃຈກ່ຽວກັບ AI ແລະ ພາໄປປະຍຸກໃຊ້ເຂົ້າໃນວຽກງານຕົວຈິງ.</p>
+            <div class="short-three-grid">
+                <article><span>ຈຸດປະສົງສະເພາະ</span>
+                    <h3>ເຂົ້າໃຈຂັ້ນຕອນການເຮັດວຽກຂອງ AI</h3>
+                    <p>ນັກຮຽນທຸກຄົນຕ້ອງສາມາດອະທິບາຍຂັ້ນຕອນການກຳນົດບັນຫາ, ການກຽມຂໍ້ມູນ, ການສ້າງແບບຈຳລອງ (model),
+                        ການປະເມິນຜົນ ແລະ ການນຳໄປໃຊ້ງານຕົວຈິງໄດ້.</p>
+                </article>
+                <article><span>ຈຸດປະສົງສະລວມ</span>
+                    <h3>ສາມາດນຳໃຊ້ AI ເຂົ້າໃນວຽກງານຕົວຈິງ</h3>
+                    <p>ນຳໃຊ້ຂໍ້ມູນປະຊາກອນໃນລະດັບທົ່ວປະເທດ ເພື່ອປຽບທຽບແບບຈຳລອງການພະຍາກອນ ແລະ
+                        ສະໜັບສະໜູນການວາງແຜນບໍລິການດ້ານສາທາລະນະສຸກໃຫ້ເກີດຜົນຕົວຈິງ.</p>
+                </article>
+                <article><span>ຜົນທີ່ຈະໄດ້ຮັບ</span>
+                    <h3>ສາທິດ/ສະແດງລະບົບ ຫຼື ວິທີແກ້ໄຂບັນຫາທີ່ສາມາດໃຊ້ງານໄດ້ຕົວຈິງ</h3>
+                    <p>ສ້າງແອັບ Streamlit ແບບໂຕ້ຕອບໄດ້ (Interactive)
+                        ທີ່ມາພ້ອມກັບຜົນການພະຍາກອນທີ່ຜ່ານການກວດສອບຄວາມຖືກຕ້ອງ, ຫຼັກຖານການກວດສອບ (Audit evidence) ແລະ
+                        ຟັງຊັນການສົ່ງອອກຂໍ້ມູນທີ່ສາມາດນຳກັບມາໃຊ້ຊ້ຳໄດ້.</p>
+                </article>
+            </div>
+            <div class="short-success-bar"><strong>ສາມາດຢັ້ງຢືນ</strong><span>ນັກຮຽນ ສາມາດອະທິບາຍເຫດຜົນໃນການເລືອກໃຊ້ AI,
+                    ປະເມິນຜົນໂມເດວດ້ວຍຂໍ້ມູນໃໝ່ (Unseen data) ແລະ ສາທິດການນຳໃຊ້ແອັບພລິເຄຊັນທີ່ມີປະໂຫຍດ
+                    ເຊິ່ງສາມາດແກ້ໄຂບັນຫາຕົວຈິງໄດ້</span></div>
+        </div>
+
+        <div class="slide short-data-slide">
+            <h2>2. ຂໍ້ມູນ ແລະ ຂະບວນການ CRISP-DM</h2>
+            <div class="short-data-layout">
+                <section class="short-data-profile">
+                    <h3>ຊຸດຂໍ້ມູນ DHIS2 ທົ່ວປະເທດ (Nationwide DHIS2 Dataset)</h3>
+                    <div class="short-metric"><strong>148</strong><span>ເມືອງ (districts)</span></div>
+                    <div class="short-metric"><strong>2016–2025</strong><span>ປີຂໍ້ມູນທີ່ມີ (historical years)</span>
+                    </div>
+                    <div class="short-metric"><strong>23,976</strong><span>ຈຳນວນຂໍ້ມູນທັງໝົດ
+                            (ອາຍຸ–ເພດ-ເມືອງ/district–age–sex series)</span></div>
+                    <p>ແຕ່ລະແຖວ CSV ແມ່ນຂໍ້ມູນຂອງເມືອງນັ້ນ.</p>
+                </section>
+                <section class="short-crisp-flow" aria-label="ຂະບວນການ CRISP-DM ແບບຫຍໍ້ (Condensed CRISP-DM workflow)">
+                    <article><span>1</span>
+                        <div><strong>ເຂົ້າໃຈ (Understand)</strong><small>ບັນຫາການວາງແຜນ (Planning problem)</small></div>
+                    </article>
+                    <article><span>2</span>
+                        <div><strong>ກະກຽມ (Prepare)</strong><small>ກວດສອບ ແລະ ແກ້ໄຂຄ່າຜິດປົກກະຕິ (outliers)</small>
+                        </div>
+                    </article>
+                    <article><span>3</span>
+                        <div><strong>ສ້າງແບບຈຳລອງ (Model)</strong><small>ສາມແບບຈຳລອງຂອງການການປະເມີນຄ່າຂໍ້ມູນ/ທົດຖອຍ
+                                (regression)</small></div>
+                    </article>
+                    <article><span>4</span>
+                        <div><strong>ປະເມີນ (Evaluate)</strong><small>ການທົດສອບແຍກຕາມເວລາ (Time-based holdout)</small>
+                        </div>
+                    </article>
+                    <article><span>5</span>
+                        <div><strong>ນຳໃຊ້ (Deploy)</strong><small>Streamlit ແລະ ການສົ່ງອອກ (exports)</small></div>
+                    </article>
+                </section>
+            </div>
+            <p class="short-slide-note">ຊຸດຂໍ້ມູນທົ່ວປະເທດທີ່ແຍກເປັນແຕ່ລະເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ (ສາມາດ filter
+                ໄດ້ຕາມທີ່ຕ້ອງການ)</p>
+        </div>
+
+        <div class="slide correction-method-slide correction-results-slide">
+            <h2>3. ການກະກຽມຂໍ້ມູນ & ການກວດຄ່າຜິດປົກກະຕິ</h2>
+
+            <div class="short-outlier-summary">
+                <article><span>ການກວດຫາຄ່າຜິດປົກກະຕິ</span><strong>ການກວດສອບດ້ວຍ 2 ວິທີ (Two independent
+                        checks)</strong><small>ຄວາມຜິດປົກກະຕິທຽບໃສ່ໄລຍະເວລາ + ຄວາມຜິດປົກກະຕິທຽບໃສ່ເມືອງຕ່າງໆ</small>
+                </article>
+                <article><span>ການແກ້ໄຂຄ່າຜິດປົກກະຕິ (TREATMENT)</span><strong><b
+                            data-result-key="correction_loglinear">—</b> + <b
+                            data-result-key="correction_theilsen">—</b></strong><small>Log-linear internal years +
+                        Theil–Sen endpoints</small></article>
+                <article><span>ຜົນໄດ້ຮັບ (NATIONWIDE IMPACT)</span><strong><b data-result-key="correction_count">—</b>
+                        ເຊວ (cells) · <b data-result-key="correction_share">—</b></strong><small>ການປັບສຸດທິ (Net
+                        adjustment) <b data-result-key="correction_net">—</b>; ຍັງຮັກສາຄ່າຕົ້ນສະບັບ</small></article>
+            </div>
+            <!-- <p class="short-slide-note">ເປີດພາກສ່ວນດ້ານລຸ່ມສະເພາະເມື່ອຜູ້ໃຊ້ຕ້ອງການເບິ່ງຫຼັກຖານການກວດພົບ ຫຼື ຕາຕະລາງການກວດສອບ (audit table) ໂດຍລະອຽດ.</p> -->
+
+            <details class="modern-details correction-section-details">
+                <summary>3.1. ການກວດສອບ ແລະ ວິທີການແກ້ໄຂຄ່າຜິດປົກກະຕິ (Outlier)</summary>
+                <div class="content correction-section-content">
+
+                    <section class="outlier-evidence-panel">
+                        <div class="correction-comparison-heading">
+                            <h3>ພາບລວມຂໍ້ມູນຜິດປົກກະຕິທົ່ວປະເທດ (Nationwide Outlier Overview)</h3>
+                            <span>ຊຸດຂໍ້ມູນທົ່ວປະເທດຄົບຖ້ວນ · ຢືນຢັນດ້ວຍການກວດສອບດ້ວຍ 2 ວິທີ (two independent
+                                checks)</span>
+                        </div>
+                        <div id="live-outlier-evidence-plotly" class="live-interactive-chart outlier-evidence-chart"
+                            hidden
+                            aria-label="ພາບລວມຄ່າຜິດປົກກະຕິທີ່ຢືນຢັນແລ້ວທົ່ວປະເທດ ຕາມປີ, ເພດ, ເມືອງ ແລະ ກຸ່ມອາຍຸ"></div>
+                        <p class="correction-example-context" data-result-key="outlier_evidence">
+                            ລໍຖ້າຜົນຈາກ Streamlit (Demo)…
+                        </p>
+                    </section>
+                    <hr>
+                    <p class="correction-lead">
+                        ວິທີການແກ້ໄຂຂໍ້ມູນຜິດປົກກະຕິແບບຮັດກຸມ (Conservative Outlier Correction) ບໍ່ແມ່ນການປັບຂະໜາດ
+                        (Scale) ແບບການປັບໃຫ້ເປັນມາດຕະຖານ (Normalization) -
+                        ລະບົບຈະຮັກສາຂໍ້ມູນຕົ້ນສະບັບ ແລະ ແກ້ໄຂສະເພາະຄ່າຜິດປົກກະຕິທີ່ຖືກຢືນຢັນ
+                        ໂດຍໃຊ້ການແກ້ໄຂແບບລັອກ-ເສັ້ນຊື່ (Log-linear corrections) ແລະ ຈຸດປາຍ Theil–Sen (Theil–Sen
+                        endpoints).
+                    </p>
+
+                    <div class="correction-workflow"
+                        aria-label="ຂະບວນການແກ້ໄຂຄ່າຜິດປົກກະຕິແບບຮັດກຸມ (Conservative outlier correction workflow)">
+                        <div class="correction-step">
+                            <span>1</span>
+                            <strong>ຂໍ້ມູນຕົ້ນສະບັບ (Original data)</strong>
+                            <small>ຮັກສາຄ່າຕົ້ນສະບັບ</small>
+                        </div>
+                        <div class="correction-arrow" aria-hidden="true">→</div>
+                        <div class="correction-step">
+                            <span>2</span>
+                            <strong>ການກວດສອບຕາມປີ (Historical check)</strong>
+                            <small>Cohort-change robust score</small>
+                        </div>
+                        <div class="correction-arrow" aria-hidden="true">→</div>
+                        <!-- <div class="correction-step">
+                            <span>3</span>
+                            <strong> ກວດສອບທຽບກັບເມືອງຕ່າງໆ (Independent confirmation)</strong>
+                            <small>ສັດສ່ວນເມືອງ (District share) · ອັດຕາສ່ວນເພດ (Sex ratio) · ອາຍຸທີ່ຕິດກັນ (Adjacent
+                                age)</small>
+                        </div> -->
+                        <div class="correction-step">
+                            <span>3</span>
+                            <strong>ກວດສອບຕາມເມືອງຕ່າງໆ (Independent confirmation)</strong>
+                            <small>ສັດສ່ວນເມືອງ (District share) · ອັດຕາສ່ວນເພດ (Sex ratio) · ອາຍຸທີ່ຕິດກັນ (Adjacent
+                                age)</small>
+                        </div>
+
+
+                        <div class="correction-arrow" aria-hidden="true">→</div>
+                        <div class="correction-step correction-step-decision">
+                            <span>4</span>
+                            <strong>ຄວາມໝັ້ນໃຈສູງບໍ? (High-confidence?)</strong>
+                            <small>ບໍ່: ຮັກສາໄວ້ · ແມ່ນ: ແກ້ໄຂ (No: retain · Yes: correct)</small>
+                        </div>
+                        <div class="correction-arrow" aria-hidden="true">→</div>
+                        <div class="correction-step correction-step-output">
+                            <span>5</span>
+                            <strong>ຂໍ້ມູນພ້ອມສຳລັບຄາດຄະເນ (Forecast-ready data)</strong>
+                            <small>ເສັ້ນຊື່ (Linear) · ພະຫຸນາມ (Polynomial) · ເລກກຳລັງ (Exponential)</small>
+                        </div>
+                    </div>
+
+                    <div class="correction-rule-grid">
+                        <article class="correction-rule-card">
+                            <span class="correction-rule-tag">ຢືນຢັນການກວດສອບ (CONFIRM)</span>
+                            <h3>ຢືນຢັນ 2 ແບບ</h3>
+                            <p>Historical cohort-change ຕ້ອງກົງກັບ demographic check ຢ່າງໜ້ອຍ 1 ວິທີ; ດ້ວຍເກນຄະແນນ
+                                (robust-score threshold) = <strong data-result-key="correction_threshold">3.5</strong>.
+                            </p>
+                        </article>
+                        <article class="correction-rule-card">
+                            <span class="correction-rule-tag">2017–2024</span>
+                            <h3>ແກ້ກ້ວຍວິທີ: Log-linear interpolation</h3>
+                            <code>exp((log(1+previous) + log(1+following))/2) − 1</code>
+                        </article>
+                        <article class="correction-rule-card">
+                            <span class="correction-rule-tag">2016 / 2025</span>
+                            <h3>ແກ້ດ້ວຍ: Theil–Sen (Theil–Sen endpoint)</h3>
+                            <p>ໃຊ້ຄ່າກາງຂອງການເຕີບໂຕແບບລັອກລາຍຄູ່ (median pairwise log-growth); ບໍ່ເກີນ 2
+                                ປີທີ່ບໍ່ຕິດກັນຕໍ່ 1 ຊຸດຂໍ້ມູນ (series).</p>
+                        </article>
+                    </div>
+
+                    <details class="modern-details correction-method-details" open>
+                        <summary>ຂັ້ນຕອນການແກ້ໄຂຄ່າຜິດປົກກະຕິ</summary>
+                        <div class="content">
+                            <ol>
+                                <li>ດຳເນີນການກວດຄ່າຜິດປົກກະຕິດ້ວຍຄ່າກາງ/MAD (median/MAD) ທົ່ວປະເທດ
+                                    ໃນຊຸດຂໍ້ມູນຄົບຖ້ວນທີ່ບໍ່ຖືກກອງ ໂດຍໃຊ້ເກນຄະແນນທົນທານ (robust-score threshold)
+                                    ທີ່ເຮັດວຽກຢູ່ເທົ່າກັບ <strong data-result-key="correction_threshold">3.5</strong>.
+                                </li>
+                                <li>ກຳນົດໃຫ້ມີ 2 ສັນຍານເອກະລາດ: ທຸງການປ່ຽນແປງກຸ່ມຮຸ່ນຕາມປະຫວັດ (historical cohort-change
+                                    flag) ແລະ ຢ່າງໜ້ອຍໜຶ່ງທຸງຄວາມສອດຄ່ອງດ້ານປະຊາກອນ ຫຼື ສັດສ່ວນເມືອງທົ່ວປະເທດ.</li>
+                                <li>ສຳລັບປີພາຍໃນ, ແທນຄ່າທີ່ຢືນຢັນແລ້ວດ້ວຍ <strong>ການຄາດຄ່າແຊກແບບລັອກ-ເສັ້ນຊື່ສອງດ້ານ
+                                        (two-sided log-linear interpolation)</strong> ຈາກປີກ່ອນ ແລະ
+                                    ປີຖັດໄປທີ່ບໍ່ຖືກປ່ຽນ:
+                                    <code>exp((log(1 + previous) + log(1 + following)) / 2) − 1</code>.
+                                </li>
+                                <li>ສຳລັບປີ 2016 ຫຼື 2025, ໃຊ້ <strong>ການປະເມີນຈຸດປາຍ Theil–Sen (Theil–Sen endpoint
+                                        estimate)</strong>
+                                    ທີ່ຄຳນວນຈາກຄ່າກາງຂອງຄວາມຊັນການເຕີບໂຕແບບລັອກລາຍຄູ່ຂອງປີທີ່ເຫຼືອ.</li>
+                                <li>ແກ້ໄຂບໍ່ເກີນ <strong>2 ປີທີ່ບໍ່ຕິດກັນ (two non-adjacent years)</strong>
+                                    ໃນໜຶ່ງຊຸດຂໍ້ມູນເມືອງ–ອາຍຸ–ເພດ, ຈຳກັດຄ່າຕ່ຳສຸດເປັນສູນ ແລະ ປັດເປັນຈຳນວນຄົນເຕັມ.
+                                    ຄ່າຕົ້ນສະບັບຍັງຖືກເກັບໄວ້ໃນບັນທຶກການກວດສອບ (audit log).</li>
+                            </ol>
+                        </div>
+                    </details>
+
+                    <p class="result-note correction-safety-note">
+                        <strong>ກົດການກວດສອບ (Audit rule):</strong> ຄ່າທຸກຄ່າທີ່ຖືກແກ້ໄຂຈະເກັບຄ່າຕົ້ນສະບັບ (Original
+                        value), ຄ່າທີ່ແກ້ໄຂແລ້ວ (Corrected value),
+                        ຄະແນນທົນທານ (Robust scores) ແລະ ວິທີແກ້ໄຂ (Correction method) ໄວ້ສຳລັບການກວດສອບຄືນ.
+                    </p>
+                </div>
+            </details>
+
+            <details class="modern-details correction-section-details">
+                <summary>3.2. ຜົນການແກ້ໄຂຄ່າຜິດປົກກະຕິ (Outlier)</summary>
+                <div class="content correction-section-content">
+                    <p class="correction-results-context">
+                        ຜົນລວມລະດັບປະເທດຈາກຊຸດຂໍ້ມູນ · ຂໍ້ມູນເພື່ອຈະນຳໄປເຮັດການຄາດຄະເນ (Forecast input):
+                        <strong data-result-key="forecast_input">—</strong>
+                    </p>
+
+                    <div class="correction-baseline-tabs" role="tablist"
+                        aria-label="ປະເພດຂໍ້ມູນພື້ນຖານ (Baseline data type)">
+                        <button type="button" class="correction-baseline-tab" data-baseline-card="original" role="tab"
+                            aria-selected="false" aria-controls="correction-baseline-summary">
+                            <span class="correction-baseline-label">ຂໍ້ມູນຕົ້ນສະບັບ (Original data)</span>
+                            <span class="correction-baseline-check" aria-hidden="true">✓</span>
+                        </button>
+                        <button type="button" class="correction-baseline-tab" data-baseline-card="corrected" role="tab"
+                            aria-selected="false" aria-controls="correction-baseline-summary">
+                            <span class="correction-baseline-label">ຂໍ້ມູນທີ່ແກ້ໄຂແລ້ວ (Outlier-corrected
+                                data; threshold <span data-result-key="correction_threshold">3.5</span>)</span>
+                            <span class="correction-baseline-check" aria-hidden="true">✓</span>
+                        </button>
+                    </div>
+
+                    <div id="correction-baseline-summary" class="correction-baseline-summary" role="tabpanel"
+                        aria-live="polite">
+                        <article class="correction-baseline-metric">
+                            <span>ຈຳນວນຂໍ້ມູນ (Rows)</span>
+                            <strong data-baseline-key="rows">—</strong>
+                        </article>
+                        <article class="correction-baseline-metric">
+                            <span>ປະຊາກອນ ປີ 2016</span>
+                            <strong data-baseline-key="population_2016">—</strong>
+                        </article>
+                        <article class="correction-baseline-metric">
+                            <span>ປະຊາກອນ ປີ 2025</span>
+                            <strong data-baseline-key="population_2025">—</strong>
+                        </article>
+                        <article class="correction-baseline-metric">
+                            <span>ແຫຼ່ງຂໍ້ມູນ</span>
+                            <strong data-baseline-key="source">—</strong>
+                        </article>
+                    </div>
+
+                    <div class="correction-metric-grid">
+                        <article class="correction-metric-card">
+                            <span>ຈຳນວນຂໍ້ມູນທີ່ແກ້ໄຂແລ້ວ (Corrected observations)</span>
+                            <strong data-result-key="correction_count">—</strong>
+                        </article>
+                        <article class="correction-metric-card">
+                            <span>ຈຳນວນແຖວທີ່ແກ້ໄຂແລ້ວ (Affected series)</span>
+                            <strong data-result-key="correction_series">—</strong>
+                        </article>
+                        <article class="correction-metric-card">
+                            <span title="949/(23976*10year)*100">ສັດສ່ວນທີ່ຖືກແກ້ໄຂ (Share of historical cells)</span>
+                            <strong data-result-key="correction_share">—</strong>
+                        </article>
+                        <article class="correction-metric-card">
+                            <span>ການແກ້ໄຂແບບ Log-linear corrections</span>
+                            <strong data-result-key="correction_loglinear">—</strong>
+                        </article>
+                        <article class="correction-metric-card">
+                            <span>ການແກ້ໄຂແບບ Theil–Sen (Theil–Sen endpoints)</span>
+                            <strong data-result-key="correction_theilsen">—</strong>
+                        </article>
+                        <article class="correction-metric-card">
+                            <span>ການປັບເຊວສຸດທິ (Net historical-cell adjustment)</span>
+                            <strong data-result-key="correction_net">—</strong>
+                        </article>
+                    </div>
+
+                    <section class="correction-comparison-panel">
+                        <div class="correction-comparison-heading">
+                            <h3>ການແກ້ໄຂຄ່າຜິດປົກກະຕິທົ່ວປະເທດ: ກ່ອນ ທຽບກັບ ຫຼັງ (Nationwide Outlier Treatment: Before
+                                vs After)</h3>
+                            <span><b class="correction-original-key">×</b> ກ່ອນແກ້ໄຂ (Before treatment) &nbsp; <b
+                                    class="correction-treated-key">◆</b> ຫຼັງແກ້ໄຂ (After treatment)</span>
+                        </div>
+                        <div id="live-correction-comparison-plotly"
+                            class="live-interactive-chart correction-comparison-chart" hidden
+                            aria-label="ຈຳນວນປະຊາກອນລວມທົ່ວປະເທດຕົ້ນສະບັບ ແລະ ທີ່ແກ້ໄຂແລ້ວ ຕາມປີ"></div>
+                        <p class="correction-example-context" data-result-key="correction_example">
+                            ລໍຖ້າຜົນຈາກສ່ວນສາທິດ Streamlit (Demo)…
+                        </p>
+                    </section>
+
+                    <div class="correction-results-layout">
+                        <section class="correction-result-panel">
+                            <h3>ຕົວຢ່າງກ່ອນ/ຫຼັງ (Before/After) ທີ່ປ່ຽນແປງສູງສຸດ</h3>
+                            <div class="correction-table-scroll">
+                                <table id="live-correction-audit-table" class="result-table correction-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ເມືອງ (District)</th>
+                                            <th>ອາຍຸ (Age)</th>
+                                            <th>ເພດ (Sex)</th>
+                                            <th>ປີ (Year)</th>
+                                            <th>ຕົ້ນສະບັບ (Original)</th>
+                                            <th>ແກ້ໄຂແລ້ວ (Corrected)</th>
+                                            <th>ວິທີການ (Method)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="7">ລໍຖ້າຜົນຈາກສ່ວນສາທິດ Streamlit (Demo)…</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                        <section class="correction-result-panel">
+                            <h3>ຜົນກະທົບຕໍ່ການຄາດຄະເນ (Forecast): ຕົ້ນສະບັບ ທຽບກັບ ແກ້ໄຂແລ້ວ (Original vs Corrected)
+                            </h3>
+                            <div class="correction-table-scroll">
+                                <table id="live-correction-impact-table" class="result-table correction-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ແບບຈຳລອງ (Model)</th>
+                                            <th>ປີ (Year)</th>
+                                            <th>ຕົ້ນສະບັບ (Original)</th>
+                                            <th>ແກ້ໄຂແລ້ວ (Corrected)</th>
+                                            <th>ຜົນຕ່າງ (Difference)</th>
+                                            <th>ການປ່ຽນແປງ (Change)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="6">ລໍຖ້າຜົນຈາກສ່ວນສາທິດ Streamlit (Demo)…</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+
+                    <p class="result-note correction-conclusion">
+                        ຄ່າຜິດປົກກະຕິ (Outlier) ບໍ່ໄດ້ຖືກລຶບທັງໝົດ: ມີພຽງຄ່າທີ່ຜ່ານຫຼັກຖານດ້ານເວລາ ແລະ ປະຊາກອນ (temporal
+                        and demographic evidence)
+                        ເທົ່ານັ້ນທີ່ຖືກແກ້ໄຂ; ຂໍ້ມູນຕົ້ນສະບັບ (Original) ຍັງຄົງຢູ່ສຳລັບການປຽບທຽບ (comparison).
+                    </p>
+                </div>
+            </details>
+        </div>
+
+
+
+        <div class="slide short-model-slide">
+            <h2>4. Algorithm ແລະ ແບບຈຳລອງ (Modeling)</h2>
+            <p class="short-slide-lead">ປຽບທຽບແບບຈຳລອງພື້ນຖານ (baselines) 3 ແບບທີ່ງ່າຍ ແລະ ອະທິບາຍໄດ້
+                ພາຍໃຕ້ການປະເມີນຕາມລຳດັບເວລາດຽວກັນ.</p>
+
             <div class="panel-container">
 
                 <div class="panel-card card-teal" style="width: 520px; padding: 10px;">
@@ -439,7 +502,7 @@
                     <div style="left: 0px; display: flex; position: relative; text-align: left;">
                         <b class="dotText">y(Target):</b><br>
                         <ol>
-                             <li>
+                            <li>
                                 ຈ.ນ ປະຊາກອນເປັນແຕ່ລະປີ (2026-2030),
                             </li>
                             <li>
@@ -561,346 +624,121 @@
                     </div>
                 </div>
             </div>
+
+            <div class="short-pipeline" aria-label="ສາຍງານການພັດທະນາແບບຈຳລອງ (Model implementation pipeline)">
+                <span>ຂໍ້ມູນທີ່ກວດສອບແລ້ວ (Validated data)</span><b>→</b><span>ຝຶກສອນ (Train)
+                    2016–2022</span><b>→</b><span>ທົດສອບ (Test) 2023–2025</span><b>→</b><span>ເລືອກດ້ວຍ MAPE (Select by
+                    MAPE)</span><b>→</b><span>ຝຶກສອນຄືນໃໝ່ (Retrain) 2016–2025</span><b>→</b><span>ຄາດຄະເນ (Forecast)
+                    2026+</span>
+            </div>
+            <p class="short-slide-note">ສ່ວນສາທິດ (Demo) ມີຕົວກອງ, ຕົວຊີ້ວັດຄົບຖ້ວນ, ຄ່າຄົງເຫຼືອ (residuals),
+                ປິຣາມິດປະຊາກອນ ແລະ ການສົ່ງອອກ CSV/HTML ລະດັບແຖວ.</p>
         </div>
 
-        <!-- Slide 10 -->
-        <div class="slide">
-            <h2>6. ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train &amp; Predict)</h2>
-
-            <details class="modern-details">
-                <summary>
-                    1. ການກວດຂໍ້ມູນ, ສ້າງ ແລະ ຝຶກສອນ Models
-                </summary>
-                <div class="content">
-
-                    <pre><b># Libraries used by the shared forecasting module</b>
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.preprocessing import PolynomialFeatures
-
-<b># Streamlit orchestration (app.py)</b>
-from population_forecast import (
-    HISTORICAL_COLUMNS,
-    HISTORICAL_YEARS,
-    MODEL_NAMES,
-    forecast_totals,
-    validate_population_data,
-)
-
-if uploaded_file is None:
-    raw_data = load_default_data(
-        str(DEFAULT_DATA), DEFAULT_DATA.stat().st_mtime
-    )
-else:
-    raw_data = load_uploaded_data(uploaded_file.getvalue())
-data = validate_population_data(raw_data)
-filtered_data = filter_data(data)
-if filtered_data.empty:
-    st.warning("The selected filters contain no records.")
-    st.stop()
-result = forecast_totals(filtered_data, future_end)
-
-<b># Shared model implementation (population_forecast.py)</b>
-def forecast_totals(df, future_end=2030):
-    if future_end &lt; 2026:
-        raise ValueError("The forecast end year must be 2026 or later.")
-
-    historical_x = np.asarray(HISTORICAL_YEARS).reshape(-1, 1)
-    all_years = np.arange(HISTORICAL_YEARS[0], future_end + 1)
-    all_x = all_years.reshape(-1, 1)
-    y = df[HISTORICAL_COLUMNS].sum(axis=0).to_numpy(dtype=float)
-
-    linear = LinearRegression().fit(historical_x, y)
-
-    polynomial_features = PolynomialFeatures(degree=2)
-    historical_poly = polynomial_features.fit_transform(historical_x)
-    polynomial = LinearRegression().fit(historical_poly, y)
-
-    # Match the notebook while preventing log(0) for an empty subgroup.
-    exponential = LinearRegression().fit(
-        historical_x, np.log(np.where(y &lt;= 0, 0.1, y))
-    )
-
-    predictions = {
-        "Linear": linear.predict(all_x),
-        "Polynomial": polynomial.predict(
-            polynomial_features.transform(all_x)
-        ),
-        "Exponential": np.exp(exponential.predict(all_x)),
-    }
-    train_size = len(HISTORICAL_YEARS)
-    fitted = {name: values[:train_size] for name, values in predictions.items()}
-    future = {name: values[train_size:] for name, values in predictions.items()}
-    metrics = pd.DataFrame(
-        [_metrics(y, fitted[name]) for name in MODEL_NAMES],
-        index=MODEL_NAMES,
-    )
-    metrics.index.name = "Model"
-    return ForecastResult(y, all_years, predictions, fitted, future, metrics)
-                    </pre>
-
-                    <div class="result-note" style="margin-top: 16px;">
-                        <b>ສະຫຼຸບ:</b>
-                        <ul style="margin: 8px 0 0 24px;">
-                            <li>ກວດສອບຊຸດຂໍ້ມູນປະຊາກອນປີ 2016–2025 ແລະ ນຳ Filter
-                                ທີ່ຜູ້ໃຊ້ເລືອກມາໃຊ້ກ່ອນການຄຳນວນ.</li>
-                            <li>ລວມຈຳນວນປະຊາກອນເປັນຍອດລວມລາຍປີ ແລະ ກຽມຂໍ້ມູນສຳລັບການຝຶກສອນ.</li>
-                            <li>ສ້າງ ແລະ ຝຶກສອນ 3 ແບບຈຳລອງ: Linear Regression,
-                                Polynomial Regression ລະດັບ 2 ແລະ Exponential Growth.</li>
-                            <li>ສ້າງຄ່າຄາດຄະເນສຳລັບຊ່ວງຂໍ້ມູນເກົ່າ ແລະ ປີໃນອະນາຄົດ
-                                ພ້ອມປະເມີນແຕ່ລະ Model ດ້ວຍ MAE, RMSE, MAPE, R² ແລະ Accuracy.</li>
-                        </ul>
-                    </div>
-                </div>
-
-            </details>
-
-            <details class="modern-details">
-                <summary>
-                    2. ການພະຍາກອນລະດັບແຖວສຳລັບ CSV/HTML Export
-                </summary>
-                <div class="content">
-                    <pre><b># Cached call used by the Streamlit export tab (app.py)</b>
-predicted = cached_row_forecast(filtered_data, future_end)
-
-<b># Vectorized multi-output method (population_forecast.py)</b>
-def forecast_each_row(df, future_end=2030):
-    future_years = np.arange(2026, future_end + 1)
-    historical_x = np.asarray(HISTORICAL_YEARS).reshape(-1, 1)
-    future_x = future_years.reshape(-1, 1)
-    values = df[HISTORICAL_COLUMNS].to_numpy(dtype=float).T
-
-    linear = LinearRegression().fit(historical_x, values)
-    linear_predictions = linear.predict(future_x).T
-
-    polynomial_features = PolynomialFeatures(degree=2)
-    historical_poly = polynomial_features.fit_transform(historical_x)
-    polynomial = LinearRegression().fit(historical_poly, values)
-    polynomial_predictions = polynomial.predict(
-        polynomial_features.transform(future_x)
-    ).T
-
-    safe_values = np.where(values &lt;= 0, 0.1, values)
-    exponential = LinearRegression().fit(
-        historical_x, np.log(safe_values)
-    )
-    exponential_predictions = np.exp(
-        exponential.predict(future_x)
-    ).T
-
-    result = df.reset_index(drop=True).copy()
-    model_predictions = {
-        "Linear": linear_predictions,
-        "Poly": polynomial_predictions,
-        "Exp": exponential_predictions,
-    }
-    for suffix, predictions in model_predictions.items():
-        rounded = np.rint(predictions).clip(min=0).astype(np.int64)
-        for position, year in enumerate(future_years):
-            result[f"{year}_{suffix}"] = rounded[:, position]
-    return result
-                    </pre>
-
-                    <div class="result-note" style="margin-top: 16px;">
-                        <b>ສະຫຼຸບ:</b>
-                        <ul style="margin: 8px 0 0 24px;">
-                            <li>ພະຍາກອນປະຊາກອນແຍກຕາມແຕ່ລະແຖວຂອງຂໍ້ມູນທີ່ຜ່ານ Filter
-                                ເຊັ່ນ: ເມືອງ, ເພດ ແລະ ອາຍຸ.</li>
-                            <li>ໃຊ້ການຄຳນວນແບບ Vectorized Multi-output ເພື່ອຝຶກສອນ ແລະ ຄາດຄະເນ
-                                Linear, Polynomial ແລະ Exponential ໃຫ້ທຸກແຖວພ້ອມກັນ.</li>
-                            <li>ປ້ອງກັນບັນຫາ log(0), ຕັດຄ່າຕິດລົບເປັນ 0 ແລະ ປັດຜົນຄາດຄະເນ
-                                ເປັນຈຳນວນເຕັມຂອງປະຊາກອນ.</li>
-                            <li>ເພີ່ມຖັນຜົນຄາດຄະເນຕາມປີ ແລະ Model ເຂົ້າໃນຕາຕະລາງ
-                                ເພື່ອດາວໂຫຼດເປັນ CSV ຫຼື HTML ໂດຍໃຊ້ Cache ຊ່ວຍຫຼຸດເວລາຄຳນວນຊ້ຳ.</li>
-                        </ul>
-                    </div>
-                </div>
-            </details>
-
-            <details class="modern-details">
-                <summary>
-                    3. ການວິເຄາະຂໍ້ຜິດພາດ ແລະ ຄວາມຖືກຕ້ອງ (Error Analysis & Accuracy)
-                </summary>
-                <pre><b># Exact metric method used by population_forecast.py</b>
-def _metrics(y_true, y_pred):
-    nonzero = y_true != 0
-    mape = (
-        float(
-            np.mean(
-                np.abs(
-                    (y_true[nonzero] - y_pred[nonzero])
-                    / y_true[nonzero]
-                )
-            ) * 100
-        )
-        if nonzero.any()
-        else float("nan")
-    )
-    return {
-        "MAE": float(mean_absolute_error(y_true, y_pred)),
-        "RMSE": float(np.sqrt(mean_squared_error(y_true, y_pred))),
-        "MAPE (%)": mape,
-        "R²": float(r2_score(y_true, y_pred)),
-        "Accuracy (%)": 100 - mape,
-    }
-
-metrics = pd.DataFrame(
-    [_metrics(y, fitted[name]) for name in MODEL_NAMES],
-    index=MODEL_NAMES,
-)
-metrics.index.name = "Model"
-
-best_model = result.metrics["MAPE (%)"].idxmin()
-future_values = {
-    name: np.rint(result.future[name]).clip(min=0).astype(np.int64)
-    for name in MODEL_NAMES
-}
-                </pre>
-                <b>ຜົນຄຳນວນຈາກ Demo ສະແດງຢູ່ໃນ cards ແລະ tables ດ້ານລຸ່ມ.</b>
-                <hr>
-                <div class="content"
-                    style="width: 100%; display: flex; gap: 15px; justify-content: center;align-items: center;">
-
-                    <div class="panel-card card-teal" style="width: 380px;">
-                        <div class="card-day">Error Analysis & Accuracy</div>
-                        <div class="card-number" style="font-size: 30px;">Linear Regression</div>
-                        <div class="card-text" style="text-align: left;">
-                            <ul>
-                                <li>
-                                    <span class="metric-tooltip" tabindex="0"
-                                        aria-describedby="linear-r2-tooltip">
-                                        R²: <span data-result-key="linear_r2">—</span>
-                                        <span class="metric-tooltip-content" id="linear-r2-tooltip" role="tooltip">
-                                            <strong>Coefficient of Determination (R²)</strong>
-                                            Measures how much variation in the actual values the model explains. Values closer to 1 indicate a better fit.
-                                        </span>
-                                    </span>
-                                </li>
-                                <li>
-                                    <span class="metric-tooltip" tabindex="0"
-                                        aria-describedby="linear-accuracy-tooltip">
-                                        Accuracy: <span data-result-key="linear_accuracy">—</span>
-                                        <span class="metric-tooltip-content" id="linear-accuracy-tooltip" role="tooltip">
-                                            <strong>Accuracy (100 − MAPE)</strong>
-                                            Shows the model's average percentage closeness to the actual values. Higher values indicate closer predictions.
-                                        </span>
-                                    </span>
-                                </li>
-                                <li>
-                                    <span class="metric-tooltip" tabindex="0"
-                                        aria-describedby="linear-mae-tooltip">
-                                        MAE: <span data-result-key="linear_mae">—</span>
-                                        <span class="metric-tooltip-content" id="linear-mae-tooltip" role="tooltip">
-                                            <strong>Mean Absolute Error (MAE)</strong>
-                                            The average absolute difference between actual and predicted values. Lower values indicate smaller errors.
-                                        </span>
-                                    </span>
-                                </li>
-                                <li>
-                                    <span class="metric-tooltip" tabindex="0"
-                                        aria-describedby="linear-rmse-tooltip">
-                                        RMSE: <span data-result-key="linear_rmse">—</span>
-                                        <span class="metric-tooltip-content" id="linear-rmse-tooltip" role="tooltip">
-                                            <strong>Root Mean Squared Error (RMSE)</strong>
-                                            Measures prediction error while giving more weight to large mistakes. Lower values indicate a better fit.
-                                        </span>
-                                    </span>
-                                </li>
-                                <li>
-                                    <span class="metric-tooltip" tabindex="0"
-                                        aria-describedby="linear-mape-tooltip">
-                                        MAPE: <span data-result-key="linear_mape">—</span>
-                                        <span class="metric-tooltip-content" id="linear-mape-tooltip" role="tooltip">
-                                            <strong>Mean Absolute Percentage Error (MAPE)</strong>
-                                            The average absolute prediction error expressed as a percentage of actual values. Lower values are better.
-                                        </span>
-                                    </span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="panel-card card-blue" style="width: 380px;">
-                        <div class="card-day">Error Analysis & Accuracy</div>
-                        <div class="card-number" style="font-size: 30px;">Polynomial Regression</div>
-                        <div class="card-text" style="text-align: center;">
-                            <div style="width: 100%; display: block; font-size: 25px;text-align: left;">
-                                <ul>
-                                    <li>R²: <span data-result-key="polynomial_r2">—</span></li>
-                                    <li>Accuracy: <span data-result-key="polynomial_accuracy">—</span></li>
-                                    <li>MAE: <span data-result-key="polynomial_mae">—</span></li>
-                                    <li>RMSE: <span data-result-key="polynomial_rmse">—</span></li>
-                                    <li>MAPE: <span data-result-key="polynomial_mape">—</span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel-card card-orange" style="width: 380px;">
-                        <div class="card-day">Error Analysis & Accuracy</div>
-                        <div class="card-number" style="font-size: 30px;">Exponential Growth</div>
-                        <div class="card-text" style="text-align: center;">
-                            <div style="width: 100%; display: block; font-size: 25px; text-align: left;">
-                                <ul>
-                                    <li>R²: <span data-result-key="exponential_r2">—</span></li>
-                                    <li>Accuracy: <span data-result-key="exponential_accuracy">—</span></li>
-                                    <li>MAE: <span data-result-key="exponential_mae">—</span></li>
-                                    <li>RMSE: <span data-result-key="exponential_rmse">—</span></li>
-                                    <li>MAPE: <span data-result-key="exponential_mape">—</span></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <br>
-                <div class="dotText"
-                    style="width: 100%; display: flex; gap: 15px; justify-content: center;align-items: center;">
-                    <b>ສະຫຼຸບ: </b>ຈາກການປຽບທຽບທັງ 3 ແບບຈຳລອງ,
-                    <b data-result-key="best_model">—</b>
-                    ໃຫ້ຄ່າ MAPE ຕ່ຳສຸດທີ່ <b data-result-key="best_model_mape">—</b>
-                    ສຳລັບຂໍ້ມູນ ແລະ filter ທີ່ເລືອກໃນ Demo.
-                </div>
-            </details>
-
+        <div class="slide validation-slide">
+            <h2>5. ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train & Predict)</h2>
+            <div class="validation-split-banner">
+                <div><small>ຝຶກສອນ (TRAIN)</small><strong
+                        data-result-key="validation_train_period">2016–2022</strong><span>ປັບຄ່າພາລາມິເຕີແບບຈຳລອງ (Fit
+                        model parameters)</span></div>
+                <b aria-hidden="true">→</b>
+                <div><small>ທົດສອບ (TEST)</small><strong
+                        data-result-key="validation_test_period">2023–2025</strong><span>ຂໍ້ມູນທີ່ແບບຈຳລອງບໍ່ເຄີຍເຫັນ
+                        (Unseen historical years)</span></div>
+                <b aria-hidden="true">→</b>
+                <div><small>ຂັ້ນສຸດທ້າຍ (FINAL)</small><strong>2016–2025</strong><span>ຝຶກສອນຄືນໃໝ່ສຳລັບຄາດຄະເນ 2026+
+                        (Retrain for forecast)</span></div>
+            </div>
+            <p class="validation-explanation">ການເລືອກແບບຈຳລອງ (Model selection) ໃຊ້ MAPE ຂອງຊຸດທົດສອບ (holdout)
+                ຈາກປີຕໍ່ມາ—ບໍ່ແມ່ນຄ່າສັງເກດຊຸດດຽວກັບທີ່ໃຊ້ປັບແບບຈຳລອງ.</p>
+            <div id="live-validation-plotly" class="live-interactive-chart validation-chart" hidden
+                aria-label="ປະຊາກອນຈິງ ແລະ ຄາດຄະເນ ໃນໄລຍະກວດສອບ 2023 ຫາ 2025"></div>
+            <div class="validation-bottom-grid">
+                <table id="live-validation-table" class="result-table validation-table">
+                    <thead>
+                        <tr>
+                            <th>ແບບຈຳລອງ (Model)</th>
+                            <th>ຄ່າຜິດພາດສຳບູນສະເລ່ຍ (MAE)</th>
+                            <th>ຄ່າຜິດພາດຮາກຂັ້ນສອງສະເລ່ຍ (RMSE)</th>
+                            <th>ເປີເຊັນຄ່າຜິດພາດສຳບູນສະເລ່ຍ (MAPE)</th>
+                            <th>ສຳປະສິດການກຳນົດ (R²)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5">ລໍຖ້າຜົນການກວດສອບຕາມເວລາ (time-based validation) ຈາກສ່ວນສາທິດ Streamlit
+                                (Demo)…</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <aside class="validation-choice">
+                    <small>ເລືອກ MAPE ທີ່ຕ່ຳທີສຸດ (SELECTED BY LOWEST HOLDOUT MAPE)</small>
+                    <strong data-result-key="best_model">—</strong>
+                    <span>ເປີເຊັນຄ່າຜິດພາດສຳບູນສະເລ່ຍ (MAPE) <b data-result-key="best_model_mape">—</b></span>
+                </aside>
+            </div>
+            <p class="validation-footnote">“ຄວາມຊັດເຈນ (Accuracy) = 100 − MAPE”.</p>
         </div>
 
-
-        <!-- Slide 11 -->
+        <!-- Slide 8 -->
         <div class="slide">
-            <h2>7. ຜົນໄດ້ຮັບ (Result)</h2>
+            <h2>6. ຜົນໄດ້ຮັບ (Result)</h2>
+            <div class="short-result-summary">
+                <article><span>ແບບຈຳລອງທີ່ເລືອກ (SELECTED MODEL)</span><strong
+                        data-result-key="best_model">—</strong><small>MAPE ຂອງຊຸດທົດສອບ (Holdout) <b
+                            data-result-key="best_model_mape">—</b></small></article>
+                <article><span>ຜົນຄາດຄະເນປີ 2026 (2026 FORECAST)</span><strong
+                        data-result-key="best_model_2026">—</strong><small>ປະຊາກອນ · ຝຶກສອນຄືນໃໝ່ (retrained) ດ້ວຍຂໍ້ມູນ
+                        2016–2025</small></article>
+                <article><span>ຜົນຄາດຄະເນປີ <b data-result-key="best_model_end_year">—</b> (FORECAST —
+                        ການຄາດຄະເນ)</span><strong
+                        data-result-key="best_model_end_value">—</strong><small>ຍອດລວມທົ່ວປະເທດຂອງແບບຈຳລອງທີ່ເລືອກ</small>
+                </article>
+            </div>
+            <!-- <p class="short-slide-note">ແຜນພູມ (Charts) ແລະ ຜົນຮັບ ເມືອງ–ອາຍຸ–ເພດລະດັບແຖວ ຍັງມີໃຫ້ເບິ່ງດ້ານລຸ່ມ ແລະ
+                ໃນສ່ວນສາທິດແບບສົດ (live Demo).</p> -->
             <details class="modern-details">
-                <summary>ຜົນຄາດຄະເນ ແລະ Model Errors (Actual − Predicted)</summary>
+                <summary>ປຽບທຽບການຜົນການຄາດຄະເນກັບຂໍ້ມູນຕົວຈິງ ໃນ 3 ແບບຈຳລອງ 2026+ (Final full-history
+                    fit, residuals and forecast)</summary>
                 <div class="content live-chart-container">
-                    <img class="live-result-chart" data-result-src-key="forecast_chart_src"
-                        alt="Live forecast and residual chart from Streamlit Demo">
+                    <p class="interactive-chart-hint">ເລື່ອນເມົາສ໌ (mouse) ເທິງຈຸດເພື່ອເບິ່ງຄ່າ · ລາກ/ເລື່ອນ
+                        (Drag/scroll) ເພື່ອຊູມ (zoom) · ຄລິກສອງຄັ້ງ (Double-click) ເພື່ອຕັ້ງຄືນ (reset)</p>
+                    <div id="live-forecast-plotly" class="live-interactive-chart" hidden
+                        aria-label="ແຜນພູມການຄາດຄະເນ ແລະ ຄ່າຄົງເຫຼືອແບບໂຕ້ຕອບ"></div>
                 </div>
             </details>
 
-            <details class="modern-details">
-                <summary>ສົມທຽບຄ່າຕົວຈິງ ແລະ ຄ່າຄາດຄະເນ (Actual vs Predicted), 2016–2025</summary>
+            <details class="modern-details presentation-redundant">
+                <summary>ປຽບທຽບຄ່າຕົວຈິງ ແລະ ຄ່າຄາດຄະເນ (Actual vs Predicted), 2016–2025</summary>
                 <div class="content live-chart-container">
-                    <img class="live-result-chart" data-result-src-key="actual_predicted_chart_src"
-                        alt="Live actual versus predicted chart from Streamlit Demo">
+                    <p class="interactive-chart-hint">ເລື່ອນເມົາສ໌ (mouse) ເທິງແຕ່ລະແທ່ງ (bar) ເພື່ອເບິ່ງປະຊາກອນ
+                        (population) ແລະ ເປີເຊັນຜົນຕ່າງ (% difference)</p>
+                    <div id="live-actual-predicted-plotly" class="live-interactive-chart" hidden
+                        aria-label="ແຜນພູມຄ່າຈິງ ທຽບກັບ ຄ່າຄາດຄະເນແບບໂຕ້ຕອບ"></div>
                 </div>
             </details>
 
             <details class="modern-details">
                 <summary>ຜົນໄດ້ຮັບຂອງການພະຍາກອນປະຊາກອນລາວ ປີ <span data-result-key="forecast_period">—</span></summary>
                 <table id="live-future-table" class="result-table">
-                    <thead><tr><th>ແບບຈຳລອງ (Models)</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ແບບຈຳລອງ (Models)</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        <tr><td>ລໍຖ້າຜົນຈາກ Streamlit Demo…</td></tr>
+                        <tr>
+                            <td>ລໍຖ້າຜົນຈາກສ່ວນສາທິດ Streamlit (Demo)…</td>
+                        </tr>
                     </tbody>
                 </table>
             </details>
 
             <details class="modern-details">
-                <summary>ຜົນໄດ້ຮັບຂອງແບບຈຳລອງ Poplynomial ຂອງການຄາດຄະເນປະຊາກອນແຍກເປັນເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ ປີ <span data-result-key="forecast_period">—</span></summary>
+                <summary>ລາຍລະອຽດການພະຍາກອນຂອງແບບຈຳລອງ Polynomial Regression ທີ່ແຍກເປັນເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ
+                    ປີ <span data-result-key="forecast_period">—</span></summary>
                 <div class="polynomial-table-toolbar">
-                    <label for="polynomial-page-size">Rows per page</label>
+                    <label for="polynomial-page-size">ຈຳນວນແຖວຕໍ່ໜ້າ (Rows per page)</label>
                     <select id="polynomial-page-size">
                         <option value="10">10</option>
                         <option value="25" selected>25</option>
@@ -913,97 +751,109 @@ future_values = {
                     <table id="live-polynomial-table" class="result-table">
                         <thead>
                             <tr>
-                                <th>ouName</th>
-                                <th>deName</th>
-                                <th>cocName</th>
-                                <th>sexName</th>
+                                <th>ເມືອງ</th>
+                                <th>ຊື່ຂໍ້ມູນ</th>
+                                <th>ກຸ່ມອາຍຸ (ປີ)</th>
+                                <th>ເພດ</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="4">ລໍຖ້າຜົນຈາກ Streamlit Demo…</td></tr>
+                            <tr>
+                                <td colspan="4">ລໍຖ້າຜົນຈາກສ່ວນສາທິດ Streamlit (Demo)…</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-                <nav class="polynomial-pagination" aria-label="Polynomial forecast table pagination">
-                    <button id="polynomial-first-page" type="button" aria-label="First page">«</button>
-                    <button id="polynomial-previous-page" type="button" aria-label="Previous page">‹</button>
-                    <span id="polynomial-page-status" aria-live="polite">Page 1 of 1</span>
-                    <button id="polynomial-next-page" type="button" aria-label="Next page">›</button>
-                    <button id="polynomial-last-page" type="button" aria-label="Last page">»</button>
+                <nav class="polynomial-pagination"
+                    aria-label="ການແບ່ງໜ້າຕາຕະລາງຄາດຄະເນ Polynomial forecast table pagination">
+                    <button id="polynomial-first-page" type="button" aria-label="ໜ້າທຳອິດ (First page)">«</button>
+                    <button id="polynomial-previous-page" type="button" aria-label="ໜ້າກ່ອນ (Previous page)">‹</button>
+                    <span id="polynomial-page-status" aria-live="polite">ໜ້າ 1 ຈາກ 1 (Page 1 of 1)</span>
+                    <button id="polynomial-next-page" type="button" aria-label="ໜ້າຕໍ່ໄປ (Next page)">›</button>
+                    <button id="polynomial-last-page" type="button" aria-label="ໜ້າສຸດທ້າຍ (Last page)">»</button>
                 </nav>
             </details>
         </div>
-        <!-- Slide 14 -->
-        <div class="slide">
-            <h2>8. ສະຫຼຸບຜົນການສຶກສາ ແລະ ຂໍ້ສະເໜີ (ແຜນໃນອານາຄົດ)</h2>
 
-            <details class="modern-details">
-                <summary>ສະຫຼຸບຜົນການສຶກສາ</summary>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">1</div>
-                    <div class="label-text">
-                        ສາມາດສ້າງແບບຈຳລອງ (Model) ໄດ້ຕາມຈຸດປະສົງ
+        <div class="slide short-deployment-slide">
+            <h2>7. ສະຫຼຸບ, ການນຳໄປໃຊ້ງານຕົວຈິງ ແລະ ຂໍ້ສະເໜີແນະ</h2>
+            <div class="short-deployment-flow" aria-label="ຂະບວນການສົ່ງມອບແອັບພລິເຄຊັນ (Application delivery flow)">
+                <span>DHIS2 / CSV</span><b>→</b><span>ກວດສອບ ແລະ ແກ້ໄຂ (Validate &amp;
+                    correct)</span><b>→</b><span>ປະເມີນ ແລະ ຝຶກສອນຄືນໃໝ່ (Evaluate &amp;
+                    retrain)</span><b>→</b><span>ການສະໜັບສະໜູນການຕັດສິນໃຈດ້ວຍ Streamlit (Streamlit decision
+                    support)</span>
+            </div>
+            <div class="short-two-column">
+                <section>
+                    <h3>ໃຊ້ຢ່າງຮັບຜິດຊອບ (Use responsibly)</h3>
+                    <ul>
+                        <li>ຂໍ້ມູນທີ່ນຳມາເປັນຖານໃນການພະຍາກອນ ມີ 10 ຄ່າ (10 ປີ) ເທົ່ານັ້ນ.</li>
+                        <li>ປັດໄຈ: ການຍ້າຍຖິ່ນ, ການເກີດ, ການເສຍຊີວິດ ແລະ ການປ່ຽນແປງນະໂຍບາຍ ບໍ່ໄດ້ນຳມາພິຈາລະນາໃນການພະຍາກອນຄັ້ງນີ້ (explicit predictors).</li>
+                        <li>ຄ່າຕົ້ນສະບັບ ແລະ ການກວດສອບການແກ້ໄຂ (correction audits) ຕ້ອງສາມາດທົບທວນໄດ້.</li>
+                        <li>ຜົນຄາດຄະເນສາມາດຊ່ວຍສະໜັບສະໜູນການວາງແຜນ, ແຕ່ບໍ່ໄດ້ທົດແທນການຄາດຄະເນທາງການ.</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>ຂັ້ນຕອນຕໍ່ໄປ (Next steps)</h3>
+                    <ul>
+                        <li>ເພີ່ມການກວດສອບຈຸດເລີ່ມແບບເລື່ອນ (rolling-origin validation) ແລະ ຊ່ວງຄາດຄະເນ (prediction intervals).</li>
+                        <li>ປຽບທຽບຜົນກັບການຄາດຄະເນປະຊາກອນທາງການ.</li>
+                        <li>ເພີ່ມປັດໄຈຂັບເຄື່ອນດ້ານປະຊາກອນ (demographic drivers) ສະເພາະເມື່ອມີຂໍ້ມູນທີ່ເຊື່ອຖືໄດ້.</li>
+                        <li>ນຳໃຊ້ການຈັດຮຸ່ນຊຸດຂໍ້ມູນ/ແບບຈຳລອງ (dataset/model versioning), ການຕິດຕາມ ແລະ ການອະນຸມັດ.</li>
+                    </ul>
+                </section>
+            </div>
+            <div class="short-conclusion-bar"><strong>ຜົນໄດ້ຮັບ (Outcome)</strong><span>ຕົ້ນແບບ AI ແບບຄົບວົງຈອນ
+                    (end-to-end) ທີ່ໂປ່ງໃສ ເຊິ່ງປ່ຽນຂໍ້ມູນທົ່ວປະເທດເປັນຜົນຄາດຄະເນທີ່ກວດສອບໄດ້ ແລະ
+                    ຜົນລັບການວາງແຜນທີ່ນຳໃຊ້ຊ້ຳໄດ້.</span></div>
+        </div>
+        <div class="slide references-slide">
+            <h2>8. ເອກະສານອ້າງອິງ</h2>
+            <div class="references-grid">
+                <article><span>01</span>
+                    <div><strong>Sumsung Invovation Compus</strong>
+                        <p>AI Developer Course 2026. <em>ຄວທ, ມ.ຊ</em></p>
                     </div>
-                </div>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">2</div>
-                    <div class="label-text">
-                        ແບບຈຳລອງທີ່ມີ MAPE ຕ່ຳສຸດສຳລັບຜົນ Demo ປັດຈຸບັນແມ່ນ
-                        <b data-result-key="best_model">—</b> ທີ່ MAPE
-                        <b data-result-key="best_model_mape">—</b>
+                </article>
+                <article><span>02</span>
+                    <div><strong>ວິທີການຂອງໂຄງການ (Project methodology)</strong>
+                        <p>Chapman, P. ແລະ ຄະນະ (et al.) (2000). <em>CRISP-DM 1.0: ຄູ່ມືການຂຸດຄົ້ນຂໍ້ມູນແບບເປັນຂັ້ນຕອນ
+                                (Step-by-step data mining guide).</em></p>
                     </div>
-                </div>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">3</div>
-                    <div class="label-text">
-                        ໄດ້ປະສົບການຫຼາຍທີ່ສຸດຕໍ່ກັບການເຮັດ mini project ໃນຄັ້ງນີ້ ແລະ
-                        ຈະນຳໄປຜັນຂະຫຍາຍຕໍ່ໃນວຽກງານທີ່ຕົນເອງຮັບຜິດຊອບ
+                </article>
+                <article><span>03</span>
+                    <div><strong>ການປະເມີນແນວໂນ້ມແບບທົນທານ (Robust trend estimation)</strong>
+                        <p>Theil, H. (1950), ການປະເມີນຄ່າກາງຄວາມຊັນ (median slope estimation); Sen, P. K. (1968),
+                            ການປະເມີນອີງໃສ່ Kendall’s tau.</p>
                     </div>
-                </div>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">4</div>
-                    <div class="label-text">
-                        ສືບຕໍ່ເຮັດເປັນສະບັບ paper, ຖ້າຫາກມີຄວາມເໝາະສົມພຽງພໍ
+                </article>
+                <article><span>04</span>
+                    <div><strong>ການພັດທະນາແບບຈຳລອງ (Model implementation)</strong>
+                        <p>scikit-learn: LinearRegression ແລະ ຕົວຊີ້ວັດປະເມີນການຖົດຖອຍ (regression evaluation metrics).
+                        </p>
                     </div>
-                </div>
-            </details>
-
-            <details class="modern-details">
-                <summary>ຂໍ້ສະເໜີ ແລະ ແຜນໃນອານາຄົດ</summary>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">1</div>
-                    <div class="label-text">
-                        ຂໍສະເໜີເອົາບົດໂຄງການຂະໜາດນ້ອຍນີ້ ຂະຫຍາຍຂອບເຂດ ແລະ ໜ້າວຽກຕື່ມ ເພື່ອສືບຕໍ່ເຮັດເປັນ paper ແລະ
-                        ບົດໂຄງການຈົບຊັ້ນ
+                </article>
+                <article><span>05</span>
+                    <div><strong>ແອັບພລິເຄຊັນ ແລະ ການສະແດງພາບຂໍ້ມູນ (Application and visualization)</strong>
+                        <p>ເອກະສານຂອງກອບວຽກແອັບພລິເຄຊັນ Streamlit (application framework) ແລະ ແຜນພູມໂຕ້ຕອບ Plotly
+                            (interactive charting).</p>
                     </div>
-                </div>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">2</div>
-                    <div class="label-text">
-                        ຈະນຳເອົາຜົນການພະຍາກອນນີ້ໄປນຳສະເໜີຕໍ່ຫ້ອງການທີ່ຕົນເອງສັງກັດ ເພື່ອນຳໄປເປັນຂໍ້ມູນໃນການວາງແຜນ
-                        ແລະ ຈັດຕັ້ງປະຕິບັດ ໃຫ້ແທດເໝາະກັບຄວາມຕ້ອງການຂອງຂະແໜງສາທາລະນະສຸກ ແລະ ຂະແໜງການອື່ນໆ ຕາມເຫັນສົມຄວນ
+                </article>
+                <article><span>06</span>
+                    <div><strong>ຂໍ້ມູນປະຊາກອນ (Population data)</strong>
+                        <p>ຊຸດຂໍ້ມູນປະຊາກອນ DHIS2 ຂອງກະຊວງສາທາລະນະສຸກ; ບັນທຶກຕາມເມືອງ, ອາຍຸ ແລະ ເພດ ສຳລັບປີ 2016–2025.
+                        </p>
                     </div>
-                </div>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">3</div>
-                    <div class="label-text">
-                        ຄວນທົດລອງໃຊ້ຫຼາຍ model ກວ່ານີ້ ເພື່ອປະເມີນປະສິດທິພາບຂອງແຕ່ລະ model ຕື່ມອີກ
-                    </div>
-                </div>
-                <div class="label-row" style="font-size: 20px;">
-                    <div class="label">4</div>
-                    <div class="label-text">
-                        ສືບຕໍ່ deploy ແລະ ປັບປຸງ Streamlit application ໃຫ້ຮອງຮັບການນຳໃຊ້ຈິງ
-                    </div>
-                </div>
-            </details>
-
-
+                </article>
+            </div>
+            <p class="reference-note">ສຳລັບການນຳໃຊ້ດຳເນີນງານ, ໃຫ້ບັນທຶກວັນທີດຶງຂໍ້ມູນ DHIS2, ຮຸ່ນຊຸດຂໍ້ມູນ (dataset
+                version) ແລະ ໜ່ວຍງານອະນຸມັດ ພ້ອມກັບການອອກຜົນຄາດຄະເນແຕ່ລະຄັ້ງ.</p>
         </div>
 
-
+        <!-- Slide 11 -->
         <div class="slide">
             <center>
+                <h1>ສາທິດລະບົບ</h1>
                 <h1>ຈົບ, ຂອບໃຈ</h1>
                 <h1>ຖາມ & ຕອບ</h1>
             </center>
@@ -1021,19 +871,19 @@ future_values = {
         <button id="presentation-fullscreen" onclick="togglePresentationFullscreen()"
             style="font-family: 'Noto Sans Lao';">⛶ ເຕັມຈໍ</button>
         <button id="presentation-overview" class="overview-button" type="button" onclick="openSlideOverview()"
-            style="font-family: 'Noto Sans Lao';" aria-haspopup="dialog">▦ Overall</button>
+            style="font-family: 'Noto Sans Lao';" aria-haspopup="dialog">▦ ພາບລວມ (Overall)</button>
     </div>
 
-    <div class="slide-number" id="slide-num">1 / 14</div>
+    <div class="slide-number" id="slide-num">1 / 11</div>
 
     <dialog id="slide-overview" class="slide-overview" aria-labelledby="slide-overview-title">
         <div class="slide-overview-header">
             <div>
-                <span class="slide-overview-eyebrow">OVERALL</span>
+                <span class="slide-overview-eyebrow">ພາບລວມ (OVERALL)</span>
                 <h2 id="slide-overview-title">ສະໄລດ໌ທັງໝົດ</h2>
             </div>
             <button class="slide-overview-close" type="button" onclick="closeSlideOverview()"
-                aria-label="Close slide overview">✕</button>
+                aria-label="ປິດພາບລວມສະໄລດ໌ (Close slide overview)">✕</button>
         </div>
         <div id="slide-overview-grid" class="slide-overview-grid"></div>
     </dialog>

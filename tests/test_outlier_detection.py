@@ -2,7 +2,7 @@ import unittest
 
 import pandas as pd
 
-from outlier_detection import detect_population_outliers
+from outlier_detection import correct_population_outliers, detect_population_outliers
 
 
 class OutlierDetectionTests(unittest.TestCase):
@@ -76,6 +76,45 @@ class OutlierDetectionTests(unittest.TestCase):
     def test_threshold_must_be_positive(self):
         with self.assertRaisesRegex(ValueError, "threshold must be positive"):
             detect_population_outliers(self.data, ["2020"], threshold=0)
+
+    def test_conservative_correction_repairs_confirmed_anomaly(self):
+        original = self.data.copy(deep=True)
+
+        result = correct_population_outliers(
+            self.data, ["2020", "2021", "2022"], threshold=3.5
+        )
+
+        corrected_row = result.data[
+            result.data["ouName"].eq("District 11")
+            & result.data["cocName"].eq("3 years")
+            & result.data["sexName"].eq("Male")
+        ].iloc[0]
+        self.assertLess(corrected_row["2022"], 2_000)
+        correction = result.corrections[
+            result.corrections["District"].eq("District 11")
+            & result.corrections["Age group"].eq("3 years")
+            & result.corrections["Sex"].eq("Male")
+            & result.corrections["Year"].eq(2022)
+        ].iloc[0]
+        self.assertEqual(correction["Original value"], 8_000)
+        self.assertEqual(correction["Correction method"], "Theil-Sen endpoint estimate")
+        pd.testing.assert_frame_equal(self.data, original)
+
+    def test_single_unconfirmed_flag_is_not_automatically_corrected(self):
+        data = self.data.copy()
+        anomaly = (
+            data["ouName"].eq("District 10")
+            & data["cocName"].eq("5 years")
+            & data["sexName"].eq("Female")
+        )
+        data.loc[anomaly, "2022"] = data.loc[anomaly, "2022"] * 2
+
+        result = correct_population_outliers(
+            data, ["2020", "2021", "2022"], threshold=3.5
+        )
+
+        corrected = result.data.loc[anomaly, "2022"].iloc[0]
+        self.assertGreater(corrected, 1_000)
 
 
 if __name__ == "__main__":

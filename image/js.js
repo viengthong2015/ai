@@ -5,6 +5,80 @@ const progressBar = document.getElementById('progress-bar');
 const slideNumDisplay = document.getElementById('slide-num');
 let polynomialTablePage = 1;
 
+function renderLiveObjectTable(tableId, rows, columns, emptyMessage) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const tableBody = table.tBodies[0];
+    tableBody.replaceChildren();
+    rows.forEach(values => {
+        const row = document.createElement('tr');
+        columns.forEach(column => {
+            const cell = document.createElement('td');
+            cell.textContent = values[column] ?? '—';
+            row.appendChild(cell);
+        });
+        tableBody.appendChild(row);
+    });
+
+    if (!rows.length) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = columns.length;
+        cell.textContent = emptyMessage;
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+    }
+}
+
+function renderLivePlotlyChart(chartId, specification) {
+    const chart = document.getElementById(chartId);
+    if (!chart || !window.Plotly || !specification?.data) return;
+
+    chart.hidden = false;
+    const layout = {
+        ...specification.layout,
+        autosize: true,
+        width: undefined,
+    };
+    Plotly.react(chart, specification.data, layout, {
+        responsive: true,
+        displaylogo: false,
+        displayModeBar: true,
+        scrollZoom: true,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+        toImageButtonOptions: {
+            format: 'png',
+            filename: chartId,
+            scale: 2,
+        },
+    });
+}
+
+function resizeVisiblePlotlyCharts(scope = document) {
+    if (!window.Plotly) return;
+    scope.querySelectorAll?.('.live-interactive-chart.js-plotly-plot').forEach(chart => {
+        if (chart.getClientRects().length) Plotly.Plots.resize(chart);
+    });
+}
+
+function renderPresentationBaseline(type) {
+    const results = window.PRESENTATION_RESULTS || {};
+    const summaries = results.baseline_summaries || {};
+    const selectedType = summaries[type] ? type : (summaries.corrected ? 'corrected' : 'original');
+    const summary = summaries[selectedType] || {};
+
+    document.querySelectorAll('[data-baseline-card]').forEach(tab => {
+        const isActive = tab.dataset.baselineCard === selectedType;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
+    });
+    document.querySelectorAll('[data-baseline-key]').forEach(element => {
+        element.textContent = summary[element.dataset.baselineKey] ?? '—';
+    });
+}
+
 function renderPolynomialTable() {
     const results = window.PRESENTATION_RESULTS || {};
     const table = document.getElementById('live-polynomial-table');
@@ -42,17 +116,17 @@ function renderPolynomialTable() {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
         cell.colSpan = 4 + years.length;
-        cell.textContent = 'ບໍ່ມີຂໍ້ມູນສຳລັບ filter ທີ່ເລືອກ';
+        cell.textContent = 'ບໍ່ມີຂໍ້ມູນສຳລັບຕົວກອງ (filter) ທີ່ເລືອກ';
         row.appendChild(cell);
         tableBody.appendChild(row);
     }
 
     const lastRow = Math.min(firstRow + pageSize, rows.length);
     document.getElementById('polynomial-row-status').textContent = rows.length
-        ? `${(firstRow + 1).toLocaleString()}–${lastRow.toLocaleString()} of ${rows.length.toLocaleString()} rows`
-        : '0 rows';
+        ? `${(firstRow + 1).toLocaleString()}–${lastRow.toLocaleString()} ຈາກ ${rows.length.toLocaleString()} ແຖວ (rows)`
+        : '0 ແຖວ (rows)';
     document.getElementById('polynomial-page-status').textContent =
-        `Page ${polynomialTablePage.toLocaleString()} of ${pageCount.toLocaleString()}`;
+        `ໜ້າ ${polynomialTablePage.toLocaleString()} ຈາກ ${pageCount.toLocaleString()} (Page ${polynomialTablePage.toLocaleString()} of ${pageCount.toLocaleString()})`;
     document.getElementById('polynomial-first-page').disabled = polynomialTablePage === 1;
     document.getElementById('polynomial-previous-page').disabled = polynomialTablePage === 1;
     document.getElementById('polynomial-next-page').disabled = polynomialTablePage === pageCount;
@@ -76,6 +150,7 @@ function applyLiveResults() {
     document.querySelectorAll('[data-model-row]').forEach(row => {
         row.classList.toggle('live-best-model', row.dataset.modelRow === results.best_model);
     });
+    renderPresentationBaseline(results.forecast_input_type || 'corrected');
 
     const futureTable = document.getElementById('live-future-table');
     const years = results.future_years || [];
@@ -109,6 +184,45 @@ function applyLiveResults() {
         });
     }
 
+    renderLiveObjectTable(
+        'live-correction-audit-table',
+        results.correction_audit_rows || [],
+        ['district', 'age_group', 'sex', 'year', 'original', 'corrected', 'method'],
+        'ບໍ່ມີຄ່າທີ່ຜ່ານກົດການແກ້ໄຂແບບຮັດກຸມ (conservative correction rule) ສຳລັບຕົວກອງ (filter) ນີ້'
+    );
+    renderLiveObjectTable(
+        'live-correction-impact-table',
+        results.correction_impact_rows || [],
+        ['model', 'year', 'original', 'corrected', 'difference', 'change'],
+        'ບໍ່ມີຜົນກະທົບການຄາດຄະເນ (Forecast impact) ສຳລັບຕົວກອງ (filter) ນີ້'
+    );
+    renderLiveObjectTable(
+        'live-validation-table',
+        results.validation_rows || [],
+        ['model', 'mae', 'rmse', 'mape', 'r2'],
+        'ລໍຖ້າຜົນການກວດສອບຕາມເວລາ (time-based validation) ຈາກສ່ວນສາທິດ Streamlit (Demo)…'
+    );
+    renderLivePlotlyChart(
+        'live-outlier-evidence-plotly',
+        results.outlier_evidence_plotly
+    );
+    renderLivePlotlyChart(
+        'live-correction-comparison-plotly',
+        results.correction_comparison_plotly
+    );
+    renderLivePlotlyChart(
+        'live-validation-plotly',
+        results.validation_plotly
+    );
+    renderLivePlotlyChart(
+        'live-forecast-plotly',
+        results.forecast_plotly
+    );
+    renderLivePlotlyChart(
+        'live-actual-predicted-plotly',
+        results.actual_predicted_plotly
+    );
+
     polynomialTablePage = 1;
     renderPolynomialTable();
 }
@@ -116,6 +230,11 @@ function applyLiveResults() {
 document.getElementById('polynomial-page-size')?.addEventListener('change', () => {
     polynomialTablePage = 1;
     renderPolynomialTable();
+});
+document.querySelectorAll('[data-baseline-card]').forEach(tab => {
+    tab.addEventListener('click', () => {
+        renderPresentationBaseline(tab.dataset.baselineCard);
+    });
 });
 document.getElementById('polynomial-first-page')?.addEventListener('click', () => {
     polynomialTablePage = 1;
@@ -155,6 +274,7 @@ function showSlide(index, direction = "next") {
     // Show current slide
     const current = slides[currentSlide];
     current.classList.add('active');
+    current.scrollTop = 0;
 
     // Add animation direction
     if (direction === "next") {
@@ -170,6 +290,7 @@ function showSlide(index, direction = "next") {
     // Update Slide Number
     slideNumDisplay.innerText =
         `${currentSlide + 1} / ${slides.length}`;
+    requestAnimationFrame(() => resizeVisiblePlotlyCharts(current));
 }
 
 function changeSlide(step) {
@@ -195,7 +316,7 @@ function buildSlideOverview() {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'slide-overview-card';
-        button.setAttribute('aria-label', `Go to slide ${index + 1}`);
+        button.setAttribute('aria-label', `ໄປຫາສະໄລດ໌ ${index + 1} (Go to slide ${index + 1})`);
         button.addEventListener('click', () => selectOverviewSlide(index));
 
         const frame = document.createElement('span');
@@ -213,7 +334,7 @@ function buildSlideOverview() {
 
         const label = document.createElement('span');
         label.className = 'slide-overview-label';
-        label.textContent = `Slide ${index + 1}`;
+        label.textContent = `ສະໄລດ໌ ${index + 1} (Slide ${index + 1})`;
 
         button.append(frame, label);
         grid.appendChild(button);
@@ -253,11 +374,22 @@ document.addEventListener('fullscreenchange', () => {
     const button = document.getElementById('presentation-fullscreen');
     if (!button) return;
     button.innerText = document.fullscreenElement ? '✕ ອອກຈາກເຕັມຈໍ' : '⛶ ເຕັມຈໍ';
+    requestAnimationFrame(() => resizeVisiblePlotlyCharts());
+});
+
+document.querySelectorAll('details').forEach(details => {
+    details.addEventListener('toggle', () => {
+        if (details.open) requestAnimationFrame(() => resizeVisiblePlotlyCharts(details));
+    });
 });
 
 // First slide
 applyLiveResults();
-showSlide(0, "next");
+const requestedSlide = Number(new URLSearchParams(window.location.search).get('slide'));
+const initialSlide = Number.isInteger(requestedSlide) && requestedSlide > 0
+    ? requestedSlide - 1
+    : 0;
+showSlide(initialSlide, "next");
 
 
 // MINIMIZE

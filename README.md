@@ -3,6 +3,9 @@
 This application turns the workflow in `estimatePop.ipynb` into an interactive
 Streamlit dashboard. It compares Linear Regression, degree-2 Polynomial
 Regression, and Exponential Growth models using the 2016–2025 population data.
+It is an AI Developer course learning project designed to help students
+understand an end-to-end AI workflow and apply it to a practical, real-world
+population-planning problem.
 The sidebar dropdown can display one model or use **All models** to compare
 their results and accuracy. The overview includes a dedicated historical column
 chart comparing actual values with the selected models' fitted predictions,
@@ -25,3 +28,19 @@ The source-data tab also runs three nationwide, robust outlier checks:
 district age-sex shares, cohort-aware historical changes, and demographic
 consistency (sex ratio and adjacent-age profile). Sidebar filters affect only
 the displayed flags, while detection thresholds always use the full dataset.
+
+## Model evaluation
+
+Model selection uses a chronological holdout rather than the training fit:
+
+- train on 2016–2022;
+- evaluate on unseen 2023–2025 totals using MAE, RMSE, MAPE, and R²;
+- select the lowest holdout-MAPE model;
+- retrain on all 2016–2025 observations for the final 2026+ forecast.
+
+The displayed `Accuracy (%)` is `100 - MAPE` for continuity with the original
+project. It is a presentation-friendly closeness score, not classification
+accuracy.
+
+The app's **Methodology & limitations** tab documents the CRISP-DM workflow,
+deployment architecture, responsible-use constraints, and technical references.

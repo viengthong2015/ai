@@ -27,6 +27,17 @@ class ForecastResult:
     metrics: pd.DataFrame
 
 
+@dataclass(frozen=True)
+class TimeValidationResult:
+    """Predictions and metrics from a chronological train/test split."""
+
+    train_years: np.ndarray
+    test_years: np.ndarray
+    actual: np.ndarray
+    predictions: dict[str, np.ndarray]
+    metrics: pd.DataFrame
+
+
 def annual_growth_rates(values: np.ndarray) -> np.ndarray:
     """Return year-over-year percentage changes, excluding the first value."""
     population = np.asarray(values, dtype=float)
@@ -129,6 +140,63 @@ def forecast_totals(df: pd.DataFrame, future_end: int = 2030) -> ForecastResult:
     metrics.index.name = "Model"
 
     return ForecastResult(y, all_years, predictions, fitted, future, metrics)
+
+
+def time_holdout_validation(
+    df: pd.DataFrame, train_end: int = 2022
+) -> TimeValidationResult:
+    """Evaluate all models on later years that were not used for fitting.
+
+    The chronological split avoids leaking future observations into model
+    selection. The selected model can subsequently be retrained on the full
+    2016-2025 history by :func:`forecast_totals` for the final forecast.
+    """
+    if train_end not in HISTORICAL_YEARS:
+        raise ValueError("The training end year must be within the historical years.")
+
+    train_years = np.asarray(
+        [year for year in HISTORICAL_YEARS if year <= train_end], dtype=int
+    )
+    test_years = np.asarray(
+        [year for year in HISTORICAL_YEARS if year > train_end], dtype=int
+    )
+    if train_years.size < 3:
+        raise ValueError("Time-based validation requires at least three training years.")
+    if test_years.size < 2:
+        raise ValueError("Time-based validation requires at least two test years.")
+
+    yearly_totals = df[HISTORICAL_COLUMNS].sum(axis=0)
+    train_values = yearly_totals[[str(year) for year in train_years]].to_numpy(
+        dtype=float
+    )
+    actual = yearly_totals[[str(year) for year in test_years]].to_numpy(dtype=float)
+    train_x = train_years.reshape(-1, 1)
+    test_x = test_years.reshape(-1, 1)
+
+    linear = LinearRegression().fit(train_x, train_values)
+    polynomial = LinearRegression().fit(
+        _polynomial_design(train_years), train_values
+    )
+    exponential = LinearRegression().fit(
+        train_x, np.log(np.where(train_values <= 0, 0.1, train_values))
+    )
+    predictions = {
+        "Linear": linear.predict(test_x),
+        "Polynomial": polynomial.predict(_polynomial_design(test_years)),
+        "Exponential": np.exp(exponential.predict(test_x)),
+    }
+    metrics = pd.DataFrame(
+        [_metrics(actual, predictions[name]) for name in MODEL_NAMES],
+        index=MODEL_NAMES,
+    )
+    metrics.index.name = "Model"
+    return TimeValidationResult(
+        train_years=train_years,
+        test_years=test_years,
+        actual=actual,
+        predictions=predictions,
+        metrics=metrics,
+    )
 
 
 def forecast_each_row(df: pd.DataFrame, future_end: int = 2030) -> pd.DataFrame:

@@ -9,6 +9,7 @@ from population_forecast import (
     annual_growth_rates,
     dataframe_to_html_bytes,
     forecast_totals,
+    time_holdout_validation,
 )
 
 
@@ -48,6 +49,44 @@ class PolynomialForecastStabilityTests(unittest.TestCase):
 
         self.assertLess(result.metrics.loc["Polynomial", "MAPE (%)"], 1e-10)
         self.assertTrue(np.isfinite(result.future["Polynomial"]).all())
+
+
+class TimeHoldoutValidationTests(unittest.TestCase):
+    def setUp(self):
+        offsets = np.arange(len(HISTORICAL_YEARS), dtype=float)
+        population = 1_000_000 + 10_000 * offsets + 250 * offsets**2
+        self.frame = pd.DataFrame(
+            [{str(year): value for year, value in zip(HISTORICAL_YEARS, population)}]
+        )
+
+    def test_uses_earlier_years_for_training_and_later_years_for_testing(self):
+        result = time_holdout_validation(self.frame, train_end=2022)
+
+        np.testing.assert_array_equal(result.train_years, np.arange(2016, 2023))
+        np.testing.assert_array_equal(result.test_years, np.arange(2023, 2026))
+        self.assertEqual(set(result.predictions), {"Linear", "Polynomial", "Exponential"})
+        self.assertEqual(result.metrics.index.tolist(), list(("Linear", "Polynomial", "Exponential")))
+
+    def test_polynomial_can_extrapolate_quadratic_holdout_years(self):
+        result = time_holdout_validation(self.frame, train_end=2022)
+
+        self.assertLess(result.metrics.loc["Polynomial", "MAPE (%)"], 1e-10)
+
+    def test_holdout_values_do_not_leak_into_model_fitting(self):
+        baseline = time_holdout_validation(self.frame, train_end=2022)
+        changed = self.frame.copy()
+        changed[["2023", "2024", "2025"]] *= 3
+
+        changed_result = time_holdout_validation(changed, train_end=2022)
+
+        for model_name in baseline.predictions:
+            np.testing.assert_allclose(
+                changed_result.predictions[model_name], baseline.predictions[model_name]
+            )
+
+    def test_rejects_split_without_enough_test_years(self):
+        with self.assertRaisesRegex(ValueError, "at least two test years"):
+            time_holdout_validation(self.frame, train_end=2024)
 
 
 class HtmlExportTests(unittest.TestCase):

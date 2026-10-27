@@ -12,9 +12,16 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, StrMethodFormatter
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.offline import get_plotlyjs
+from plotly.subplots import make_subplots
 import streamlit as st
 
-from outlier_detection import OutlierResults, detect_population_outliers
+from outlier_detection import (
+    OutlierCorrectionResult,
+    OutlierResults,
+    correct_population_outliers,
+)
 from population_forecast import (
     HISTORICAL_COLUMNS,
     HISTORICAL_YEARS,
@@ -25,6 +32,7 @@ from population_forecast import (
     forecast_each_row,
     forecast_totals,
     polynomial_html_table,
+    time_holdout_validation,
     validate_population_data,
 )
 
@@ -32,12 +40,18 @@ from population_forecast import (
 APP_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA = APP_DIR / "data" / "dataDistrict.csv"
 PRESENTATION_FILE = APP_DIR / "index.html"
+PLOTLY_JAVASCRIPT = get_plotlyjs()
 MODEL_STYLES = {
-    "Linear": {"color": "#e63946", "linestyle": "--"},
-    "Polynomial": {"color": "#2a9d5b", "linestyle": "-."},
-    "Exponential": {"color": "#277da1", "linestyle": ":"},
+    "Linear": {"color": "#FF2B2B", "linestyle": "--"},
+    "Polynomial": {"color": "#29B09D", "linestyle": "-."},
+    "Exponential": {"color": "#FF8700", "linestyle": ":"},
 }
 MODEL_LABELS = {
+    "Linear": "Linear Regression",
+    "Polynomial": "Polynomial Regression",
+    "Exponential": "Exponential Growth",
+}
+PRESENTATION_MODEL_LABELS = {
     "Linear": "Linear Regression",
     "Polynomial": "Polynomial Regression",
     "Exponential": "Exponential Growth",
@@ -48,6 +62,14 @@ MODEL_EXPORT_SUFFIXES = {
     "Exponential": "_Exp",
 }
 ALL_MODELS_OPTION = "All models"
+CORRECTED_INPUT_OPTION = "Corrected data (recommended)"
+ORIGINAL_INPUT_OPTION = "Original data"
+DEFAULT_CORRECTION_THRESHOLD = 3.5
+STREAMLIT_CHART_BLUE = "#0068C9"
+STREAMLIT_CHART_TEXT = "#31333F"
+STREAMLIT_CHART_MUTED = "#6B7280"
+STREAMLIT_CHART_GRID = "#E6E9EF"
+STREAMLIT_CHART_FORECAST_BAND = "#EAF4FB"
 
 st.set_page_config(
     page_title="Laos Population Forecast",
@@ -100,7 +122,10 @@ def load_embedded_presentation(
         "<script>window.PRESENTATION_RESULTS = JSON.parse("
         f"decodeURIComponent(escape(atob('{encoded_results}'))));</script>"
     )
-    html = html.replace("</head>", f"{live_results_script}</head>")
+    plotly_script = f"<script>{PLOTLY_JAVASCRIPT}</script>"
+    html = html.replace(
+        "</head>", f"{plotly_script}{live_results_script}</head>"
+    )
     return html.replace("</body>", f"<script>{javascript}</script></body>")
 
 
@@ -109,9 +134,16 @@ def cached_row_forecast(df: pd.DataFrame, future_end: int) -> pd.DataFrame:
     return forecast_each_row(df, future_end)
 
 
-@st.cache_data(show_spinner="Running nationwide outlier checks…")
-def cached_outlier_checks(df: pd.DataFrame, threshold: float) -> OutlierResults:
-    return detect_population_outliers(df, HISTORICAL_COLUMNS, threshold)
+@st.cache_data(show_spinner="Preparing conservative outlier corrections…")
+def cached_outlier_correction(
+    df: pd.DataFrame, threshold: float
+) -> OutlierCorrectionResult:
+    return correct_population_outliers(
+        df,
+        HISTORICAL_COLUMNS,
+        threshold=threshold,
+        max_corrections_per_series=2,
+    )
 
 
 def filter_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -135,33 +167,92 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     return filtered
 
 
+def style_streamlit_chart_axis(
+    axis: plt.Axes, *, grid_axis: str = "y", show_bottom_spine: bool = True
+) -> None:
+    """Apply the clean light visual language used by Streamlit's native charts."""
+    axis.set_facecolor("#FFFFFF")
+    axis.set_axisbelow(True)
+    axis.grid(
+        axis=grid_axis,
+        color=STREAMLIT_CHART_GRID,
+        linestyle="-",
+        linewidth=0.9,
+        alpha=1.0,
+        zorder=0,
+    )
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.spines["bottom"].set_visible(show_bottom_spine)
+    axis.spines["bottom"].set_color(STREAMLIT_CHART_GRID)
+    axis.spines["bottom"].set_linewidth(0.9)
+    axis.tick_params(
+        axis="both",
+        colors=STREAMLIT_CHART_MUTED,
+        labelsize=9,
+        length=0,
+        pad=7,
+    )
+    axis.xaxis.label.set_color(STREAMLIT_CHART_TEXT)
+    axis.yaxis.label.set_color(STREAMLIT_CHART_TEXT)
+    axis.title.set_color(STREAMLIT_CHART_TEXT)
+
+
 def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
     fig, (forecast_axis, residual_axis) = plt.subplots(
-        2, 1, figsize=(12, 11), gridspec_kw={"height_ratios": [2, 1.5]}
+        2,
+        1,
+        figsize=(12, 11),
+        facecolor="#FFFFFF",
+        gridspec_kw={"height_ratios": [2, 1.5], "hspace": 0.3},
     )
     forecast_axis.plot(
         HISTORICAL_YEARS,
         result.actual,
-        "ko-",
+        color=STREAMLIT_CHART_BLUE,
+        marker="o",
+        markerfacecolor="#FFFFFF",
+        markeredgecolor=STREAMLIT_CHART_BLUE,
+        markeredgewidth=1.8,
         label="Actual population",
-        linewidth=2,
-        markersize=6,
+        linewidth=2.6,
+        markersize=6.5,
+        zorder=5,
     )
     for name in selected_models:
         forecast_axis.plot(
             result.all_years,
             result.predictions[name],
             label=MODEL_LABELS[name],
-            linewidth=2,
+            linewidth=2.3,
+            zorder=4,
             **MODEL_STYLES[name],
         )
-    forecast_axis.axvline(2025, color="gray", linestyle="--", alpha=0.7)
-    forecast_axis.axvspan(2025, result.all_years[-1], color="#e9ecef", alpha=0.45)
-    forecast_axis.set_title("ສົມທຽບຄວາມຊັດເຈນຂອງ ຜົນການຄາດຄະເນປະຊາກອນ")
+    forecast_axis.axvline(
+        2025, color="#9CA3AF", linestyle="--", linewidth=1.1, alpha=0.9
+    )
+    forecast_axis.axvspan(
+        2025,
+        result.all_years[-1],
+        color=STREAMLIT_CHART_FORECAST_BAND,
+        alpha=0.8,
+        zorder=0,
+    )
+    forecast_axis.set_title(
+        "ສົມທຽບຄວາມຊັດເຈນຂອງ ຜົນການຄາດຄະເນປະຊາກອນ",
+        loc="left",
+        fontsize=14,
+        fontweight="semibold",
+        pad=14,
+    )
     forecast_axis.set_ylabel("ປະຊາກອນ (ຄົນ)")
-    forecast_axis.ticklabel_format(axis="y", style="plain")
-    forecast_axis.legend(ncol=2)
-    forecast_axis.grid(alpha=0.25)
+    forecast_axis.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
+    forecast_axis.legend(
+        ncol=2,
+        frameon=False,
+        loc="upper left",
+        labelcolor=STREAMLIT_CHART_TEXT,
+    )
+    style_streamlit_chart_axis(forecast_axis)
 
     year_spacing = 1.35
     year_positions = np.arange(len(HISTORICAL_YEARS)) * year_spacing
@@ -180,8 +271,8 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
             residuals,
             width=bar_width,
             color=MODEL_STYLES[name]["color"],
-            edgecolor="white",
-            linewidth=0.7,
+            edgecolor="#FFFFFF",
+            linewidth=1.0,
             label=MODEL_LABELS[name],
             zorder=3,
         )
@@ -203,7 +294,7 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
                 color=MODEL_STYLES[name]["color"],
                 bbox={
                     "boxstyle": "round,pad=0.18",
-                    "facecolor": "white",
+                    "facecolor": "#FFFFFF",
                     "edgecolor": "none",
                     "alpha": 0.75,
                 },
@@ -211,23 +302,196 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
     for divider_position in (year_positions[:-1] + year_positions[1:]) / 2:
         residual_axis.axvline(
             divider_position,
-            color="#ced4da",
+            color="#F0F2F6",
             linewidth=0.8,
-            alpha=0.7,
+            alpha=1.0,
             zorder=1,
         )
-    residual_axis.axhline(0, color="black", linewidth=1, zorder=4)
+    residual_axis.axhline(
+        0, color=STREAMLIT_CHART_TEXT, linewidth=1.1, zorder=4
+    )
     
-    residual_axis.set_title("ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການພຄາດຄະເນ)")
+    residual_axis.set_title(
+        "ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການຄາດຄະເນ)",
+        loc="left",
+        fontsize=13,
+        fontweight="semibold",
+        pad=14,
+    )
     residual_axis.set_xlabel("ປີ")
     residual_axis.set_ylabel("ປະຊາກອນ (ຄົນ)")
     residual_axis.set_xticks(year_positions, HISTORICAL_YEARS)
-    residual_axis.legend(ncol=3)
-    residual_axis.grid(axis="y", alpha=0.25, zorder=0)
-    residual_axis.set_axisbelow(True)
+    residual_axis.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
+    residual_axis.legend(
+        ncol=3,
+        frameon=False,
+        loc="upper left",
+        labelcolor=STREAMLIT_CHART_TEXT,
+    )
+    style_streamlit_chart_axis(residual_axis)
     residual_axis.margins(y=0.22)
-    fig.tight_layout()
+    fig.subplots_adjust(left=0.1, right=0.98, top=0.96, bottom=0.06, hspace=0.34)
     return fig
+
+
+def interactive_forecast_figure(
+    result, selected_models: list[str], *, lao_presentation: bool = False
+) -> go.Figure:
+    """Build the interactive Streamlit forecast and residual chart."""
+    figure = make_subplots(
+        rows=2,
+        cols=1,
+        row_heights=[0.58, 0.42],
+        vertical_spacing=0.16,
+        subplot_titles=(
+            "ສົມທຽບຄວາມຊັດເຈນຂອງ ຜົນການຄາດຄະເນປະຊາກອນ",
+            "ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການຄາດຄະເນ)",
+        ),
+    )
+    figure.add_trace(
+        go.Scatter(
+            x=HISTORICAL_YEARS,
+            y=result.actual,
+            name=(
+                "ປະຊາກອນຕົວຈິງ (Actual population)"
+                if lao_presentation
+                else "Actual population"
+            ),
+            mode="lines+markers",
+            line={"color": STREAMLIT_CHART_BLUE, "width": 3},
+            marker={
+                "color": "#FFFFFF",
+                "line": {"color": STREAMLIT_CHART_BLUE, "width": 2},
+                "size": 8,
+            },
+            hovertemplate=(
+                (
+                    "<b>ປະຊາກອນຈິງ (Actual population)</b><br>ປີ (Year): %{x}<br>"
+                    "ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
+                )
+                if lao_presentation
+                else (
+                    "<b>Actual population</b><br>Year: %{x}<br>"
+                    "Population: %{y:,.0f}<extra></extra>"
+                )
+            ),
+        ),
+        row=1,
+        col=1,
+    )
+    dash_styles = {"Linear": "dash", "Polynomial": "dashdot", "Exponential": "dot"}
+    for name in selected_models:
+        label = (
+            PRESENTATION_MODEL_LABELS[name]
+            if lao_presentation
+            else MODEL_LABELS[name]
+        )
+        figure.add_trace(
+            go.Scatter(
+                x=result.all_years,
+                y=result.predictions[name],
+                name=label,
+                mode="lines",
+                line={
+                    "color": MODEL_STYLES[name]["color"],
+                    "width": 2.5,
+                    "dash": dash_styles[name],
+                },
+                hovertemplate=(
+                    f"<b>{label}</b><br>ປີ (Year): %{{x}}<br>"
+                    "ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
+                    if lao_presentation
+                    else f"<b>{label}</b><br>Year: %{{x}}<br>Population: %{{y:,.0f}}<extra></extra>"
+                ),
+            ),
+            row=1,
+            col=1,
+        )
+
+        residuals = np.asarray(result.actual - result.fitted[name], dtype=float)
+        residual_labels = [
+            "0" if int(np.rint(value)) == 0 else f"{int(np.rint(value)):+,}".replace("-", "−")
+            for value in residuals
+        ]
+        figure.add_trace(
+            go.Bar(
+                x=HISTORICAL_YEARS,
+                y=residuals,
+                name=(
+                    f"ຄ່າຄົງເຫຼືອຂອງ {label} (residual)"
+                    if lao_presentation
+                    else f"{label} residual"
+                ),
+                marker={
+                    "color": MODEL_STYLES[name]["color"],
+                    "line": {"color": "#FFFFFF", "width": 1},
+                },
+                text=residual_labels,
+                textposition="outside",
+                cliponaxis=False,
+                showlegend=False,
+                hovertemplate=(
+                    f"<b>{label}</b><br>ປີ (Year): %{{x}}<br>"
+                    "ຄ່າຄົງເຫຼືອ (Residual: Actual − Predicted): %{y:+,.0f}<extra></extra>"
+                    if lao_presentation
+                    else f"<b>{label}</b><br>Year: %{{x}}<br>Residual (Actual − Predicted): %{{y:+,.0f}}<extra></extra>"
+                ),
+            ),
+            row=2,
+            col=1,
+        )
+
+    figure.add_vrect(
+        x0=2025,
+        x1=float(result.all_years[-1]),
+        fillcolor=STREAMLIT_CHART_FORECAST_BAND,
+        opacity=0.8,
+        line_width=0,
+        layer="below",
+        row=1,
+        col=1,
+    )
+    figure.add_vline(
+        x=2025,
+        line={"color": "#9CA3AF", "width": 1.2, "dash": "dash"},
+        row=1,
+        col=1,
+    )
+    figure.add_hline(
+        y=0,
+        line={"color": STREAMLIT_CHART_TEXT, "width": 1.2},
+        row=2,
+        col=1,
+    )
+    figure.update_xaxes(
+        title_text="ປີ",
+        tickmode="array",
+        tickvals=HISTORICAL_YEARS,
+        row=2,
+        col=1,
+    )
+    figure.update_yaxes(title_text="ປະຊາກອນ (ຄົນ)", tickformat=",.0f")
+    figure.update_layout(
+        template="plotly_white",
+        height=900,
+        barmode="group",
+        hovermode="closest",
+        margin={"l": 55, "r": 25, "t": 70, "b": 55},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "left",
+            "x": 0,
+        },
+        hoverlabel={"bgcolor": "#FFFFFF", "font_color": STREAMLIT_CHART_TEXT},
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+    )
+    figure.update_xaxes(gridcolor=STREAMLIT_CHART_GRID, zeroline=False)
+    figure.update_yaxes(gridcolor=STREAMLIT_CHART_GRID, zeroline=False)
+    figure.update_annotations(font={"color": STREAMLIT_CHART_TEXT, "size": 16})
+    return figure
 
 
 def population_growth_rate_summary(
@@ -259,6 +523,7 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
         figsize=(13, 4.8 if panel_count == 1 else 3.8 * panel_count),
         squeeze=False,
         sharex=True,
+        facecolor="#FFFFFF",
     )
     x_positions = np.arange(len(HISTORICAL_YEARS))
     column_width = 0.38
@@ -270,9 +535,9 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
             x_positions - column_width / 2,
             actual_values,
             width=column_width,
-            color="#495057",
-            edgecolor="white",
-            linewidth=0.8,
+            color=STREAMLIT_CHART_BLUE,
+            edgecolor="#FFFFFF",
+            linewidth=1.0,
             label="Actual",
             zorder=3,
         )
@@ -281,8 +546,8 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
             predicted_values,
             width=column_width,
             color=MODEL_STYLES[name]["color"],
-            edgecolor="white",
-            linewidth=0.8,
+            edgecolor="#FFFFFF",
+            linewidth=1.0,
             label="Predicted",
             zorder=3,
         )
@@ -296,15 +561,15 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
         for bar, difference in zip(predicted_bars, percentage_differences):
             if np.isnan(difference):
                 label = "N/A"
-                label_color = "#6c757d"
+                label_color = STREAMLIT_CHART_MUTED
             else:
                 rounded_difference = round(float(difference), 4)
                 if rounded_difference == 0:
                     label = "0.0000%"
-                    label_color = "#6c757d"
+                    label_color = STREAMLIT_CHART_MUTED
                 else:
                     label = f"{rounded_difference:+.4f}%".replace("-", "−")
-                    label_color = "#198754" if rounded_difference > 0 else "#dc3545"
+                    label_color = "#29B09D" if rounded_difference > 0 else "#FF2B2B"
             axis.annotate(
                 label,
                 xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
@@ -318,13 +583,16 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
                 rotation=45 if panel_count > 1 else 0,
             )
 
-        axis.set_title(MODEL_LABELS[name], loc="left", fontsize=12, fontweight="bold")
+        axis.set_title(
+            MODEL_LABELS[name],
+            loc="left",
+            fontsize=12,
+            fontweight="semibold",
+            pad=12,
+        )
         axis.set_ylabel("Population")
         axis.yaxis.set_major_formatter(StrMethodFormatter("{x:,.0f}"))
-        axis.set_facecolor("#f8f9fa")
-        axis.grid(axis="y", linestyle="--", linewidth=0.8, alpha=0.35, zorder=0)
-        axis.spines[["top", "right", "left"]].set_visible(False)
-        axis.tick_params(axis="y", length=0)
+        style_streamlit_chart_axis(axis)
         axis.tick_params(axis="x", labelbottom=True)
         axis.margins(y=0.18)
         axis.legend(
@@ -333,6 +601,7 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
             frameon=False,
             ncol=2,
             loc="upper left",
+            labelcolor=STREAMLIT_CHART_TEXT,
         )
 
     axes.flat[-1].set_xlabel("Year")
@@ -341,11 +610,263 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
     fig.suptitle(
         "Actual vs predicted population (historical fit)",
         fontsize=15,
-        fontweight="bold",
+        fontweight="semibold",
+        color=STREAMLIT_CHART_TEXT,
         y=1.0,
     )
     fig.tight_layout(rect=(0, 0, 1, 0.98))
     return fig
+
+
+def interactive_actual_vs_predicted_figure(
+    result, selected_models: list[str], *, lao_presentation: bool = False
+) -> go.Figure:
+    """Build interactive historical actual-versus-predicted panels."""
+    panel_count = len(selected_models)
+    figure = make_subplots(
+        rows=panel_count,
+        cols=1,
+        shared_xaxes=False,
+        vertical_spacing=0.1 if panel_count > 1 else 0.08,
+        subplot_titles=tuple(
+            (
+                PRESENTATION_MODEL_LABELS[name]
+                if lao_presentation
+                else MODEL_LABELS[name]
+            )
+            for name in selected_models
+        ),
+    )
+    actual_values = np.asarray(result.actual, dtype=float)
+    for row_number, name in enumerate(selected_models, start=1):
+        label = (
+            PRESENTATION_MODEL_LABELS[name]
+            if lao_presentation
+            else MODEL_LABELS[name]
+        )
+        predicted_values = np.asarray(result.fitted[name], dtype=float)
+        percentage_differences = np.divide(
+            predicted_values - actual_values,
+            actual_values,
+            out=np.full_like(predicted_values, np.nan),
+            where=actual_values != 0,
+        ) * 100
+        difference_labels = []
+        label_colors = []
+        hover_differences = []
+        for difference in percentage_differences:
+            if np.isnan(difference):
+                difference_labels.append("N/A")
+                hover_differences.append("N/A")
+                label_colors.append(STREAMLIT_CHART_MUTED)
+                continue
+            rounded = round(float(difference), 4)
+            difference_labels.append(
+                "0.0000%" if rounded == 0 else f"{rounded:+.4f}%".replace("-", "−")
+            )
+            hover_differences.append(f"{float(difference):+.4f}%")
+            label_colors.append(
+                STREAMLIT_CHART_MUTED
+                if rounded == 0
+                else "#29B09D" if rounded > 0 else "#FF2B2B"
+            )
+
+        figure.add_trace(
+            go.Bar(
+                x=HISTORICAL_YEARS,
+                y=actual_values,
+                name="ຄ່າຈິງ (Actual)" if lao_presentation else "Actual",
+                legendgroup="actual",
+                showlegend=row_number == 1,
+                marker={
+                    "color": STREAMLIT_CHART_BLUE,
+                    "line": {"color": "#FFFFFF", "width": 1},
+                },
+                hovertemplate=(
+                    "<b>ຄ່າຈິງ (Actual)</b><br>ປີ (Year): %{x}<br>"
+                    "ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
+                    if lao_presentation
+                    else "<b>Actual</b><br>Year: %{x}<br>Population: %{y:,.0f}<extra></extra>"
+                ),
+            ),
+            row=row_number,
+            col=1,
+        )
+        figure.add_trace(
+            go.Bar(
+                x=HISTORICAL_YEARS,
+                y=predicted_values,
+                name="ຄ່າຄາດຄະເນ (Predicted)" if lao_presentation else "Predicted",
+                legendgroup="predicted",
+                showlegend=row_number == 1,
+                marker={
+                    "color": MODEL_STYLES[name]["color"],
+                    "line": {"color": "#FFFFFF", "width": 1},
+                },
+                text=difference_labels,
+                textfont={"color": label_colors, "size": 11},
+                textposition="outside",
+                cliponaxis=False,
+                customdata=np.asarray(hover_differences).reshape(-1, 1),
+                hovertemplate=(
+                    f"<b>ຜົນຄາດຄະເນ {label} (prediction)</b><br>ປີ (Year): %{{x}}<br>"
+                    "ປະຊາກອນ (Population): %{y:,.0f}<br>ຜົນຕ່າງ (Difference): %{customdata[0]}"
+                    "<extra></extra>"
+                    if lao_presentation
+                    else f"<b>{label} prediction</b><br>Year: %{{x}}<br>Population: %{{y:,.0f}}<br>Difference: %{{customdata[0]}}<extra></extra>"
+                ),
+            ),
+            row=row_number,
+            col=1,
+        )
+        figure.update_xaxes(
+            tickmode="array",
+            tickvals=HISTORICAL_YEARS,
+            gridcolor=STREAMLIT_CHART_GRID,
+            row=row_number,
+            col=1,
+        )
+        figure.update_yaxes(
+            title_text=(
+                "ປະຊາກອນ (Population)"
+                if lao_presentation
+                else "Population"
+            ),
+            tickformat=",.0f",
+            gridcolor=STREAMLIT_CHART_GRID,
+            rangemode="tozero",
+            row=row_number,
+            col=1,
+        )
+
+    figure.update_xaxes(
+        title_text="ປີ (Year)" if lao_presentation else "Year",
+        row=panel_count,
+        col=1,
+    )
+    figure.update_layout(
+        template="plotly_white",
+        title={
+            "text": (
+                "ປະຊາກອນຈິງ ທຽບກັບ ຄາດຄະເນ (Actual vs predicted population — historical fit)"
+                if lao_presentation
+                else "Actual vs predicted population (historical fit)"
+            ),
+            "x": 0.5,
+            "xanchor": "center",
+        },
+        height=420 if panel_count == 1 else 350 * panel_count,
+        barmode="group",
+        bargap=0.2,
+        bargroupgap=0.04,
+        hovermode="closest",
+        margin={"l": 55, "r": 25, "t": 95, "b": 50},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "left",
+            "x": 0,
+        },
+        hoverlabel={"bgcolor": "#FFFFFF", "font_color": STREAMLIT_CHART_TEXT},
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+    )
+    figure.update_annotations(font={"color": STREAMLIT_CHART_TEXT, "size": 16})
+    return figure
+
+
+def interactive_validation_figure(
+    validation, selected_models: list[str], *, lao_presentation: bool = False
+) -> go.Figure:
+    """Compare holdout predictions with unseen historical observations."""
+    figure = go.Figure()
+    figure.add_trace(
+        go.Scatter(
+            x=validation.test_years,
+            y=validation.actual,
+            name=(
+                "ປະຊາກອນຈິງ (Actual population)"
+                if lao_presentation
+                else "Actual population"
+            ),
+            mode="lines+markers",
+            line={"color": STREAMLIT_CHART_BLUE, "width": 4},
+            marker={"size": 10, "color": "#FFFFFF", "line": {"color": STREAMLIT_CHART_BLUE, "width": 2.5}},
+            hovertemplate=(
+                "ຄ່າຈິງ (Actual)<br>ປີ (Year): %{x}<br>ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
+                if lao_presentation
+                else "Actual<br>Year: %{x}<br>Population: %{y:,.0f}<extra></extra>"
+            ),
+        )
+    )
+    dash_styles = {"Linear": "dash", "Polynomial": "dashdot", "Exponential": "dot"}
+    for name in selected_models:
+        label = (
+            PRESENTATION_MODEL_LABELS[name]
+            if lao_presentation
+            else MODEL_LABELS[name]
+        )
+        figure.add_trace(
+            go.Scatter(
+                x=validation.test_years,
+                y=validation.predictions[name],
+                name=label,
+                mode="lines+markers",
+                line={
+                    "color": MODEL_STYLES[name]["color"],
+                    "width": 3,
+                    "dash": dash_styles[name],
+                },
+                marker={"size": 8},
+                customdata=(
+                    (validation.predictions[name] - validation.actual)
+                    / np.where(validation.actual == 0, np.nan, validation.actual)
+                    * 100
+                ),
+                hovertemplate=(
+                    f"{label}<br>ປີ (Year): %{{x}}<br>ຄ່າຄາດຄະເນ (Prediction): %{{y:,.0f}}"
+                    "<br>ຄວາມຜິດພາດ (Error): %{customdata:+.4f}%<extra></extra>"
+                    if lao_presentation
+                    else f"{label}<br>Year: %{{x}}<br>Prediction: %{{y:,.0f}}<br>Error: %{{customdata:+.4f}}%<extra></extra>"
+                ),
+            )
+        )
+    figure.update_layout(
+        template="plotly_white",
+        height=440,
+        hovermode="x unified",
+        margin={"l": 70, "r": 28, "t": 28, "b": 60},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "left",
+            "x": 0,
+        },
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+    )
+    figure.update_xaxes(
+        title_text=(
+            "ປີຂອງຊຸດທົດສອບ (Holdout year)"
+            if lao_presentation
+            else "Holdout year"
+        ),
+        tickmode="array",
+        tickvals=validation.test_years,
+        gridcolor=STREAMLIT_CHART_GRID,
+    )
+    figure.update_yaxes(
+        title_text=(
+            "ປະຊາກອນ (Population)"
+            if lao_presentation
+            else "Population"
+        ),
+        tickformat=",.0f",
+        gridcolor=STREAMLIT_CHART_GRID,
+    )
+    return figure
 
 
 def population_pyramid_figure(
@@ -796,6 +1317,18 @@ st.caption(
 st.sidebar.header("Data and forecast")
 uploaded_file = st.sidebar.file_uploader("Upload population CSV", type=["csv"])
 future_end = st.sidebar.slider("Forecast through", 2026, 2040, 2030)
+correction_threshold = st.sidebar.slider(
+    "Outlier correction threshold",
+    min_value=2.5,
+    max_value=6.0,
+    value=DEFAULT_CORRECTION_THRESHOLD,
+    step=0.25,
+    help=(
+        "Lower values flag and potentially correct more observations. Higher values "
+        "require more exceptional robust scores. Every correction still requires an "
+        "independent demographic confirmation."
+    ),
+)
 selected_model_option = st.sidebar.selectbox(
     "Forecast model",
     [ALL_MODELS_OPTION, *MODEL_NAMES],
@@ -806,6 +1339,29 @@ selected_models = (
     list(MODEL_NAMES)
     if selected_model_option == ALL_MODELS_OPTION
     else [selected_model_option]
+)
+
+forecast_input_option = st.segmented_control(
+    "Baseline data type",
+    [ORIGINAL_INPUT_OPTION, CORRECTED_INPUT_OPTION],
+    default=CORRECTED_INPUT_OPTION,
+    format_func=lambda option: (
+        "Original data"
+        if option == ORIGINAL_INPUT_OPTION
+        else f"Outlier-corrected data (threshold {correction_threshold:g})"
+    ),
+    help=(
+        "Choose the baseline used by the forecast. Outlier-corrected data changes only "
+        "temporal anomalies independently confirmed by a demographic check; the "
+        "original upload is never overwritten."
+    ),
+    width="stretch",
+)
+forecast_input_option = forecast_input_option or CORRECTED_INPUT_OPTION
+forecast_input_label = (
+    "Original data"
+    if forecast_input_option == ORIGINAL_INPUT_OPTION
+    else f"Outlier-corrected data (threshold {correction_threshold:g})"
 )
 
 try:
@@ -819,16 +1375,42 @@ try:
         raw_data = load_uploaded_data(uploaded_file.getvalue())
         source_name = uploaded_file.name
     data = validate_population_data(raw_data)
+    correction_result = cached_outlier_correction(data, correction_threshold)
+    corrected_data = correction_result.data
 except Exception as error:
     st.error(f"Could not load the population data: {error}")
     st.stop()
 
-filtered_data = filter_data(data)
-if filtered_data.empty:
+filtered_original_data = filter_data(data)
+if filtered_original_data.empty:
     st.warning("The selected filters contain no records. Change or clear the filters.")
     st.stop()
 
+with st.sidebar.expander("5–7 minute demo path"):
+    st.markdown(
+        """
+1. **Forecast Overview** — show holdout validation, selected model and national forecast.
+2. **Source data & outliers** — explain the nationwide correction summary and audit trail.
+3. **Population pyramid** — switch between nationwide and one district.
+4. **Row-level exports** — show reusable CSV/HTML outputs.
+
+The methodology tab is supporting material; it does not need to be opened during the timed demo.
+        """
+    )
+
+filtered_corrected_data = corrected_data.loc[filtered_original_data.index].copy()
+filtered_data = (
+    filtered_corrected_data
+    if forecast_input_option == CORRECTED_INPUT_OPTION
+    else filtered_original_data
+)
+
 result = forecast_totals(filtered_data, future_end)
+validation_result = time_holdout_validation(filtered_data, train_end=2022)
+original_forecast = forecast_totals(filtered_original_data, future_end)
+corrected_forecast = forecast_totals(filtered_corrected_data, future_end)
+nationwide_original_forecast = forecast_totals(data, future_end)
+nationwide_corrected_forecast = forecast_totals(corrected_data, future_end)
 future_years = list(range(2026, future_end + 1))
 row_predictions = cached_row_forecast(filtered_data, future_end)
 polynomial_year_columns = [f"{year}_Poly" for year in future_years]
@@ -849,19 +1431,433 @@ for row in polynomial_table.itertuples(index=False, name=None):
     ]
     polynomial_table_rows.append([*identity_values, *forecast_values])
 
+presentation_corrections = correction_result.corrections.copy()
+presentation_corrected_series = (
+    presentation_corrections[["District", "Age group", "Sex"]]
+    .drop_duplicates()
+    .shape[0]
+    if not presentation_corrections.empty
+    else 0
+)
+presentation_cell_count = len(data) * len(HISTORICAL_COLUMNS)
+presentation_method_counts = (
+    presentation_corrections["Correction method"].value_counts().to_dict()
+    if not presentation_corrections.empty
+    else {}
+)
+presentation_audit_rows = []
+presentation_correction_example = (
+    "ບໍ່ມີການແກ້ໄຂລະດັບຊາດທີ່ຢືນຢັນແລ້ວ ຢູ່ເກນທີ່ເຮັດວຽກ (active threshold) ປັດຈຸບັນ."
+)
+presentation_outlier_evidence = (
+    "ບໍ່ມີຫຼັກຖານຄ່າຜິດປົກກະຕິລະດັບຊາດທີ່ຢືນຢັນແລ້ວ ຢູ່ເກນທີ່ເຮັດວຽກ (active threshold) ປັດຈຸບັນ."
+)
+correction_comparison_figure = go.Figure()
+outlier_evidence_figure = go.Figure()
+nationwide_corrections = correction_result.corrections
+if not nationwide_corrections.empty:
+    outlier_evidence_figure = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{"colspan": 2}, None], [{}, {}]],
+        subplot_titles=(
+            "ຄ່າຜິດປົກກະຕິຕາມປີ ແລະ ເພດ (Confirmed cases by year and sex)",
+            "ເມືອງທີ່ມີຄ່າຜິດປົກກະຕິຫຼາຍທີ່ສຸດ (Districts with the most confirmed cases)",
+            "ກຸ່ມອາຍຸທີ່ຄ່າຜິດປົກກະຕິຫຼາຍທີ່ສຸດ (Age groups with the most confirmed cases)",
+        ),
+        vertical_spacing=0.24,
+        horizontal_spacing=0.14,
+        row_heights=[0.52, 0.48],
+    )
+    year_sex_counts = (
+        nationwide_corrections.groupby(["Year", "Sex"]).size().unstack(fill_value=0)
+        .reindex(HISTORICAL_YEARS, fill_value=0)
+    )
+    sex_colors = {"Female": "#D946EF", "Male": "#1686A3"}
+    for sex_name in year_sex_counts.columns:
+        values = year_sex_counts[sex_name].astype(int).tolist()
+        outlier_evidence_figure.add_trace(
+            go.Bar(
+                x=HISTORICAL_YEARS,
+                y=values,
+                name=(
+                    "ຍິງ (Female)"
+                    if str(sex_name) == "Female"
+                    else "ຊາຍ (Male)"
+                    if str(sex_name) == "Male"
+                    else str(sex_name)
+                ),
+                marker_color=sex_colors.get(str(sex_name), "#D97706"),
+                text=values,
+                textposition="auto",
+                hovertemplate=(
+                    f"{sex_name}<br>ປີ (Year): %{{x}}<br>ກໍລະນີຢືນຢັນ (Confirmed cases): %{{y:,}}"
+                    "<extra></extra>"
+                ),
+            ),
+            row=1,
+            col=1,
+        )
+
+    top_districts = nationwide_corrections["District"].value_counts().head(10).sort_values()
+    outlier_evidence_figure.add_trace(
+        go.Bar(
+            x=top_districts.astype(int),
+            y=top_districts.index.astype(str),
+            orientation="h",
+            name="ກໍລະນີຕາມເມືອງ (District cases)",
+            marker_color="#027235",
+            text=top_districts.astype(int),
+            textposition="auto",
+            hovertemplate="%{y}<br>ກໍລະນີຢືນຢັນ (Confirmed cases): %{x:,}<extra></extra>",
+            showlegend=False,
+        ),
+        row=2,
+        col=1,
+    )
+    top_ages = nationwide_corrections["Age group"].value_counts().head(10).sort_values()
+    outlier_evidence_figure.add_trace(
+        go.Bar(
+            x=top_ages.astype(int),
+            y=top_ages.index.astype(str),
+            orientation="h",
+            name="ກໍລະນີຕາມກຸ່ມອາຍຸ (Age-group cases)",
+            marker_color="#D97706",
+            text=top_ages.astype(int),
+            textposition="auto",
+            hovertemplate="%{y}<br>ກໍລະນີຢືນຢັນ (Confirmed cases): %{x:,}<extra></extra>",
+            showlegend=False,
+        ),
+        row=2,
+        col=2,
+    )
+    outlier_evidence_figure.update_xaxes(
+        title_text="ປີ (Year)",
+        tickmode="array",
+        tickvals=HISTORICAL_YEARS,
+        gridcolor=STREAMLIT_CHART_GRID,
+        row=1,
+        col=1,
+    )
+    outlier_evidence_figure.update_yaxes(
+        title_text="ກໍລະນີຢືນຢັນ (Confirmed cases)",
+        rangemode="tozero",
+        gridcolor=STREAMLIT_CHART_GRID,
+        row=1,
+        col=1,
+    )
+    outlier_evidence_figure.update_xaxes(
+        title_text="ກໍລະນີຢືນຢັນ (Confirmed cases)", rangemode="tozero", row=2, col=1
+    )
+    outlier_evidence_figure.update_xaxes(
+        title_text="ກໍລະນີຢືນຢັນ (Confirmed cases)", rangemode="tozero", row=2, col=2
+    )
+    outlier_evidence_figure.update_layout(
+        template="plotly_white",
+        height=560,
+        barmode="stack",
+        margin={"l": 90, "r": 36, "t": 58, "b": 52},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.04,
+            "xanchor": "left",
+            "x": 0,
+        },
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+    )
+    outlier_evidence_figure.update_annotations(
+        font={"color": STREAMLIT_CHART_TEXT, "size": 14}
+    )
+    nationwide_series_count = nationwide_corrections[
+        ["District", "Age group", "Sex"]
+    ].drop_duplicates().shape[0]
+    presentation_outlier_evidence = (
+        f"ພາບລວມທົ່ວປະເທດ (Nationwide overview) · ເກນ (threshold) {correction_threshold:g} · "
+        f"{len(nationwide_corrections):,} ຄ່າສັງເກດທີ່ຢືນຢັນ (confirmed observations) · "
+        f"{nationwide_corrections['District'].nunique():,} ເມືອງ (districts) · "
+        f"{nationwide_series_count:,} ຊຸດຂໍ້ມູນເມືອງ–ອາຍຸ–ເພດ (district–age–sex series)"
+    )
+else:
+    outlier_evidence_figure.add_annotation(
+        text="ບໍ່ມີຄ່າຜິດປົກກະຕິລະດັບຊາດທີ່ຢືນຢັນ ຢູ່ເກນທີ່ເຮັດວຽກ (active threshold)",
+        x=0.5,
+        y=0.5,
+        xref="paper",
+        yref="paper",
+        showarrow=False,
+        font={"size": 18, "color": "#5E7077"},
+    )
+    outlier_evidence_figure.update_layout(
+        template="plotly_white",
+        height=300,
+        margin={"l": 24, "r": 24, "t": 20, "b": 20},
+        xaxis={"visible": False},
+        yaxis={"visible": False},
+    )
+
+if not presentation_corrections.empty:
+    audit_preview = presentation_corrections.assign(
+        _impact=presentation_corrections["Difference"].abs()
+    ).nlargest(6, "_impact")
+    for audit_row in audit_preview.to_dict("records"):
+        presentation_audit_rows.append(
+            {
+                "district": str(audit_row["District"]),
+                "age_group": str(audit_row["Age group"]),
+                "sex": (
+                    "ຍິງ (Female)"
+                    if str(audit_row["Sex"]) == "Female"
+                    else "ຊາຍ (Male)"
+                    if str(audit_row["Sex"]) == "Male"
+                    else str(audit_row["Sex"])
+                ),
+                "year": str(int(audit_row["Year"])),
+                "original": f"{audit_row['Original value']:,.0f}",
+                "corrected": f"{audit_row['Corrected value']:,.0f}",
+                "method": {
+                    "Two-sided log-linear interpolation": "ການຄາດຄ່າແຊກແບບລັອກ-ເສັ້ນຊື່ສອງດ້ານ (Two-sided log-linear interpolation)",
+                    "Theil-Sen endpoint estimate": "ການປະເມີນຈຸດປາຍ Theil–Sen (Theil-Sen endpoint estimate)",
+                }.get(
+                    str(audit_row["Correction method"]),
+                    str(audit_row["Correction method"]),
+                ),
+            }
+        )
+
+    original_series = data[HISTORICAL_COLUMNS].sum(axis=0).to_numpy(dtype=float)
+    corrected_series = (
+        corrected_data[HISTORICAL_COLUMNS].sum(axis=0).to_numpy(dtype=float)
+    )
+    corrected_years = sorted(presentation_corrections["Year"].astype(int).unique())
+    corrected_positions = [HISTORICAL_YEARS.index(year) for year in corrected_years]
+    annual_adjustments = corrected_series - original_series
+
+    correction_comparison_figure.add_trace(
+        go.Scatter(
+            x=HISTORICAL_YEARS,
+            y=original_series,
+            name="ຍອດລວມທົ່ວປະເທດຕົ້ນສະບັບ (Original nationwide total)",
+            mode="lines+markers",
+            line={"color": "#D97706", "width": 3, "dash": "dash"},
+            marker={"size": 7, "symbol": "circle-open"},
+            hovertemplate=(
+                "ຍອດລວມທົ່ວປະເທດຕົ້ນສະບັບ (Original nationwide total)<br>ປີ (Year): %{x}<br>ປະຊາກອນ (Population): %{y:,.0f}"
+                "<extra></extra>"
+            ),
+        )
+    )
+    correction_comparison_figure.add_trace(
+        go.Scatter(
+            x=HISTORICAL_YEARS,
+            y=corrected_series,
+            name="ຍອດລວມທົ່ວປະເທດທີ່ແກ້ໄຂແລ້ວ (Corrected nationwide total)",
+            mode="lines+markers",
+            line={"color": "#027235", "width": 3},
+            marker={"size": 7},
+            customdata=annual_adjustments,
+            hovertemplate=(
+                "ຍອດລວມທົ່ວປະເທດທີ່ແກ້ໄຂແລ້ວ (Corrected nationwide total)<br>ປີ (Year): %{x}<br>ປະຊາກອນ (Population): %{y:,.0f}"
+                "<br>ການປັບສຸດທິ (Net adjustment): %{customdata:+,.0f}<extra></extra>"
+            ),
+        )
+    )
+    correction_comparison_figure.add_trace(
+        go.Scatter(
+            x=corrected_years,
+            y=original_series[corrected_positions],
+            name="ກ່ອນແກ້ໄຂ — ປີທີ່ໄດ້ຮັບຜົນ (Before treatment — affected year)",
+            mode="markers",
+            marker={"color": "#DC2626", "size": 14, "symbol": "x", "line": {"width": 2}},
+            hovertemplate=(
+                "ປີທີ່ໄດ້ຮັບຜົນກ່ອນແກ້ໄຂ (Affected year before treatment)<br>ປີ (Year): %{x}"
+                "<br>ຍອດລວມທົ່ວປະເທດ (Nationwide total): %{y:,.0f}<extra></extra>"
+            ),
+        )
+    )
+    correction_comparison_figure.add_trace(
+        go.Scatter(
+            x=corrected_years,
+            y=corrected_series[corrected_positions],
+            name="ຫຼັງແກ້ໄຂ — ປີທີ່ໄດ້ຮັບຜົນ (After treatment — affected year)",
+            mode="markers",
+            marker={
+                "color": "#16A34A",
+                "size": 13,
+                "symbol": "diamond",
+                "line": {"color": "#FFFFFF", "width": 1.5},
+            },
+            customdata=annual_adjustments[corrected_positions],
+            hovertemplate=(
+                "ປີທີ່ໄດ້ຮັບຜົນຫຼັງແກ້ໄຂ (Affected year after treatment)<br>ປີ (Year): %{x}"
+                "<br>ຍອດລວມທົ່ວປະເທດ (Nationwide total): %{y:,.0f}"
+                "<br>ການປັບສຸດທິ (Net adjustment): %{customdata:+,.0f}<extra></extra>"
+            ),
+        )
+    )
+    correction_comparison_figure.update_layout(
+        template="plotly_white",
+        height=390,
+        margin={"l": 62, "r": 24, "t": 18, "b": 52},
+        hovermode="x unified",
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "left",
+            "x": 0,
+        },
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+    )
+    correction_comparison_figure.update_xaxes(
+        title_text="ປີ (Year)",
+        tickmode="array",
+        tickvals=HISTORICAL_YEARS,
+        gridcolor=STREAMLIT_CHART_GRID,
+    )
+    correction_comparison_figure.update_yaxes(
+        title_text="ປະຊາກອນ (Population)",
+        tickformat=",.0f",
+        gridcolor=STREAMLIT_CHART_GRID,
+        rangemode="tozero",
+    )
+    example_years = ", ".join(str(year) for year in corrected_years)
+    district_count = data["ouName"].astype(str).nunique()
+    presentation_correction_example = (
+        f"ຍອດລວມທົ່ວປະເທດ (Nationwide total) · {district_count:,} ເມືອງ (districts) · ທຸກອາຍຸ · ທັງສອງເພດ · "
+        f"ປີທີ່ມີການແກ້ໄຂທີ່ຢືນຢັນ (Years containing confirmed corrections): {example_years} · "
+        f"{len(presentation_corrections):,} ຄ່າສັງເກດທີ່ແກ້ໄຂແລ້ວ (corrected observations) · "
+        f"ການປັບສຸດທິ (net adjustment) {presentation_corrections['Difference'].sum():+,.0f}"
+    )
+else:
+    correction_comparison_figure.add_annotation(
+        text="ບໍ່ມີການແກ້ໄຂຄ່າຜິດປົກກະຕິທີ່ຢືນຢັນ ສຳລັບຕົວກອງປັດຈຸບັນ (current filters)",
+        x=0.5,
+        y=0.5,
+        xref="paper",
+        yref="paper",
+        showarrow=False,
+        font={"size": 18, "color": "#5E7077"},
+    )
+    correction_comparison_figure.update_layout(
+        template="plotly_white",
+        height=300,
+        margin={"l": 24, "r": 24, "t": 20, "b": 20},
+        xaxis={"visible": False},
+        yaxis={"visible": False},
+    )
+presentation_impact_rows = []
+for model_name in MODEL_NAMES:
+    for impact_year in sorted({2026, future_end}):
+        position = impact_year - 2026
+        original_value = float(nationwide_original_forecast.future[model_name][position])
+        corrected_value = float(nationwide_corrected_forecast.future[model_name][position])
+        difference = corrected_value - original_value
+        presentation_impact_rows.append(
+            {
+                "model": PRESENTATION_MODEL_LABELS[model_name],
+                "year": str(impact_year),
+                "original": f"{original_value:,.0f}",
+                "corrected": f"{corrected_value:,.0f}",
+                "difference": f"{difference:+,.0f}",
+                "change": (
+                    f"{difference / original_value * 100:+.4f}%"
+                    if original_value != 0
+                    else "—"
+                ),
+            }
+        )
+
 live_results = {
     "source_name": source_name,
+    "forecast_input": (
+        "ຂໍ້ມູນທີ່ແກ້ໄຂແລ້ວ (Corrected data — recommended)"
+        if forecast_input_option == CORRECTED_INPUT_OPTION
+        else "ຂໍ້ມູນຕົ້ນສະບັບ (Original data)"
+    ),
+    "forecast_input_type": (
+        "corrected"
+        if forecast_input_option == CORRECTED_INPUT_OPTION
+        else "original"
+    ),
+    "correction_threshold": f"{correction_threshold:g}",
+    "correction_count": f"{len(presentation_corrections):,}",
+    "correction_series": f"{presentation_corrected_series:,}",
+    "correction_share": (
+        f"{len(presentation_corrections) / presentation_cell_count * 100:.3f}%"
+        if presentation_cell_count
+        else "0.000%"
+    ),
+    "correction_loglinear": f"{presentation_method_counts.get('Two-sided log-linear interpolation', 0):,}",
+    "correction_theilsen": f"{presentation_method_counts.get('Theil-Sen endpoint estimate', 0):,}",
+    "correction_net": (
+        f"{presentation_corrections['Difference'].sum():+,.0f}"
+        if not presentation_corrections.empty
+        else "0"
+    ),
+    "correction_audit_rows": presentation_audit_rows,
+    "correction_impact_rows": presentation_impact_rows,
+    "correction_example": presentation_correction_example,
+    "outlier_evidence": presentation_outlier_evidence,
+    "outlier_evidence_plotly": json.loads(outlier_evidence_figure.to_json()),
+    "correction_comparison_plotly": json.loads(
+        correction_comparison_figure.to_json()
+    ),
+    "baseline_summaries": {
+        "original": {
+            "rows": f"{len(data):,}",
+            "population_2016": f"{data['2016'].sum():,.0f}",
+            "population_2025": f"{data['2025'].sum():,.0f}",
+            "source": "DHIS2, ກສທ",
+        },
+        "corrected": {
+            "rows": f"{len(corrected_data):,}",
+            "population_2016": f"{corrected_data['2016'].sum():,.0f}",
+            "population_2025": f"{corrected_data['2025'].sum():,.0f}",
+            "source": "DHIS2, ກສທ",
+        },
+    },
     "row_count": f"{len(filtered_data):,}",
     "population_2016": f"{result.actual[0]:,.0f}",
     "population_2025": f"{result.actual[-1]:,.0f}",
     "future_end": str(future_end),
     "forecast_period": f"2026–{future_end}",
-    "selected_model": MODEL_LABELS.get(selected_model_option, selected_model_option),
+    "selected_model": PRESENTATION_MODEL_LABELS.get(
+        selected_model_option,
+        "ທຸກແບບຈຳລອງ (All models)"
+        if selected_model_option == ALL_MODELS_OPTION
+        else selected_model_option,
+    ),
+    "validation_train_period": (
+        f"{validation_result.train_years[0]}–{validation_result.train_years[-1]}"
+    ),
+    "validation_test_period": (
+        f"{validation_result.test_years[0]}–{validation_result.test_years[-1]}"
+    ),
+    "validation_plotly": json.loads(
+        interactive_validation_figure(
+            validation_result,
+            list(MODEL_NAMES),
+            lao_presentation=True,
+        ).to_json()
+    ),
+    "validation_rows": [
+        {
+            "model": PRESENTATION_MODEL_LABELS[name],
+            "mae": f"{validation_result.metrics.loc[name, 'MAE']:,.2f}",
+            "rmse": f"{validation_result.metrics.loc[name, 'RMSE']:,.2f}",
+            "mape": f"{validation_result.metrics.loc[name, 'MAPE (%)']:.4f}%",
+            "r2": f"{validation_result.metrics.loc[name, 'R²']:.4f}",
+        }
+        for name in MODEL_NAMES
+    ],
     "future_years": future_years,
     "polynomial_table_rows": polynomial_table_rows,
     "future_table_models": [
         {
-            "name": MODEL_LABELS[name],
+            "name": PRESENTATION_MODEL_LABELS[name],
             "key": name,
             "values": [
                 f"{value:,.0f}" for value in np.rint(result.future[name]).clip(min=0)
@@ -870,14 +1866,21 @@ live_results = {
         for name in selected_models
     ],
 }
-presentation_best_model = result.metrics["MAPE (%)"].idxmin()
-live_results["best_model"] = MODEL_LABELS[presentation_best_model]
+presentation_best_model = validation_result.metrics["MAPE (%)"].idxmin()
+live_results["best_model"] = PRESENTATION_MODEL_LABELS[presentation_best_model]
 live_results["best_model_mape"] = (
-    f"{result.metrics.loc[presentation_best_model, 'MAPE (%)']:.4f}%"
+    f"{validation_result.metrics.loc[presentation_best_model, 'MAPE (%)']:.4f}%"
+)
+live_results["best_model_2026"] = (
+    f"{result.future[presentation_best_model][0]:,.0f}"
+)
+live_results["best_model_end_year"] = str(future_end)
+live_results["best_model_end_value"] = (
+    f"{result.future[presentation_best_model][-1]:,.0f}"
 )
 for model_name in MODEL_NAMES:
     model_key = model_name.lower()
-    model_metrics = result.metrics.loc[model_name]
+    model_metrics = validation_result.metrics.loc[model_name]
     live_results.update(
         {
             f"{model_key}_mae": f"{model_metrics['MAE']:,.2f}",
@@ -908,9 +1911,13 @@ st.markdown(
             unsafe_allow_html=True
         )
 if selected_model_option == ALL_MODELS_OPTION:
-    best_model = result.metrics.loc[selected_models, "MAPE (%)"].idxmin()
-    st.subheader("ຜົນສະຫຼຸບຂອງແຕ່ລະແບບຈຳລອງ (models)")
-    all_model_summary = result.metrics.loc[list(MODEL_NAMES)].reset_index()
+    best_model = validation_result.metrics.loc[selected_models, "MAPE (%)"].idxmin()
+    st.subheader("Time-based validation model comparison")
+    st.caption(
+        "Models are trained on 2016–2022 and evaluated on the unseen 2023–2025 "
+        "holdout period. The final 2026+ forecasts are then retrained on all 2016–2025 data."
+    )
+    all_model_summary = validation_result.metrics.loc[list(MODEL_NAMES)].reset_index()
     all_model_summary["Model"] = all_model_summary["Model"].map(MODEL_LABELS)
     st.dataframe(
         all_model_summary.style.format(
@@ -933,25 +1940,78 @@ if selected_model_option == ALL_MODELS_OPTION:
     )
     # st.divider()
 else:
-    selected_mape = result.metrics.loc[selected_model_option, "MAPE (%)"]
-    summary_columns[3].metric("Selected model MAPE", f"{selected_mape:.4f}%")
+    selected_mape = validation_result.metrics.loc[selected_model_option, "MAPE (%)"]
+    summary_columns[3].metric("Validation MAPE", f"{selected_mape:.4f}%")
 # st.caption(f"Source: {source_name} · {len(data):,} total source rows")
 
 
-overview_tab, pyramid_tab, data_tab, export_tab = st.tabs(
+overview_tab, data_tab, pyramid_tab, export_tab, methodology_tab = st.tabs(
     [
         "Forecast Overview",
-        "Population pyramid",
         "Source data & outliers",
+        "Population pyramid",
         "Row-level exports",
+        "Methodology & limitations",
     ]
 )
 
 with overview_tab:
-    forecast_chart = forecast_figure(result, selected_models)
-    live_results["forecast_chart_src"] = figure_to_data_uri(forecast_chart)
-    st.pyplot(forecast_chart, width="stretch")
-    plt.close(forecast_chart)
+    st.subheader("Time-based validation: 2016–2022 train → 2023–2025 test")
+    st.caption(
+        "This chart measures performance on later historical years that each model did "
+        "not see during fitting. Model selection uses holdout MAPE, not training fit."
+    )
+    validation_chart = interactive_validation_figure(validation_result, selected_models)
+    st.plotly_chart(
+        validation_chart,
+        width="stretch",
+        config={
+            "displaylogo": False,
+            "responsive": True,
+            "modeBarButtonsToRemove": ["lasso2d", "select2d"],
+        },
+    )
+    validation_table = validation_result.metrics.loc[selected_models].reset_index()
+    validation_table["Model"] = validation_table["Model"].map(MODEL_LABELS)
+    st.dataframe(
+        validation_table.style.format(
+            {
+                "MAE": "{:,.2f}",
+                "RMSE": "{:,.2f}",
+                "MAPE (%)": "{:.4f}",
+                "R²": "{:.4f}",
+                "Accuracy (%)": "{:.4f}",
+            }
+        ).highlight_min(subset=["MAPE (%)"], color="#d1e7dd"),
+        hide_index=True,
+        width="stretch",
+    )
+    st.caption(
+        "Accuracy is displayed as 100 − MAPE for continuity with the original project; "
+        "it is not classification accuracy."
+    )
+    st.markdown(
+        '<hr style="border: none; border-top: 2px solid #2196F3;">',
+        unsafe_allow_html=True,
+    )
+    st.subheader("Final fit and forecast: retrained on all 2016–2025 observations")
+    interactive_forecast_chart = interactive_forecast_figure(result, selected_models)
+    live_results["forecast_plotly"] = json.loads(
+        interactive_forecast_figure(
+            result,
+            selected_models,
+            lao_presentation=True,
+        ).to_json()
+    )
+    st.plotly_chart(
+        interactive_forecast_chart,
+        width="stretch",
+        config={
+            "displaylogo": False,
+            "responsive": True,
+            "modeBarButtonsToRemove": ["lasso2d", "select2d"],
+        },
+    )
     st.markdown(
             '<hr style="border: none; border-top: 2px solid #2196F3;">',
             unsafe_allow_html=True
@@ -987,12 +2047,25 @@ with overview_tab:
     # )
 
     st.subheader("ສົມທຽບລະຫວ່າງຂໍ້ມູນຈິງ ແລະ ຜົນການຄາດຄະເນ (2016–2025), ຕາມແຕ່ລະແບບຈຳລອງ")
-    actual_predicted_chart = actual_vs_predicted_figure(result, selected_models)
-    live_results["actual_predicted_chart_src"] = figure_to_data_uri(
-        actual_predicted_chart
+    interactive_actual_predicted_chart = interactive_actual_vs_predicted_figure(
+        result, selected_models
     )
-    st.pyplot(actual_predicted_chart, width="stretch")
-    plt.close(actual_predicted_chart)
+    live_results["actual_predicted_plotly"] = json.loads(
+        interactive_actual_vs_predicted_figure(
+            result,
+            selected_models,
+            lao_presentation=True,
+        ).to_json()
+    )
+    st.plotly_chart(
+        interactive_actual_predicted_chart,
+        width="stretch",
+        config={
+            "displaylogo": False,
+            "responsive": True,
+            "modeBarButtonsToRemove": ["lasso2d", "select2d"],
+        },
+    )
     st.session_state["presentation_results"] = live_results
 
     st.markdown(
@@ -1125,8 +2198,150 @@ with pyramid_tab:
             plt.close(pyramid_chart)
 
 with data_tab:
-    st.subheader("Filtered source data")
-    st.dataframe(filtered_data, hide_index=True, width="stretch", height=420)
+    st.subheader("Forecast source data")
+    st.caption(
+        f"Forecasts currently use **{forecast_input_label}**. The original source "
+        "is preserved and remains available for comparison."
+    )
+    original_source_tab, corrected_source_tab = st.tabs(
+        ["Original filtered data", "Corrected filtered data"]
+    )
+    with original_source_tab:
+        st.dataframe(
+            filtered_original_data, hide_index=True, width="stretch", height=420
+        )
+    with corrected_source_tab:
+        st.dataframe(
+            filtered_corrected_data, hide_index=True, width="stretch", height=420
+        )
+
+    st.subheader("Conservative outlier correction")
+    st.caption(
+        f"Automatic correction uses the selected robust-score threshold of {correction_threshold:g}. A value is "
+        "changed only when a cohort-aware historical anomaly is independently confirmed "
+        "by a district-share, sex-ratio, or adjacent-age check."
+    )
+    with st.expander("ຂັ້ນຕອນການແກ້ໄຂຄ່າຜິດປົກກະຕິ", expanded=True):
+        st.markdown(
+            """
+1. Run the nationwide median/MAD outlier checks on the complete, unfiltered dataset.
+2. Require two independent signals: a historical cohort-change flag and at least one
+   demographic consistency or nationwide district-share flag.
+3. For an internal year, replace the confirmed value with **two-sided log-linear
+   interpolation** from the unchanged previous and following years:
+   `exp((log(1 + previous) + log(1 + following)) / 2) - 1`.
+4. For 2016 or 2025, use a **Theil–Sen endpoint estimate** calculated from the remaining
+   years' median pairwise log-growth slopes.
+5. Correct no more than two non-adjacent years in one district–age–sex series, clamp at
+   zero, and round to a whole person. The original values are retained in the audit log.
+            """
+        )
+
+    visible_corrections = filter_outlier_results(
+        correction_result.corrections, filtered_original_data
+    )
+    corrected_series = (
+        visible_corrections[["District", "Age group", "Sex"]]
+        .drop_duplicates()
+        .shape[0]
+        if not visible_corrections.empty
+        else 0
+    )
+    visible_cell_count = len(filtered_original_data) * len(HISTORICAL_COLUMNS)
+    corrected_percent = (
+        len(visible_corrections) / visible_cell_count * 100
+        if visible_cell_count
+        else 0.0
+    )
+    correction_metrics = st.columns(4)
+    correction_metrics[0].metric("Corrected observations", f"{len(visible_corrections):,}")
+    correction_metrics[1].metric("Affected series", f"{corrected_series:,}")
+    correction_metrics[2].metric("Share of historical cells", f"{corrected_percent:.3f}%")
+    correction_metrics[3].metric(
+        "Net historical-cell adjustment",
+        f"{visible_corrections['Difference'].sum():+,.0f}"
+        if not visible_corrections.empty
+        else "0",
+    )
+
+    if visible_corrections.empty:
+        st.success("No observations in the current filters met the conservative correction rule.")
+    else:
+        st.bar_chart(
+            visible_corrections.groupby("Year").size().rename("Corrections"),
+            height=220,
+        )
+        st.dataframe(
+            visible_corrections.style.format(
+                {
+                    "Original value": "{:,.0f}",
+                    "Corrected value": "{:,.0f}",
+                    "Difference": "{:+,.0f}",
+                    "Change (%)": "{:+.3f}%",
+                    "Temporal robust score": "{:+.2f}",
+                    "Supporting robust score": "{:+.2f}",
+                }
+            ),
+            hide_index=True,
+            width="stretch",
+            height=420,
+        )
+
+    correction_download, corrected_data_download = st.columns(2)
+    correction_download.download_button(
+        "Download correction audit",
+        visible_corrections.to_csv(index=False).encode("utf-8-sig"),
+        file_name="population_outlier_correction_audit.csv",
+        mime="text/csv",
+        width="stretch",
+    )
+    corrected_data_download.download_button(
+        "Download corrected source data",
+        dataframe_to_csv_bytes(corrected_data),
+        file_name="dataDistrict_Corrected.csv",
+        mime="text/csv",
+        width="stretch",
+    )
+
+    st.markdown("#### Forecast impact: original versus corrected data")
+    st.caption(
+        "This comparison uses the current district, age, and sex filters. It shows how "
+        "the conservative corrections affect each of the existing three models."
+    )
+    impact_rows = []
+    for model_name in MODEL_NAMES:
+        for impact_year in sorted({2026, future_end}):
+            position = impact_year - 2026
+            original_value = float(original_forecast.future[model_name][position])
+            corrected_value = float(corrected_forecast.future[model_name][position])
+            difference = corrected_value - original_value
+            impact_rows.append(
+                {
+                    "Model": MODEL_LABELS[model_name],
+                    "Forecast year": impact_year,
+                    "Original forecast": original_value,
+                    "Corrected-data forecast": corrected_value,
+                    "Difference": difference,
+                    "Change (%)": (
+                        difference / original_value * 100
+                        if original_value != 0
+                        else np.nan
+                    ),
+                }
+            )
+    forecast_impact = pd.DataFrame(impact_rows)
+    st.dataframe(
+        forecast_impact.style.format(
+            {
+                "Original forecast": "{:,.0f}",
+                "Corrected-data forecast": "{:,.0f}",
+                "Difference": "{:+,.0f}",
+                "Change (%)": "{:+.4f}%",
+            }
+        ),
+        hide_index=True,
+        width="stretch",
+    )
 
     st.subheader("Nationwide outlier review")
     st.caption(
@@ -1135,13 +2350,8 @@ with data_tab:
         "A flag indicates a record to review; it is not automatically an error."
     )
     control_column, year_column = st.columns([1, 3])
-    threshold = control_column.slider(
-        "Robust-score threshold",
-        min_value=2.5,
-        max_value=6.0,
-        value=3.5,
-        step=0.25,
-        help="Higher values produce fewer, more exceptional flags.",
+    control_column.metric(
+        "Active robust-score threshold", f"{correction_threshold:g}"
     )
     selected_outlier_years = year_column.multiselect(
         "Years to display",
@@ -1156,7 +2366,7 @@ with data_tab:
             "demographic": pd.DataFrame(),
         }
     else:
-        outlier_results = cached_outlier_checks(data, threshold)
+        outlier_results = correction_result.outliers
         nationwide_check, historical_check, demographic_check = st.tabs(
             [
                 "Nationwide district comparison",
@@ -1199,7 +2409,7 @@ with data_tab:
 
     live_results.update(
         {
-            "outlier_threshold": f"{threshold:g}",
+            "outlier_threshold": f"{correction_threshold:g}",
             "outlier_years": (
                 f"{min(selected_outlier_years)}–{max(selected_outlier_years)}"
                 if selected_outlier_years
@@ -1258,4 +2468,60 @@ with export_tab:
         file_name="dataDistrict_Predicted_Polynomial.html",
         mime="text/html",
         width="stretch",
+    )
+
+with methodology_tab:
+    st.info(
+        "Course purpose: help every student understand the end-to-end AI workflow "
+        "and apply it to a practical task that addresses a real-world problem."
+    )
+    st.subheader("CRISP-DM project workflow")
+    st.markdown(
+        """
+1. **Business understanding** — provide clearer population targets for health-service planning.
+2. **Data understanding** — review nationwide DHIS2 population data by district, age, sex, and year.
+3. **Data preparation** — validate the schema and treat only independently confirmed outliers.
+4. **Modeling** — compare Linear, degree-2 Polynomial, and Exponential Growth models.
+5. **Evaluation** — train on 2016–2022 and test on unseen 2023–2025 observations.
+6. **Deployment** — retrain on the full 2016–2025 history and deliver forecasts through Streamlit and downloadable exports.
+        """
+    )
+
+    st.subheader("Application architecture")
+    st.code(
+        "DHIS2 / CSV\n"
+        "      ↓\n"
+        "Schema validation and nationwide outlier review\n"
+        "      ↓\n"
+        "Original or conservatively corrected baseline\n"
+        "      ↓\n"
+        "Time-based validation and model comparison\n"
+        "      ↓\n"
+        "Full-history retraining and 2026+ forecast\n"
+        "      ↓\n"
+        "Streamlit charts, audit tables, CSV and HTML exports",
+        language="text",
+    )
+
+    st.subheader("Limitations and responsible use")
+    st.markdown(
+        """
+- Only ten annual observations are available, so long-horizon forecasts are uncertain.
+- The models extrapolate historical trends and do not directly model migration, policy changes, disasters, epidemics, fertility, or mortality.
+- Polynomial extrapolation can become unrealistic as the forecast horizon grows.
+- Automated outlier treatment can hide a genuine demographic event; original values and the correction audit are therefore retained.
+- Prediction intervals are not yet included.
+- Results are decision-support estimates and should not replace official projections or demographic expert review.
+        """
+    )
+
+    st.subheader("Method and software references")
+    st.markdown(
+        """
+- Chapman et al. (2000), *CRISP-DM 1.0: Step-by-step data mining guide*.
+- Theil (1950) and Sen (1968), robust median-slope estimation.
+- scikit-learn documentation: `LinearRegression`, regression metrics, and model evaluation.
+- Plotly and Streamlit documentation for interactive visualization and application delivery.
+- Population source: DHIS2, Ministry of Health dataset used by this application.
+        """
     )

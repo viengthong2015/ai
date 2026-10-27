@@ -20,6 +20,15 @@ class OutlierResults:
     demographic: pd.DataFrame
 
 
+@dataclass(frozen=True)
+class OutlierCorrectionResult:
+    """Conservatively corrected data plus a cell-level audit trail."""
+
+    data: pd.DataFrame
+    corrections: pd.DataFrame
+    outliers: OutlierResults
+
+
 def _require_columns(df: pd.DataFrame, columns: list[str]) -> None:
     missing = [column for column in columns if column not in df.columns]
     if missing:
@@ -271,3 +280,225 @@ def detect_population_outliers(
         historical=historical_change_outliers(long, threshold),
         demographic=demographic_consistency_outliers(long, threshold),
     )
+
+
+CORRECTION_COLUMNS = [
+    "District",
+    "Age group",
+    "Sex",
+    "Year",
+    "Original value",
+    "Corrected value",
+    "Difference",
+    "Change (%)",
+    "Temporal robust score",
+    "Supporting check",
+    "Supporting robust score",
+    "Correction method",
+]
+
+
+def _theil_sen_log_estimate(
+    years: np.ndarray, values: np.ndarray, target_year: int
+) -> float:
+    """Estimate one endpoint from the median pairwise log-growth slope."""
+    log_values = np.log1p(np.clip(np.asarray(values, dtype=float), 0, None))
+    slopes = []
+    for left in range(len(years) - 1):
+        for right in range(left + 1, len(years)):
+            year_gap = float(years[right] - years[left])
+            if year_gap:
+                slopes.append((log_values[right] - log_values[left]) / year_gap)
+    slope = float(np.median(slopes)) if slopes else 0.0
+    intercept = float(np.median(log_values - slope * years))
+    return float(np.expm1(intercept + slope * target_year))
+
+
+def correct_population_outliers(
+    df: pd.DataFrame,
+    year_columns: list[str],
+    threshold: float = 3.5,
+    max_corrections_per_series: int = 2,
+) -> OutlierCorrectionResult:
+    """Correct only temporal anomalies confirmed by an independent check.
+
+    Internal years use two-sided log-linear interpolation. Endpoints use a
+    Theil-Sen trend on the remaining years. Adjacent candidates are not both
+    corrected, and each district-age-sex series is capped to avoid replacing
+    a genuine demographic trajectory.
+    """
+    if threshold <= 0:
+        raise ValueError("The robust-score threshold must be positive.")
+    if max_corrections_per_series < 1:
+        raise ValueError("max_corrections_per_series must be at least 1.")
+    _require_columns(df, [*DIMENSION_COLUMNS, *year_columns])
+
+    years = np.asarray([int(column) for column in year_columns], dtype=int)
+    if len(np.unique(years)) != len(years):
+        raise ValueError("Historical year columns must be unique.")
+    year_order = np.argsort(years)
+    years = years[year_order]
+    ordered_columns = [year_columns[position] for position in year_order]
+
+    results = detect_population_outliers(df, ordered_columns, threshold)
+    exact_keys = ["District", "Age group", "Sex", "Year"]
+    broad_keys = ["District", "Age group", "Year"]
+
+    historical = results.historical.copy()
+    if historical.empty:
+        return OutlierCorrectionResult(
+            df.copy(), pd.DataFrame(columns=CORRECTION_COLUMNS), results
+        )
+    historical = historical.rename(columns={"Robust score": "Temporal robust score"})
+    historical = historical[
+        [*exact_keys, "Temporal robust score"]
+    ].drop_duplicates(exact_keys)
+
+    support_frames = []
+    if not results.nationwide.empty:
+        nationwide = results.nationwide.copy()
+        nationwide["Supporting check"] = "Nationwide district comparison"
+        nationwide = nationwide.rename(
+            columns={"Robust score": "Supporting robust score"}
+        )
+        support_frames.append(
+            nationwide[[*exact_keys, "Supporting check", "Supporting robust score"]]
+        )
+
+    demographic = results.demographic.copy()
+    exact_demographic = demographic[demographic["Sex"].ne("Male/Female")].copy()
+    if not exact_demographic.empty:
+        exact_demographic["Supporting check"] = exact_demographic["Reason"]
+        exact_demographic = exact_demographic.rename(
+            columns={"Robust score": "Supporting robust score"}
+        )
+        support_frames.append(
+            exact_demographic[
+                [*exact_keys, "Supporting check", "Supporting robust score"]
+            ]
+        )
+
+    supported = []
+    if support_frames:
+        exact_support = pd.concat(support_frames, ignore_index=True)
+        supported.append(historical.merge(exact_support, on=exact_keys, how="inner"))
+
+    sex_ratio = demographic[demographic["Sex"].eq("Male/Female")].copy()
+    if not sex_ratio.empty:
+        sex_ratio["Supporting check"] = sex_ratio["Reason"]
+        sex_ratio = sex_ratio.rename(
+            columns={"Robust score": "Supporting robust score"}
+        )
+        supported.append(
+            historical.merge(
+                sex_ratio[
+                    [*broad_keys, "Supporting check", "Supporting robust score"]
+                ],
+                on=broad_keys,
+                how="inner",
+            )
+        )
+
+    if not supported:
+        return OutlierCorrectionResult(
+            df.copy(), pd.DataFrame(columns=CORRECTION_COLUMNS), results
+        )
+
+    candidates = pd.concat(supported, ignore_index=True)
+    candidates["Combined score"] = (
+        candidates["Temporal robust score"].abs()
+        + candidates["Supporting robust score"].abs()
+    )
+    candidates = candidates.sort_values("Combined score", ascending=False).drop_duplicates(
+        exact_keys
+    )
+
+    candidate_groups: dict[tuple[str, str, str], list[dict[str, object]]] = {}
+    for row in candidates.to_dict("records"):
+        identity = (
+            str(row["District"]),
+            str(row["Age group"]),
+            str(row["Sex"]),
+        )
+        candidate_groups.setdefault(identity, []).append(row)
+
+    source_indices: dict[tuple[str, str, str], list[object]] = {}
+    for index, district, age_group, sex in zip(
+        df.index, df["ouName"], df["cocName"], df["sexName"]
+    ):
+        identity = (str(district), str(age_group), str(sex))
+        source_indices.setdefault(identity, []).append(index)
+
+    corrected = df.copy()
+    audit_rows: list[dict[str, object]] = []
+
+    for identity, row_candidates in candidate_groups.items():
+        matching_indices = source_indices.get(identity, [])
+        if not matching_indices:
+            continue
+        row_candidates.sort(key=lambda row: float(row["Combined score"]), reverse=True)
+
+        selected = []
+        for candidate in row_candidates:
+            candidate_year = int(candidate["Year"])
+            if any(abs(candidate_year - int(item["Year"])) <= 1 for item in selected):
+                continue
+            selected.append(candidate)
+            if len(selected) >= max_corrections_per_series:
+                break
+
+        for index in matching_indices:
+            original_values = df.loc[index, ordered_columns].to_numpy(dtype=float)
+            for candidate in selected:
+                year = int(candidate["Year"])
+                position = int(np.where(years == year)[0][0])
+                original = float(original_values[position])
+                if 0 < position < len(years) - 1:
+                    left = max(float(original_values[position - 1]), 0.0)
+                    right = max(float(original_values[position + 1]), 0.0)
+                    estimate = float(
+                        np.expm1((np.log1p(left) + np.log1p(right)) / 2)
+                    )
+                    method = "Two-sided log-linear interpolation"
+                else:
+                    retained = np.ones(len(years), dtype=bool)
+                    retained[position] = False
+                    estimate = _theil_sen_log_estimate(
+                        years[retained], original_values[retained], year
+                    )
+                    method = "Theil-Sen endpoint estimate"
+
+                corrected_value = int(np.rint(max(estimate, 0.0)))
+                corrected.at[index, str(year)] = corrected_value
+                change = (
+                    (corrected_value - original) / original * 100
+                    if original != 0
+                    else np.nan
+                )
+                audit_rows.append(
+                    {
+                        "District": identity[0],
+                        "Age group": identity[1],
+                        "Sex": identity[2],
+                        "Year": year,
+                        "Original value": original,
+                        "Corrected value": corrected_value,
+                        "Difference": corrected_value - original,
+                        "Change (%)": change,
+                        "Temporal robust score": float(
+                            candidate["Temporal robust score"]
+                        ),
+                        "Supporting check": str(candidate["Supporting check"]),
+                        "Supporting robust score": float(
+                            candidate["Supporting robust score"]
+                        ),
+                        "Correction method": method,
+                    }
+                )
+
+    corrections = pd.DataFrame(audit_rows, columns=CORRECTION_COLUMNS)
+    if not corrections.empty:
+        corrections = corrections.sort_values(
+            ["Year", "District", "Age group", "Sex"], ignore_index=True
+        )
+    return OutlierCorrectionResult(corrected, corrections, results)
