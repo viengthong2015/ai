@@ -1274,6 +1274,9 @@ if app_view == "Presentation":
     if not PRESENTATION_FILE.exists():
         st.error(f"Presentation file not found: {PRESENTATION_FILE}")
         st.stop()
+    if not DEFAULT_DATA.exists():
+        st.error(f"Default data file not found: {DEFAULT_DATA}")
+        st.stop()
     st.markdown(
         """
         <style>
@@ -1290,6 +1293,57 @@ if app_view == "Presentation":
         """,
         unsafe_allow_html=True,
     )
+    presentation_results = dict(st.session_state.get("presentation_results", {}))
+    source_data = load_default_data(str(DEFAULT_DATA), DEFAULT_DATA.stat().st_mtime)
+    source_data_payload = json.loads(
+        source_data.to_json(orient="split", index=False)
+    )
+    presentation_results["source_data_columns"] = source_data_payload["columns"]
+    presentation_results["source_data_rows"] = source_data_payload["data"]
+
+    total_cells = source_data.size
+    missing_cells = int(source_data.isna().sum().sum())
+    key_columns = ["ouID", "deID", "cocID", "sexID"]
+    duplicate_keys = int(source_data.duplicated(key_columns).sum())
+    year_columns = [str(year) for year in HISTORICAL_YEARS]
+    numeric_year_values = source_data[year_columns].apply(
+        pd.to_numeric, errors="coerce"
+    )
+    invalid_year_values = int(
+        (numeric_year_values.isna() | (numeric_year_values < 0)).sum().sum()
+    )
+    year_value_count = numeric_year_values.size
+    district_count = int(source_data["ouID"].nunique())
+    age_count = int(source_data["cocID"].nunique())
+    sex_count = int(source_data["sexID"].nunique())
+    expected_rows = district_count * age_count * sex_count
+
+    presentation_results.update(
+        {
+            "quality_completeness": f"{(total_cells - missing_cells) / total_cells:.2%}",
+            "quality_completeness_note": (
+                f"{missing_cells:,} ຄ່າວ່າງ ຈາກ {total_cells:,} ເຊວ "
+                f"({missing_cells:,} missing of {total_cells:,} cells)"
+            ),
+            "quality_unique_keys": f"{(len(source_data) - duplicate_keys) / len(source_data):.2%}",
+            "quality_unique_keys_note": (
+                f"{len(source_data) - duplicate_keys:,} ລະຫັດບໍ່ຊ້ຳ · "
+                f"{duplicate_keys:,} ລະຫັດຊ້ຳ (duplicate keys)"
+            ),
+            "quality_valid_values": f"{(year_value_count - invalid_year_values) / year_value_count:.2%}",
+            "quality_valid_values_note": (
+                f"{year_value_count - invalid_year_values:,} ຄ່າເປັນຕົວເລກ ແລະ ບໍ່ຕິດລົບ "
+                f"(numeric and nonnegative)"
+            ),
+            "quality_structural_coverage": (
+                f"{len(source_data) / expected_rows:.2%}" if expected_rows else "—"
+            ),
+            "quality_structural_coverage_note": (
+                f"{district_count:,} ເມືອງ × {age_count:,} ອາຍຸ × {sex_count:,} ເພດ "
+                f"= {len(source_data):,} ແຖວ"
+            ),
+        }
+    )
     presentation_html = load_embedded_presentation(
         PRESENTATION_FILE.stat().st_mtime,
         (APP_DIR / "image" / "style.css").stat().st_mtime,
@@ -1299,11 +1353,7 @@ if app_view == "Presentation":
             for path in (APP_DIR / "image").iterdir()
             if path.is_file()
         ),
-        json.dumps(
-            st.session_state.get("presentation_results", {}),
-            ensure_ascii=False,
-            sort_keys=True,
-        ),
+        json.dumps(presentation_results, ensure_ascii=False, sort_keys=True),
     )
     st.iframe(presentation_html, height=900, width="stretch")
     st.stop()

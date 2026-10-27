@@ -4,6 +4,7 @@ const slides = document.querySelectorAll('.slide');
 const progressBar = document.getElementById('progress-bar');
 const slideNumDisplay = document.getElementById('slide-num');
 let polynomialTablePage = 1;
+let sourceDataTablePage = 1;
 
 function renderLiveObjectTable(tableId, rows, columns, emptyMessage) {
     const table = document.getElementById(tableId);
@@ -133,6 +134,60 @@ function renderPolynomialTable() {
     document.getElementById('polynomial-last-page').disabled = polynomialTablePage === pageCount;
 }
 
+function renderSourceDataTable() {
+    const results = window.PRESENTATION_RESULTS || {};
+    const table = document.getElementById('live-source-data-table');
+    const pageSizeSelect = document.getElementById('source-data-page-size');
+    if (!table || !pageSizeSelect) return;
+
+    const columns = results.source_data_columns || [];
+    const rows = results.source_data_rows || [];
+    const pageSize = Number(pageSizeSelect.value);
+    const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+    sourceDataTablePage = Math.min(Math.max(sourceDataTablePage, 1), pageCount);
+
+    const headerRow = table.tHead.rows[0];
+    headerRow.replaceChildren();
+    columns.forEach(column => {
+        const header = document.createElement('th');
+        header.textContent = column;
+        headerRow.appendChild(header);
+    });
+
+    const tableBody = table.tBodies[0];
+    tableBody.replaceChildren();
+    const firstRow = (sourceDataTablePage - 1) * pageSize;
+    rows.slice(firstRow, firstRow + pageSize).forEach(values => {
+        const row = document.createElement('tr');
+        values.forEach(value => {
+            const cell = document.createElement('td');
+            cell.textContent = value ?? '';
+            row.appendChild(cell);
+        });
+        tableBody.appendChild(row);
+    });
+
+    if (!columns.length || !rows.length) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = Math.max(1, columns.length);
+        cell.textContent = 'ບໍ່ພົບຂໍ້ມູນໃນ data/dataDistrict.csv (No CSV data found)';
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+    }
+
+    const lastRow = Math.min(firstRow + pageSize, rows.length);
+    document.getElementById('source-data-row-status').textContent = rows.length
+        ? `${(firstRow + 1).toLocaleString()}–${lastRow.toLocaleString()} ຈາກ ${rows.length.toLocaleString()} ແຖວ (rows)`
+        : '0 ແຖວ (rows)';
+    document.getElementById('source-data-page-status').textContent =
+        `ໜ້າ ${sourceDataTablePage.toLocaleString()} ຈາກ ${pageCount.toLocaleString()} (Page ${sourceDataTablePage.toLocaleString()} of ${pageCount.toLocaleString()})`;
+    document.getElementById('source-data-first-page').disabled = sourceDataTablePage === 1;
+    document.getElementById('source-data-previous-page').disabled = sourceDataTablePage === 1;
+    document.getElementById('source-data-next-page').disabled = sourceDataTablePage === pageCount;
+    document.getElementById('source-data-last-page').disabled = sourceDataTablePage === pageCount;
+}
+
 function applyLiveResults() {
     const results = window.PRESENTATION_RESULTS || {};
     document.querySelectorAll('[data-result-key]').forEach(element => {
@@ -225,7 +280,32 @@ function applyLiveResults() {
 
     polynomialTablePage = 1;
     renderPolynomialTable();
+    sourceDataTablePage = 1;
+    renderSourceDataTable();
 }
+
+document.getElementById('source-data-page-size')?.addEventListener('change', () => {
+    sourceDataTablePage = 1;
+    renderSourceDataTable();
+});
+document.getElementById('source-data-first-page')?.addEventListener('click', () => {
+    sourceDataTablePage = 1;
+    renderSourceDataTable();
+});
+document.getElementById('source-data-previous-page')?.addEventListener('click', () => {
+    sourceDataTablePage -= 1;
+    renderSourceDataTable();
+});
+document.getElementById('source-data-next-page')?.addEventListener('click', () => {
+    sourceDataTablePage += 1;
+    renderSourceDataTable();
+});
+document.getElementById('source-data-last-page')?.addEventListener('click', () => {
+    const rows = (window.PRESENTATION_RESULTS || {}).source_data_rows || [];
+    const pageSize = Number(document.getElementById('source-data-page-size').value);
+    sourceDataTablePage = Math.max(1, Math.ceil(rows.length / pageSize));
+    renderSourceDataTable();
+});
 
 document.getElementById('polynomial-page-size')?.addEventListener('change', () => {
     polynomialTablePage = 1;

@@ -190,8 +190,8 @@
                     </article>
                 </section>
             </div>
-            <p class="short-slide-note">ຊຸດຂໍ້ມູນທົ່ວປະເທດທີ່ແຍກເປັນແຕ່ລະເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ (ສາມາດ filter
-                ໄດ້ຕາມທີ່ຕ້ອງການ)</p>
+            <!-- <p class="short-slide-note">ຊຸດຂໍ້ມູນທົ່ວປະເທດທີ່ແຍກເປັນແຕ່ລະເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ (ສາມາດ filter
+                ໄດ້ຕາມທີ່ຕ້ອງການ)</p> -->
 
 
                 <details class="modern-details">
@@ -291,11 +291,68 @@
                 </div>
             </details>
 
+            <details class="modern-details source-data-details">
+                <summary>ຂໍ້ມູນຕົ້ນສະບັບຈາກ data/dataDistrict.csv (Live CSV data)</summary>
+                <div class="content">
+                    <div class="source-data-table-toolbar">
+                        <label for="source-data-page-size">ຈຳນວນແຖວຕໍ່ໜ້າ (Rows per page)</label>
+                        <select id="source-data-page-size">
+                            <option value="10">10</option>
+                            <option value="25" selected>25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span id="source-data-row-status" class="source-data-row-status" aria-live="polite"></span>
+                    </div>
+                    <div class="source-data-table-scroll">
+                        <table id="live-source-data-table" class="result-table">
+                            <thead>
+                                <tr><th>ລໍຖ້າຫົວຂໍ້ຂໍ້ມູນ…</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>ກຳລັງໂຫຼດ data/dataDistrict.csv…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav class="source-data-pagination"
+                        aria-label="ການແບ່ງໜ້າຕາຕະລາງ CSV (CSV table pagination)">
+                        <button id="source-data-first-page" type="button" aria-label="ໜ້າທຳອິດ (First page)">«</button>
+                        <button id="source-data-previous-page" type="button" aria-label="ໜ້າກ່ອນ (Previous page)">‹</button>
+                        <span id="source-data-page-status" aria-live="polite">ໜ້າ 1 ຈາກ 1 (Page 1 of 1)</span>
+                        <button id="source-data-next-page" type="button" aria-label="ໜ້າຕໍ່ໄປ (Next page)">›</button>
+                        <button id="source-data-last-page" type="button" aria-label="ໜ້າສຸດທ້າຍ (Last page)">»</button>
+                    </nav>
+                </div>
+            </details>
+
 
         </div>
 
         <div class="slide correction-method-slide correction-results-slide">
             <h2>3. ການກະກຽມຂໍ້ມູນ & ການກວດຄ່າຜິດປົກກະຕິ</h2>
+
+            <section class="data-quality-gate" aria-label="ການກວດສອບຄຸນນະພາບຂໍ້ມູນ (Data quality gate)">
+                <article>
+                    <span>ຄວາມຄົບຖ້ວນ (Completeness)</span>
+                    <strong data-result-key="quality_completeness">—</strong>
+                    <small data-result-key="quality_completeness_note">ກຳລັງກວດສອບ…</small>
+                </article>
+                <article>
+                    <span>ລະຫັດບໍ່ຊ້ຳກັນ (Unique keys)</span>
+                    <strong data-result-key="quality_unique_keys">—</strong>
+                    <small data-result-key="quality_unique_keys_note">ກຳລັງກວດສອບ…</small>
+                </article>
+                <article>
+                    <span>ຄ່າປະຊາກອນຖືກຕ້ອງ (Valid values)</span>
+                    <strong data-result-key="quality_valid_values">—</strong>
+                    <small data-result-key="quality_valid_values_note">ກຳລັງກວດສອບ…</small>
+                </article>
+                <article>
+                    <span>ໂຄງສ້າງຄົບຖ້ວນ (Structural coverage)</span>
+                    <strong data-result-key="quality_structural_coverage">—</strong>
+                    <small data-result-key="quality_structural_coverage_note">ກຳລັງກວດສອບ…</small>
+                </article>
+            </section>
 
             <div class="short-outlier-summary">
                 <article><span>ການກວດຫາຄ່າຜິດປົກກະຕິ</span><strong>ການກວດສອບດ້ວຍ 2 ວິທີ (Two independent

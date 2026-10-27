@@ -2020,7 +2020,9 @@ button.correction-baseline-tab.is-active:focus-visible {
 }
 
 .polynomial-table-toolbar,
-.polynomial-pagination {
+.polynomial-pagination,
+.source-data-table-toolbar,
+.source-data-pagination {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -2031,13 +2033,17 @@ button.correction-baseline-tab.is-active:focus-visible {
 
 .polynomial-table-toolbar label,
 .polynomial-row-status,
-#polynomial-page-status {
+#polynomial-page-status,
+.source-data-table-toolbar label,
+.source-data-row-status,
+#source-data-page-status {
     color: #475569;
     font-size: 0.9rem;
     font-weight: 700;
 }
 
-#polynomial-page-size {
+#polynomial-page-size,
+#source-data-page-size {
     min-height: 34px;
     padding: 4px 10px;
     border: 1px solid #b8c8d8;
@@ -2054,6 +2060,32 @@ button.correction-baseline-tab.is-active:focus-visible {
     border: 1px solid #d8e2ec;
     border-radius: 8px;
     scrollbar-gutter: stable;
+}
+
+.source-data-table-scroll {
+    width: 100%;
+    max-height: 430px;
+    overflow: auto;
+    border: 1px solid #d8e2ec;
+    border-radius: 8px;
+    scrollbar-gutter: stable;
+}
+
+#live-source-data-table {
+    min-width: max-content;
+}
+
+#live-source-data-table th,
+#live-source-data-table td {
+    min-width: 110px;
+    white-space: nowrap;
+}
+
+#live-source-data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #008080;
 }
 
 #live-polynomial-table {
@@ -2073,18 +2105,21 @@ button.correction-baseline-tab.is-active:focus-visible {
     background: #008080;
 }
 
-.polynomial-pagination button {
+.polynomial-pagination button,
+.source-data-pagination button {
     width: 42px;
     height: 35px;
     padding: 4px 8px;
 }
 
-.polynomial-pagination button:disabled {
+.polynomial-pagination button:disabled,
+.source-data-pagination button:disabled {
     cursor: not-allowed;
     opacity: 0.4;
 }
 
-#polynomial-page-status {
+#polynomial-page-status,
+#source-data-page-status {
     min-width: 110px;
     text-align: center;
 }
@@ -2558,6 +2593,61 @@ button.correction-baseline-tab.is-active:focus-visible {
     margin: 18px 0 8px;
 }
 
+.data-quality-gate {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 14px 0 18px;
+}
+
+.data-quality-gate article {
+    position: relative;
+    display: grid;
+    align-content: center;
+    min-height: 108px;
+    padding: 15px 18px 15px 46px;
+    border: 1px solid #bfe2cf;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #f7fff9 0%, #edf9f1 100%);
+    box-shadow: 0 7px 18px rgba(5, 81, 47, 0.07);
+}
+
+.data-quality-gate article::before {
+    content: "✓";
+    position: absolute;
+    top: 18px;
+    left: 17px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #0b8a4a;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.data-quality-gate span {
+    color: #526b61;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    line-height: 1.35;
+}
+
+.data-quality-gate strong {
+    margin: 5px 0 2px;
+    color: #08783f;
+    font-size: clamp(20px, 1.6vw, 27px);
+}
+
+.data-quality-gate small {
+    color: #64776f;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
 .short-outlier-summary article,
 .short-result-summary article {
     display: grid;
@@ -2599,6 +2689,7 @@ button.correction-baseline-tab.is-active:focus-visible {
     .short-model-grid,
     .short-two-column,
     .short-data-layout,
+    .data-quality-gate,
     .short-outlier-summary,
     .short-result-summary { grid-template-columns: 1fr; }
     .short-model-grid article.is-primary { transform: none; }
