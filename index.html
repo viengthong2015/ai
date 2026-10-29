@@ -11,6 +11,110 @@
 </head>
 
 <body>
+    <svg class="topic-icon-sprite" aria-hidden="true">
+        <symbol id="topic-icon-target" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8"></circle>
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"></path>
+        </symbol>
+        <symbol id="topic-icon-data" viewBox="0 0 24 24">
+            <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+            <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path>
+            <path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path>
+        </symbol>
+        <symbol id="topic-icon-clean" viewBox="0 0 24 24">
+            <path d="M12 3 5 6v5c0 4.8 2.9 8.2 7 10 4.1-1.8 7-5.2 7-10V6l-7-3Z"></path>
+            <path d="m9 12 2 2 4-5"></path>
+        </symbol>
+        <symbol id="topic-icon-model" viewBox="0 0 24 24">
+            <circle cx="6" cy="6" r="2"></circle>
+            <circle cx="18" cy="6" r="2"></circle>
+            <circle cx="12" cy="18" r="2"></circle>
+            <path d="m7.7 7 3.2 8.9M16.3 7l-3.2 8.9M8 6h8"></path>
+        </symbol>
+        <symbol id="topic-icon-train" viewBox="0 0 24 24">
+            <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"></path>
+            <path d="M8 14h8M9.5 11h5"></path>
+        </symbol>
+        <symbol id="topic-icon-result" viewBox="0 0 24 24">
+            <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>
+            <path d="m4 7 6-4 6 5 5-5"></path>
+        </symbol>
+        <symbol id="topic-icon-deploy" viewBox="0 0 24 24">
+            <path d="M14 4c3-1 5-1 7-1 0 2 0 4-1 7l-6 6-6-6 6-6Z"></path>
+            <path d="m13 15-1 5-3-3-5 1 3-5M15 8h.01"></path>
+        </symbol>
+        <symbol id="topic-icon-reference" viewBox="0 0 24 24">
+            <path d="M4 5a3 3 0 0 1 3-3h5v18H7a3 3 0 0 0-3 2V5Z"></path>
+            <path d="M20 5a3 3 0 0 0-3-3h-5v18h5a3 3 0 0 1 3 2V5Z"></path>
+        </symbol>
+        <symbol id="topic-icon-qa" viewBox="0 0 24 24">
+            <path d="M21 11a8 8 0 0 1-8 8H8l-5 3 1.7-5A8 8 0 1 1 21 11Z"></path>
+            <path d="M9.5 8.5A2.7 2.7 0 0 1 12 7c1.7 0 3 1 3 2.4 0 1.8-2 2.1-2.7 3.3M12 16h.01"></path>
+        </symbol>
+        <symbol id="content-icon-map" viewBox="0 0 24 24">
+            <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"></path>
+            <path d="M9 3v15M15 6v15"></path>
+        </symbol>
+        <symbol id="content-icon-calendar" viewBox="0 0 24 24">
+            <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+            <path d="M16 3v4M8 3v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"></path>
+        </symbol>
+        <symbol id="content-icon-grid" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+        </symbol>
+        <symbol id="content-icon-search" viewBox="0 0 24 24">
+            <circle cx="10.5" cy="10.5" r="6.5"></circle>
+            <path d="m15.5 15.5 5 5M8 10.5l1.7 1.7 3.5-4"></path>
+        </symbol>
+        <symbol id="content-icon-key" viewBox="0 0 24 24">
+            <circle cx="8" cy="15" r="4"></circle>
+            <path d="m11 12 9-9M16 7l3 3M14 9l2 2"></path>
+        </symbol>
+        <symbol id="content-icon-values" viewBox="0 0 24 24">
+            <path d="M4 5h10M4 12h7M4 19h10"></path>
+            <path d="m16 16 2 2 4-5"></path>
+        </symbol>
+        <symbol id="content-icon-line" viewBox="0 0 24 24">
+            <path d="M3 20h18M5 17l4-5 4 2 6-8"></path>
+            <circle cx="5" cy="17" r="1"></circle><circle cx="9" cy="12" r="1"></circle>
+            <circle cx="13" cy="14" r="1"></circle><circle cx="19" cy="6" r="1"></circle>
+        </symbol>
+        <symbol id="content-icon-curve" viewBox="0 0 24 24">
+            <path d="M3 20h18M5 17c3-10 6-10 9-3 2 4 4 3 6-7"></path>
+        </symbol>
+        <symbol id="content-icon-growth" viewBox="0 0 24 24">
+            <path d="M3 20h18M5 17c4 0 7-1 9-4s3-6 5-9"></path>
+            <path d="m15 4 4-1 1 4"></path>
+        </symbol>
+        <symbol id="content-icon-test" viewBox="0 0 24 24">
+            <path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"></path>
+            <path d="m9 15 2 2 4-4"></path>
+        </symbol>
+        <symbol id="content-icon-refresh" viewBox="0 0 24 24">
+            <path d="M20 7h-6V1M4 17h6v6"></path>
+            <path d="M18.5 16a8 8 0 0 1-13.8 1M5.5 8A8 8 0 0 1 19.3 7"></path>
+        </symbol>
+        <symbol id="content-icon-trophy" viewBox="0 0 24 24">
+            <path d="M8 4h8v5a4 4 0 0 1-8 0V4ZM12 13v5M8 21h8M9 18h6"></path>
+            <path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4"></path>
+        </symbol>
+        <symbol id="content-icon-app" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+            <path d="M3 9h18M7 6.5h.01M10 6.5h.01M7 13h4M7 16h7"></path>
+        </symbol>
+        <symbol id="content-icon-warning" viewBox="0 0 24 24">
+            <path d="M10.3 3.7 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.7a2 2 0 0 0-3.4 0Z"></path>
+            <path d="M12 9v4M12 17h.01"></path>
+        </symbol>
+        <symbol id="content-icon-roadmap" viewBox="0 0 24 24">
+            <circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="6" r="2"></circle>
+            <path d="M8 18h3a3 3 0 0 0 3-3v-1a3 3 0 0 0-3-3h-1a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h6"></path>
+        </symbol>
+    </svg>
     <div class="progress" id="progress-bar"></div>
     <div class="header-container">
         <h2 class="animated-label">
@@ -131,7 +235,7 @@
         </div>
 
         <div class="slide short-story-slide">
-            <h2>1. ຈຸດປະສົງ</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-target"></use></svg></span><span>1. ຈຸດປະສົງ</span></h2>
             <p class="short-slide-lead">ເພື່ອບັນລຸເປົ້າໝາຍການຮຽນຮູ້ຂອງນັກພັດທະນາ AI (AI Developer)
                 ໂດຍການຊ່ວຍໃຫ້ນັກຮຽນທຸກຄົນເຂົ້າໃຈກ່ຽວກັບ AI ແລະ ພາໄປປະຍຸກໃຊ້ເຂົ້າໃນວຽກງານຕົວຈິງ.</p>
             <div class="short-three-grid">
@@ -158,35 +262,35 @@
         </div>
 
         <div class="slide short-data-slide">
-            <h2>2. ຂໍ້ມູນ ແລະ ຂະບວນການ CRISP-DM</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-data"></use></svg></span><span>2. ຂໍ້ມູນ ແລະ ຂະບວນການ CRISP-DM</span></h2>
             <div class="short-data-layout">
                 <section class="short-data-profile">
                     <h3>ຊຸດຂໍ້ມູນ DHIS2 ທົ່ວປະເທດ (Nationwide DHIS2 Dataset)</h3>
-                    <div class="short-metric"><strong>148</strong><span>ເມືອງ (districts)</span></div>
-                    <div class="short-metric"><strong>2016–2025</strong><span>ປີຂໍ້ມູນທີ່ມີ (historical years)</span>
+                    <div class="short-metric"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-map"></use></svg></span><strong>148</strong><span>ເມືອງ (districts)</span></div>
+                    <div class="short-metric"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-calendar"></use></svg></span><strong>2016–2025</strong><span>ປີຂໍ້ມູນທີ່ມີ (historical years)</span>
                     </div>
-                    <div class="short-metric"><strong>23,976</strong><span>ຈຳນວນຂໍ້ມູນທັງໝົດ
+                    <div class="short-metric"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-grid"></use></svg></span><strong>23,976</strong><span>ຈຳນວນຂໍ້ມູນທັງໝົດ
                             (ອາຍຸ–ເພດ-ເມືອງ/district–age–sex series)</span></div>
                     <p>ແຕ່ລະແຖວ CSV ແມ່ນຂໍ້ມູນຂອງເມືອງນັ້ນ.</p>
                 </section>
                 <section class="short-crisp-flow" aria-label="ຂະບວນການ CRISP-DM ແບບຫຍໍ້ (Condensed CRISP-DM workflow)">
                     <article><span>1</span>
-                        <div><strong>ເຂົ້າໃຈ (Understand)</strong><small>ບັນຫາການວາງແຜນ (Planning problem)</small></div>
+                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-search"></use></svg></span>ເຂົ້າໃຈ (Understand)</strong><small>ບັນຫາການວາງແຜນ (Planning problem)</small></div>
                     </article>
                     <article><span>2</span>
-                        <div><strong>ກະກຽມ (Prepare)</strong><small>ກວດສອບ ແລະ ແກ້ໄຂຄ່າຜິດປົກກະຕິ (outliers)</small>
+                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-clean"></use></svg></span>ກະກຽມ (Prepare)</strong><small>ກວດສອບ ແລະ ແກ້ໄຂຄ່າຜິດປົກກະຕິ (outliers)</small>
                         </div>
                     </article>
                     <article><span>3</span>
-                        <div><strong>ສ້າງແບບຈຳລອງ (Model)</strong><small>ສາມແບບຈຳລອງຂອງການການປະເມີນຄ່າຂໍ້ມູນ/ທົດຖອຍ
+                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span>ສ້າງແບບຈຳລອງ (Model)</strong><small>ສາມແບບຈຳລອງຂອງການການປະເມີນຄ່າຂໍ້ມູນ/ທົດຖອຍ
                                 (regression)</small></div>
                     </article>
                     <article><span>4</span>
-                        <div><strong>ປະເມີນ (Evaluate)</strong><small>ການທົດສອບແຍກຕາມເວລາ (Time-based holdout)</small>
+                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-test"></use></svg></span>ປະເມີນ (Evaluate)</strong><small>ການທົດສອບແຍກຕາມເວລາ (Time-based holdout)</small>
                         </div>
                     </article>
                     <article><span>5</span>
-                        <div><strong>ນຳໃຊ້ (Deploy)</strong><small>Streamlit ແລະ ການສົ່ງອອກ (exports)</small></div>
+                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-deploy"></use></svg></span>ນຳໃຊ້ (Deploy)</strong><small>Streamlit ແລະ ການສົ່ງອອກ (exports)</small></div>
                     </article>
                 </section>
             </div>
@@ -329,25 +433,29 @@
         </div>
 
         <div class="slide correction-method-slide correction-results-slide">
-            <h2>3. ການກະກຽມຂໍ້ມູນ & ການກວດຄ່າຜິດປົກກະຕິ</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-clean"></use></svg></span><span>3. ການກະກຽມຂໍ້ມູນ &amp; ການກວດຄ່າຜິດປົກກະຕິ</span></h2>
 
             <section class="data-quality-gate" aria-label="ການກວດສອບຄຸນນະພາບຂໍ້ມູນ (Data quality gate)">
                 <article>
+                    <span class="content-icon quality-icon" aria-hidden="true"><svg><use href="#content-icon-search"></use></svg></span>
                     <span>ຄວາມຄົບຖ້ວນ (Completeness)</span>
                     <strong data-result-key="quality_completeness">—</strong>
                     <small data-result-key="quality_completeness_note">ກຳລັງກວດສອບ…</small>
                 </article>
                 <article>
+                    <span class="content-icon quality-icon" aria-hidden="true"><svg><use href="#content-icon-key"></use></svg></span>
                     <span>ລະຫັດບໍ່ຊ້ຳກັນ (Unique keys)</span>
                     <strong data-result-key="quality_unique_keys">—</strong>
                     <small data-result-key="quality_unique_keys_note">ກຳລັງກວດສອບ…</small>
                 </article>
                 <article>
+                    <span class="content-icon quality-icon" aria-hidden="true"><svg><use href="#content-icon-values"></use></svg></span>
                     <span>ຄ່າປະຊາກອນຖືກຕ້ອງ (Valid values)</span>
                     <strong data-result-key="quality_valid_values">—</strong>
                     <small data-result-key="quality_valid_values_note">ກຳລັງກວດສອບ…</small>
                 </article>
                 <article>
+                    <span class="content-icon quality-icon" aria-hidden="true"><svg><use href="#content-icon-grid"></use></svg></span>
                     <span>ໂຄງສ້າງຄົບຖ້ວນ (Structural coverage)</span>
                     <strong data-result-key="quality_structural_coverage">—</strong>
                     <small data-result-key="quality_structural_coverage_note">ກຳລັງກວດສອບ…</small>
@@ -636,7 +744,7 @@
 
 
         <div class="slide short-model-slide">
-            <h2>4. Algorithm ແລະ ແບບຈຳລອງ (Modeling)</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span><span>4. Algorithm ແລະ ແບບຈຳລອງ (Modeling)</span></h2>
             <p class="short-slide-lead">ປຽບທຽບແບບຈຳລອງພື້ນຖານ (baselines) 3 ແບບທີ່ງ່າຍ ແລະ ອະທິບາຍໄດ້
                 ພາຍໃຕ້ການປະເມີນຕາມລຳດັບເວລາດຽວກັນ.</p>
 
@@ -644,7 +752,7 @@
 
                 <div class="panel-card card-teal" style="width: 520px; padding: 10px;">
                     <div class="card-day">Machine Learning Task</div>
-                    <div class="card-number" style="font-size: 35px;">Regression</div>
+                    <div class="card-number card-number--with-icon" style="font-size: 35px;"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>Regression</div>
                     <p class="card-text">ຄາດຄະເນ (ພະຍາກອນ) ປະຊາກອນແຕ່ປີ 2026-2030</p>
 
                     <div style="left: 10px; display: flex; position: relative; text-align: left;">
@@ -679,13 +787,13 @@
 
                 <div class="panel-card card-orange" style="width: 450px;">
                     <div class="card-day">Learning Technique</div>
-                    <div class="card-number" style="font-size: 35px;">ແບບຈຳລອງ (Models)</div>
+                    <div class="card-number card-number--with-icon" style="font-size: 35px;"><span class="content-icon" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span>ແບບຈຳລອງ (Models)</div>
 
                     <p class="card-text">
 
 
                     <details class="modern-details" style="width: 100%; ">
-                        <summary>LinearRegression:</summary>
+                        <summary><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-line"></use></svg></span>LinearRegression:</summary>
                         <div class="content" style="text-align: left;">
                             <ol>
                                 <li>
@@ -704,7 +812,7 @@
 
                     <details class="modern-details" style="width: 100%; ">
                         <summary>
-                            PolynomialFeatures:
+                            <span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-curve"></use></svg></span>PolynomialFeatures:
                         </summary>
                         <div class="content" style="text-align: left;">
                             <ol>
@@ -735,7 +843,7 @@
                     </details>
                     <details class="modern-details" style="width: 100%;">
                         <summary>
-                            Exponential Growth (Log-Linear Regression)
+                            <span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>Exponential Growth (Log-Linear Regression)
                         </summary>
                         <div class="content" style="text-align: left;">
                             <ol>
@@ -767,7 +875,7 @@
 
                 <div class="panel-card card-blue" style="width: 350px; padding: 10px;">
                     <div class="card-day">Python</div>
-                    <div class="card-number" style="font-size: 35px;">Python's Libralies</div>
+                    <div class="card-number card-number--with-icon" style="font-size: 35px;"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-app"></use></svg></span>Python's Libralies</div>
 
                     <div style="left: 10px; display: flex; position: relative; text-align: left;">
                         <ol>
@@ -793,17 +901,17 @@
         </div>
 
         <div class="slide validation-slide">
-            <h2>5. ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train & Predict)</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-train"></use></svg></span><span>5. ການສ້າງ, ຝຶກສອນ ແລະ ພະຍາກອນ (Create, Train &amp; Predict)</span></h2>
             <div class="validation-split-banner">
-                <div><small>ຝຶກສອນ (TRAIN)</small><strong
+                <div><small><span class="content-icon content-icon--tiny" aria-hidden="true"><svg><use href="#topic-icon-train"></use></svg></span>ຝຶກສອນ (TRAIN)</small><strong
                         data-result-key="validation_train_period">2016–2022</strong><span>ປັບຄ່າພາລາມິເຕີແບບຈຳລອງ (Fit
                         model parameters)</span></div>
                 <b aria-hidden="true">→</b>
-                <div><small>ທົດສອບ (TEST)</small><strong
+                <div><small><span class="content-icon content-icon--tiny" aria-hidden="true"><svg><use href="#content-icon-test"></use></svg></span>ທົດສອບ (TEST)</small><strong
                         data-result-key="validation_test_period">2023–2025</strong><span>ຂໍ້ມູນທີ່ແບບຈຳລອງບໍ່ເຄີຍເຫັນ
                         (Unseen historical years)</span></div>
                 <b aria-hidden="true">→</b>
-                <div><small>ຂັ້ນສຸດທ້າຍ (FINAL)</small><strong>2016–2025</strong><span>ຝຶກສອນຄືນໃໝ່ສຳລັບຄາດຄະເນ 2026+
+                <div><small><span class="content-icon content-icon--tiny" aria-hidden="true"><svg><use href="#content-icon-refresh"></use></svg></span>ຂັ້ນສຸດທ້າຍ (FINAL)</small><strong>2016–2025</strong><span>ຝຶກສອນຄືນໃໝ່ສຳລັບຄາດຄະເນ 2026+
                         (Retrain for forecast)</span></div>
             </div>
             <p class="validation-explanation">ການເລືອກແບບຈຳລອງ (Model selection) ໃຊ້ MAPE ຂອງຊຸດທົດສອບ (holdout)
@@ -839,15 +947,15 @@
 
         <!-- Slide 8 -->
         <div class="slide">
-            <h2>6. ຜົນໄດ້ຮັບ (Result)</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-result"></use></svg></span><span>6. ຜົນໄດ້ຮັບ (Result)</span></h2>
             <div class="short-result-summary">
-                <article><span>ແບບຈຳລອງທີ່ເລືອກ (SELECTED MODEL)</span><strong
+                <article><span class="content-icon result-card-icon" aria-hidden="true"><svg><use href="#content-icon-trophy"></use></svg></span><span>ແບບຈຳລອງທີ່ເລືອກ (SELECTED MODEL)</span><strong
                         data-result-key="best_model">—</strong><small>MAPE ຂອງຊຸດທົດສອບ (Holdout) <b
                             data-result-key="best_model_mape">—</b></small></article>
-                <article><span>ຜົນຄາດຄະເນປີ 2026 (2026 FORECAST)</span><strong
+                <article><span class="content-icon result-card-icon" aria-hidden="true"><svg><use href="#content-icon-line"></use></svg></span><span>ຜົນຄາດຄະເນປີ 2026 (2026 FORECAST)</span><strong
                         data-result-key="best_model_2026">—</strong><small>ປະຊາກອນ · ຝຶກສອນຄືນໃໝ່ (retrained) ດ້ວຍຂໍ້ມູນ
                         2016–2025</small></article>
-                <article><span>ຜົນຄາດຄະເນປີ <b data-result-key="best_model_end_year">—</b> (FORECAST —
+                <article><span class="content-icon result-card-icon" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span><span>ຜົນຄາດຄະເນປີ <b data-result-key="best_model_end_year">—</b> (FORECAST —
                         ການຄາດຄະເນ)</span><strong
                         data-result-key="best_model_end_value">—</strong><small>ຍອດລວມທົ່ວປະເທດຂອງແບບຈຳລອງທີ່ເລືອກ</small>
                 </article>
@@ -933,16 +1041,15 @@
         </div>
 
         <div class="slide short-deployment-slide">
-            <h2>7. ສະຫຼຸບ, ການນຳໄປໃຊ້ງານຕົວຈິງ ແລະ ຂໍ້ສະເໜີແນະ</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-deploy"></use></svg></span><span>7. ສະຫຼຸບ, ການນຳໄປໃຊ້ງານຕົວຈິງ ແລະ ຂໍ້ສະເໜີແນະ</span></h2>
             <div class="short-deployment-flow" aria-label="ຂະບວນການສົ່ງມອບແອັບພລິເຄຊັນ (Application delivery flow)">
-                <span>DHIS2 / CSV</span><b>→</b><span>ກວດສອບ ແລະ ແກ້ໄຂ (Validate &amp;
-                    correct)</span><b>→</b><span>ປະເມີນ ແລະ ຝຶກສອນຄືນໃໝ່ (Evaluate &amp;
-                    retrain)</span><b>→</b><span>ການສະໜັບສະໜູນການຕັດສິນໃຈດ້ວຍ Streamlit (Streamlit decision
-                    support)</span>
+                <span><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-data"></use></svg></span>DHIS2 / CSV</span><b>→</b><span><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-clean"></use></svg></span>ກວດສອບ ແລະ ແກ້ໄຂ (Validate &amp;
+                    correct)</span><b>→</b><span><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-refresh"></use></svg></span>ປະເມີນ ແລະ ຝຶກສອນຄືນໃໝ່ (Evaluate &amp;
+                    retrain)</span><b>→</b><span><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-app"></use></svg></span>ສ້າງເຂົ້າ Streamlit (Streamlit decision support)</span>
             </div>
             <div class="short-two-column">
                 <section>
-                    <h3>ໃຊ້ຢ່າງຮັບຜິດຊອບ (Use responsibly)</h3>
+                    <h3 class="content-heading"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-warning"></use></svg></span>ໃຊ້ຢ່າງຮັບຜິດຊອບ (Use responsibly)</h3>
                     <ul>
                         <li>ຂໍ້ມູນທີ່ນຳມາເປັນຖານໃນການພະຍາກອນ ມີ 10 ຄ່າ (10 ປີ) ເທົ່ານັ້ນ.</li>
                         <li>ປັດໄຈ: ການຍ້າຍຖິ່ນ, ການເກີດ, ການເສຍຊີວິດ ແລະ ການປ່ຽນແປງນະໂຍບາຍ ບໍ່ໄດ້ນຳມາພິຈາລະນາໃນການພະຍາກອນຄັ້ງນີ້ (explicit predictors).</li>
@@ -951,7 +1058,7 @@
                     </ul>
                 </section>
                 <section>
-                    <h3>ຂັ້ນຕອນຕໍ່ໄປ (Next steps)</h3>
+                    <h3 class="content-heading"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-roadmap"></use></svg></span>ຂັ້ນຕອນຕໍ່ໄປ (Next steps)</h3>
                     <ul>
                         <li>ເພີ່ມການກວດສອບຈຸດເລີ່ມແບບເລື່ອນ (rolling-origin validation) ແລະ ຊ່ວງຄາດຄະເນ (prediction intervals).</li>
                         <li>ປຽບທຽບຜົນກັບການຄາດຄະເນປະຊາກອນທາງການ.</li>
@@ -965,7 +1072,7 @@
                     ຜົນລັບການວາງແຜນທີ່ນຳໃຊ້ຊ້ຳໄດ້.</span></div>
         </div>
         <div class="slide references-slide">
-            <h2>8. ເອກະສານອ້າງອິງ</h2>
+            <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-reference"></use></svg></span><span>8. ເອກະສານອ້າງອິງ</span></h2>
             <div class="references-grid">
                 <article><span>01</span>
                     <div><strong>Sumsung Invovation Compus</strong>
@@ -1012,7 +1119,7 @@
             <center>
                 <h1>ສາທິດລະບົບ</h1>
                 <h1>ຈົບ, ຂອບໃຈ</h1>
-                <h1>ຖາມ & ຕອບ</h1>
+                <h1 class="topic-qa-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-qa"></use></svg></span><span>ຖາມ &amp; ຕອບ</span></h1>
             </center>
         </div>
 
