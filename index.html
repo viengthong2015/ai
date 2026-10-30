@@ -131,7 +131,7 @@
             <div class="ai-cover-shell">
                 <main class="ai-cover-main">
                     <section class="ai-cover-copy">
-                        <div class="ai-cover-eyebrow" style="font-family: 'Noto Sans Lao';">
+                        <div class="ai-cover-eyebrow">
                             <span class="ai-live-dot" aria-hidden="true"></span>
                             ໂຄງການຮຽນຮູ້ນັກພັດທະນາປັນຍາປະດິດ (AI DEVELOPER LEARNING PROJECT) · 2026
                         </div>
@@ -144,7 +144,7 @@
                             <span class="ai-course-label">ຫຼັກສູດ (COURSE)</span>
                             <strong>AI Developer</strong>
                             <span class="ai-course-divider">|</span>
-                            <span>Samsung Campus Innovation</span>
+                            <span>Samsung Innovation Campus</span>
                         </div>
                     </section>
 
@@ -171,7 +171,7 @@
                             <div class="ai-forecast-card">
                                 <div>
                                     <span>ແບບຈຳລອງ (MODEL)</span>
-                                    <strong>Polynomial Regression</strong>
+                                    <strong data-result-key="best_model">Polynomial Regression</strong>
                                 </div>
                                 <div class="ai-mini-chart" aria-hidden="true">
                                     <i style="height: 30%"></i>
@@ -223,12 +223,12 @@
                         Predict)</strong><small>ການຝຶກສອນ ແລະ
                         ການທົດລອງຄວາມສາມາດຂອງແບບຈຳລອງ</small></article>
                 <article><span>06</span><strong>ຜົນການຄາດຄະເນ (Result)
-                        ຕາມແບບຈຳລອງທີ່ຖືກເລືອກ</strong><small>ນຳເອົາແບບລອງທີ່ຖືກເລືອກໄປເຮັດການຄາດຄະເນປະຊາກອນລາວ</small>
+                        ຕາມແບບຈຳລອງທີ່ຖືກເລືອກ</strong><small>ນຳເອົາແບບຈຳລອງທີ່ຖືກເລືອກໄປເຮັດການຄາດຄະເນປະຊາກອນລາວ</small>
                 </article>
                 <article><span>07</span><strong>ສະຫຼຸບ, ການນຳໄປໃຊ້ງານຕົວຈິງ ແລະ
                         ຂໍ້ສະເໜີແນະ</strong><small>ການນຳໄປໃຊ້ງານຈິງ ແລະ
                         ຂໍ້ຈຳກັດ</small></article>
-                <article><span>08</span><strong>ເອກະສານອ້າງອິງ</strong><small>ກະສານທີ່ໄດ້ອ່ານ ແລະ ຄົ້ນຄວ້າ</small>
+                <article><span>08</span><strong>ເອກະສານອ້າງອິງ</strong><small>ເອກະສານທີ່ໄດ້ອ່ານ ແລະ ຄົ້ນຄວ້າ</small>
                 </article>
                 <article><span>09</span><strong>ຄຳຖາມ&amp;ຕອບ</strong><small>ການສາທິດລະບົບຕົວຈິງ</small></article>
             </div>
@@ -271,7 +271,7 @@
                     </div>
                     <div class="short-metric"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-grid"></use></svg></span><strong>23,976</strong><span>ຈຳນວນຂໍ້ມູນທັງໝົດ
                             (ອາຍຸ–ເພດ-ເມືອງ/district–age–sex series)</span></div>
-                    <p>ແຕ່ລະແຖວ CSV ແມ່ນຂໍ້ມູນຂອງເມືອງນັ້ນ.</p>
+                    <p>ແຕ່ລະແຖວ CSV ແມ່ນ 1 ຊຸດຂໍ້ມູນ ເມືອງ–ອາຍຸ–ເພດ ທີ່ມີ 10 ຖັນປີ (2016–2025).</p>
                 </section>
                 <section class="short-crisp-flow" aria-label="ຂະບວນການ CRISP-DM ແບບຫຍໍ້ (Condensed CRISP-DM workflow)">
                     <article><span>1</span>
@@ -282,7 +282,7 @@
                         </div>
                     </article>
                     <article><span>3</span>
-                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span>ສ້າງແບບຈຳລອງ (Model)</strong><small>ສາມແບບຈຳລອງຂອງການການປະເມີນຄ່າຂໍ້ມູນ/ທົດຖອຍ
+                        <div><strong><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span>ສ້າງແບບຈຳລອງ (Model)</strong><small>ສາມແບບຈຳລອງຂອງການປະເມີນຄ່າຂໍ້ມູນ/ທົດຖອຍ
                                 (regression)</small></div>
                     </article>
                     <article><span>4</span>
@@ -294,102 +294,31 @@
                     </article>
                 </section>
             </div>
-            <!-- <p class="short-slide-note">ຊຸດຂໍ້ມູນທົ່ວປະເທດທີ່ແຍກເປັນແຕ່ລະເມືອງ, ກຸ່ມອາຍຸ ແລະ ເພດ (ສາມາດ filter
-                ໄດ້ຕາມທີ່ຕ້ອງການ)</p> -->
-
-
-                <details class="modern-details">
+            <details class="modern-details">
                 <summary>ລາຍລະອຽດນິຍາມຂໍ້ມູນ (Meta data)</summary>
                 <div class="content">
-                    <table border="1" style="border-collapse: collapse; width: 100%; font-family: 'Noto Sans Lao';">
+                    <table class="metadata-table">
                         <thead>
-                            <tr style="background-color: #008080; color: white; text-align: left;">
-                                <th style="padding: 8px;">#</th>
-                                <th style="padding: 8px;">Feature (Column)</th>
-                                <th style="padding: 8px;">ປະເພດຂໍ້ມູນ (Data type)</th>
-                                <th style="padding: 8px;">ລາຍລະອຽດ</th>
-                                <th style="padding: 8px;">ໝາຍເຫດ</th>
+                            <tr>
+                                <th>#</th>
+                                <th>Feature (Column)</th>
+                                <th>ປະເພດຂໍ້ມູນ (Data type)</th>
+                                <th>ລາຍລະອຽດ</th>
+                                <th>ໝາຍເຫດ</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">1</td>
-                                <td style="padding: 8px;">ouName</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ເປັນຊື່ແຕ່ລະເມືອງໃນທົ່ວປະເທດ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">2</td>
-                                <td style="padding: 8px;">ouID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ເປັນລະຫັດແຕ່ລະເມືອງ (DB Id) <br>- unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">3</td>
-                                <td style="padding: 8px;">deID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງອົງປະກອບຂໍ້ມູນ<br>- unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">4</td>
-                                <td style="padding: 8px;">deName</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ຊື່ອົງປະກອບຂໍ້ມູນ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">5</td>
-                                <td style="padding: 8px;">cocID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ເປັນລະຫັດຂອງອາຍຸໃນຖານຂໍ້ມູນ <br> - unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">6</td>
-                                <td style="padding: 8px;">cocName</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ເປັນຊື່ອາຍຸແຕ່ລະປີ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">7</td>
-                                <td style="padding: 8px;">cocCode</td>
-                                <td style="padding: 8px;">int32</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງອາຍຸ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">8</td>
-                                <td style="padding: 8px;">sexID</td>
-                                <td style="padding: 8px;">string</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ<br> - unique</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">9</td>
-                                <td style="padding: 8px;">sexName</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ເພດ (ຍິງ, ຊາຍ)</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr style="background-color: #f2f2f2;">
-                                <td style="padding: 8px; text-align: center;">10</td>
-                                <td style="padding: 8px;">sexCode</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ລະຫັດຂອງເພດ</td>
-                                <td style="padding: 8px;">Attribute</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; text-align: center;">11</td>
-                                <td style="padding: 8px;">ປີ</td>
-                                <td style="padding: 8px;">Object</td>
-                                <td style="padding: 8px;">- ແຕ່ລະປີ (2016, 2017, ..., 2025)</td>
-                                <td style="padding: 8px;">Feature</td>
-                            </tr>
-
+                            <tr><td>1</td><td>ouName</td><td>object</td><td>- ເປັນຊື່ແຕ່ລະເມືອງໃນທົ່ວປະເທດ</td><td>Attribute</td></tr>
+                            <tr><td>2</td><td>ouID</td><td>object</td><td>- ເປັນລະຫັດແຕ່ລະເມືອງ (DB Id)<br>- unique ຕໍ່ເມືອງ</td><td>Attribute</td></tr>
+                            <tr><td>3</td><td>deID</td><td>object</td><td>- ລະຫັດຂອງອົງປະກອບຂໍ້ມູນ<br>- unique</td><td>Attribute</td></tr>
+                            <tr><td>4</td><td>deName</td><td>object</td><td>- ຊື່ອົງປະກອບຂໍ້ມູນ (Population)</td><td>Attribute</td></tr>
+                            <tr><td>5</td><td>cocID</td><td>object</td><td>- ເປັນລະຫັດຂອງອາຍຸໃນຖານຂໍ້ມູນ<br>- unique ຕໍ່ກຸ່ມອາຍຸ</td><td>Attribute</td></tr>
+                            <tr><td>6</td><td>cocName</td><td>object</td><td>- ເປັນຊື່ອາຍຸແຕ່ລະປີ (0 year, 1 year, …)</td><td>Attribute</td></tr>
+                            <tr><td>7</td><td>cocCode</td><td>int64</td><td>- ລະຫັດຂອງອາຍຸ (0, 1, 2, …)</td><td>Attribute</td></tr>
+                            <tr><td>8</td><td>sexID</td><td>object</td><td>- ລະຫັດຂອງເພດ<br>- unique ຕໍ່ເພດ</td><td>Attribute</td></tr>
+                            <tr><td>9</td><td>sexName</td><td>object</td><td>- ເພດ (Male, Female)</td><td>Attribute</td></tr>
+                            <tr><td>10</td><td>sexCode</td><td>object</td><td>- ລະຫັດຂອງເພດ (M, F)</td><td>Attribute</td></tr>
+                            <tr><td>11–20</td><td>2016, 2017, …, 2025</td><td>int64</td><td>- ຈຳນວນປະຊາກອນຂອງແຕ່ລະປີ (1 ຖັນຕໍ່ 1 ປີ)</td><td>Feature / Target</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -474,7 +403,6 @@
                         ເຊວ (cells) · <b data-result-key="correction_share">—</b></strong><small>ການປັບສຸດທິ (Net
                         adjustment) <b data-result-key="correction_net">—</b>; ຍັງຮັກສາຄ່າຕົ້ນສະບັບ</small></article>
             </div>
-            <!-- <p class="short-slide-note">ເປີດພາກສ່ວນດ້ານລຸ່ມສະເພາະເມື່ອຜູ້ໃຊ້ຕ້ອງການເບິ່ງຫຼັກຖານການກວດພົບ ຫຼື ຕາຕະລາງການກວດສອບ (audit table) ໂດຍລະອຽດ.</p> -->
 
             <details class="modern-details correction-section-details">
                 <summary>3.1. ການກວດສອບ ແລະ ວິທີການແກ້ໄຂຄ່າຜິດປົກກະຕິ (Outlier)</summary>
@@ -516,12 +444,6 @@
                             <small>Cohort-change robust score</small>
                         </div>
                         <div class="correction-arrow" aria-hidden="true">→</div>
-                        <!-- <div class="correction-step">
-                            <span>3</span>
-                            <strong> ກວດສອບທຽບກັບເມືອງຕ່າງໆ (Independent confirmation)</strong>
-                            <small>ສັດສ່ວນເມືອງ (District share) · ອັດຕາສ່ວນເພດ (Sex ratio) · ອາຍຸທີ່ຕິດກັນ (Adjacent
-                                age)</small>
-                        </div> -->
                         <div class="correction-step">
                             <span>3</span>
                             <strong>ກວດສອບຕາມເມືອງຕ່າງໆ (Independent confirmation)</strong>
@@ -554,7 +476,7 @@
                         </article>
                         <article class="correction-rule-card">
                             <span class="correction-rule-tag">2017–2024</span>
-                            <h3>ແກ້ກ້ວຍວິທີ: Log-linear interpolation</h3>
+                            <h3>ແກ້ດ້ວຍວິທີ: Log-linear interpolation</h3>
                             <code>exp((log(1+previous) + log(1+following))/2) − 1</code>
                         </article>
                         <article class="correction-rule-card">
@@ -651,7 +573,7 @@
                             <strong data-result-key="correction_series">—</strong>
                         </article>
                         <article class="correction-metric-card">
-                            <span title="949/(23976*10year)*100">ສັດສ່ວນທີ່ຖືກແກ້ໄຂ (Share of historical cells)</span>
+                            <span title="ຈຳນວນທີ່ແກ້ໄຂ ÷ (ຈຳນວນຊຸດຂໍ້ມູນ × 10 ປີ) × 100">ສັດສ່ວນທີ່ຖືກແກ້ໄຂ (Share of historical cells)</span>
                             <strong data-result-key="correction_share">—</strong>
                         </article>
                         <article class="correction-metric-card">
@@ -750,51 +672,41 @@
 
             <div class="panel-container">
 
-                <div class="panel-card card-teal" style="width: 520px; padding: 10px;">
+                <div class="panel-card card-teal panel-card--task">
                     <div class="card-day">Machine Learning Task</div>
-                    <div class="card-number card-number--with-icon" style="font-size: 35px;"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>Regression</div>
+                    <div class="card-number card-number--with-icon"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>Regression</div>
                     <p class="card-text">ຄາດຄະເນ (ພະຍາກອນ) ປະຊາກອນແຕ່ປີ 2026-2030</p>
 
-                    <div style="left: 10px; display: flex; position: relative; text-align: left;">
-                        <b class="dotText">X (Features):</b><br>
+                    <div class="panel-card-list">
+                        <b class="dotText">X (Feature):</b>
                         <ol>
-                            <li>ຈຳນວນປະຊາກອນແຕ່ປີ 2016-2025</li>
-                            <li>ແຍກເປັນແຕ່ລະເມືອງ</li>
-                            <li>ແຍກເປັນເພດ (ຍິງ, ຊາຍ)</li>
-                            <li>ແຍກເປັນກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)</li>
+                            <li>ປີ (Year): 2016–2025</li>
                         </ol>
                     </div>
-                    <div style="left: 0px; display: flex; position: relative; text-align: left;">
-                        <b class="dotText">y(Target):</b><br>
+                    <div class="panel-card-list">
+                        <b class="dotText">y (Target):</b>
                         <ol>
-                            <li>
-                                ຈ.ນ ປະຊາກອນເປັນແຕ່ລະປີ (2026-2030),
-                            </li>
-                            <li>
-                                ຈ.ນ ປະຊາກອນເປັນແຕ່ລະເມືອງ,
-                            </li>
-                            <li>
-                                ຈ.ນ ປະຊາກອນເປັນກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)
-                            </li>
-                            <li>
-                                ຈ.ນ ປະຊາກອນແບ່ງເປັນເພດ (ຍິງ, ຊາຍ)
-                            </li>
+                            <li>ຈຳນວນປະຊາກອນຂອງແຕ່ລະຊຸດຂໍ້ມູນ ເມືອງ–ອາຍຸ–ເພດ</li>
                         </ol>
-
                     </div>
-
+                    <div class="panel-card-list">
+                        <b class="dotText">ວິທີການ (Approach):</b>
+                        <ol>
+                            <li>ສ້າງແບບຈຳລອງແຍກກັນສຳລັບແຕ່ລະຊຸດຂໍ້ມູນ (23,976 series)</li>
+                            <li>ແຍກເປັນແຕ່ລະເມືອງ, ເພດ (ຍິງ, ຊາຍ) ແລະ ກຸ່ມອາຍຸ (0, 1, 2, ..., 80+ ປີ)</li>
+                            <li>ຜົນລວມທົ່ວປະເທດ = ຜົນລວມຂອງທຸກຊຸດຂໍ້ມູນ</li>
+                        </ol>
+                    </div>
                 </div>
 
-                <div class="panel-card card-orange" style="width: 450px;">
+                <div class="panel-card card-orange panel-card--models">
                     <div class="card-day">Learning Technique</div>
-                    <div class="card-number card-number--with-icon" style="font-size: 35px;"><span class="content-icon" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span>ແບບຈຳລອງ (Models)</div>
+                    <div class="card-number card-number--with-icon"><span class="content-icon" aria-hidden="true"><svg><use href="#topic-icon-model"></use></svg></span>ແບບຈຳລອງ (Models)</div>
 
-                    <p class="card-text">
-
-
-                    <details class="modern-details" style="width: 100%; ">
-                        <summary><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-line"></use></svg></span>LinearRegression:</summary>
-                        <div class="content" style="text-align: left;">
+                    <div class="panel-card-models">
+                    <details class="modern-details panel-card-details">
+                        <summary><span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-line"></use></svg></span>Linear Regression:</summary>
+                        <div class="content">
                             <ol>
                                 <li>
                                     <p><strong>ຄຸນລັກສະນະ:</strong> ຕົວປ່ຽນເອກະລາດ (<i>x</i>) ແລະ
@@ -810,11 +722,11 @@
 
                     </details>
 
-                    <details class="modern-details" style="width: 100%; ">
+                    <details class="modern-details panel-card-details">
                         <summary>
-                            <span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-curve"></use></svg></span>PolynomialFeatures:
+                            <span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-curve"></use></svg></span>Polynomial Regression:
                         </summary>
-                        <div class="content" style="text-align: left;">
+                        <div class="content">
                             <ol>
                                 <li>
                                     <p><strong>ຄຸນລັກສະນະ:</strong> ສາມາດປັບຕົວເຂົ້າກັບຂໍ້ມູນທີ່ມີການ,
@@ -841,16 +753,16 @@
                         </div>
 
                     </details>
-                    <details class="modern-details" style="width: 100%;">
+                    <details class="modern-details panel-card-details">
                         <summary>
                             <span class="content-icon content-icon--inline" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>Exponential Growth (Log-Linear Regression)
                         </summary>
-                        <div class="content" style="text-align: left;">
+                        <div class="content">
                             <ol>
                                 <li>
                                     <p><strong>ຄຸນລັກສະນະ:</strong> ແທນທີ່ຈະພະຍາກອນຄ່າ <i>y</i> ໂດຍກົງ,
-                                        ໂມແບບຈຳລອງຈະປ່ຽນຄ່າ <i>y</i> ໃຫ້ກາຍເປັນ Logarithm (ເຊັ່ນ ln(<i>y</i>))
-                                        ເພື່ອເຮັດໃຫ້ກເສັ້ນສະແດງທີ່ໂຄ້ງຂຶ້ນຢ່າງໄວວາກາຍເປັນເສັ້ນຊື່ ແລ້ວຈຶ່ງໃຊ້ Linear
+                                        ແບບຈຳລອງຈະປ່ຽນຄ່າ <i>y</i> ໃຫ້ກາຍເປັນ Logarithm (ເຊັ່ນ ln(<i>y</i>))
+                                        ເພື່ອເຮັດໃຫ້ເສັ້ນສະແດງທີ່ໂຄ້ງຂຶ້ນຢ່າງໄວວາກາຍເປັນເສັ້ນຊື່ ແລ້ວຈຶ່ງໃຊ້ Linear
                                         Regression ມາຄຳນວນ.</p>
                                 </li>
                                 <li>
@@ -869,15 +781,14 @@
                         </div>
 
                     </details>
-
-                    </p>
+                    </div>
                 </div>
 
-                <div class="panel-card card-blue" style="width: 350px; padding: 10px;">
+                <div class="panel-card card-blue panel-card--libraries">
                     <div class="card-day">Python</div>
-                    <div class="card-number card-number--with-icon" style="font-size: 35px;"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-app"></use></svg></span>Python's Libralies</div>
+                    <div class="card-number card-number--with-icon"><span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-app"></use></svg></span>Python Libraries</div>
 
-                    <div style="left: 10px; display: flex; position: relative; text-align: left;">
+                    <div class="panel-card-list">
                         <ol>
                             <li>pandas</li>
                             <li>matplotlib.pyplot</li>
@@ -942,7 +853,7 @@
                     <span>ເປີເຊັນຄ່າຜິດພາດສຳບູນສະເລ່ຍ (MAPE) <b data-result-key="best_model_mape">—</b></span>
                 </aside>
             </div>
-            <p class="validation-footnote">“ຄວາມຊັດເຈນ (Accuracy) = 100 − MAPE”.</p>
+            <p class="validation-footnote">ຄວາມຊັດເຈນໂດຍປະມານ (Approximate accuracy) ≈ 100 − MAPE · ເປັນພຽງຕົວຊີ້ບອກແບບງ່າຍ, ບໍ່ແມ່ນຕົວຊີ້ວັດທາງການ.</p>
         </div>
 
         <!-- Slide 8 -->
@@ -960,10 +871,8 @@
                         data-result-key="best_model_end_value">—</strong><small>ຍອດລວມທົ່ວປະເທດຂອງແບບຈຳລອງທີ່ເລືອກ</small>
                 </article>
             </div>
-            <!-- <p class="short-slide-note">ແຜນພູມ (Charts) ແລະ ຜົນຮັບ ເມືອງ–ອາຍຸ–ເພດລະດັບແຖວ ຍັງມີໃຫ້ເບິ່ງດ້ານລຸ່ມ ແລະ
-                ໃນສ່ວນສາທິດແບບສົດ (live Demo).</p> -->
             <details class="modern-details">
-                <summary>ປຽບທຽບການຜົນການຄາດຄະເນກັບຂໍ້ມູນຕົວຈິງ ໃນ 3 ແບບຈຳລອງ 2026+ (Final full-history
+                <summary>ປຽບທຽບຜົນການຄາດຄະເນກັບຂໍ້ມູນຕົວຈິງ ໃນ 3 ແບບຈຳລອງ 2026+ (Final full-history
                     fit, residuals and forecast)</summary>
                 <div class="content live-chart-container">
                     <p class="interactive-chart-hint">ເລື່ອນເມົາສ໌ (mouse) ເທິງຈຸດເພື່ອເບິ່ງຄ່າ · ລາກ/ເລື່ອນ
@@ -1075,7 +984,7 @@
             <h2 class="topic-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-reference"></use></svg></span><span>8. ເອກະສານອ້າງອິງ</span></h2>
             <div class="references-grid">
                 <article><span>01</span>
-                    <div><strong>Sumsung Invovation Compus</strong>
+                    <div><strong>Samsung Innovation Campus</strong>
                         <p>AI Developer Course 2026. <em>ຄວທ, ມ.ຊ</em></p>
                     </div>
                 </article>
@@ -1115,12 +1024,103 @@
         </div>
 
         <!-- Slide 11 -->
-        <div class="slide">
-            <center>
-                <h1>ສາທິດລະບົບ</h1>
-                <h1>ຈົບ, ຂອບໃຈ</h1>
-                <h1 class="topic-qa-title"><span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-qa"></use></svg></span><span>ຖາມ &amp; ຕອບ</span></h1>
-            </center>
+        <div class="slide ai-cover-slide ai-closing-slide">
+            <div class="ai-cover-orb ai-cover-orb-one" aria-hidden="true"></div>
+            <div class="ai-cover-orb ai-cover-orb-two" aria-hidden="true"></div>
+
+            <div class="ai-cover-shell">
+                <main class="ai-cover-main">
+                    <section class="ai-cover-copy">
+                        <div class="ai-cover-eyebrow">
+                            <span class="ai-live-dot" aria-hidden="true"></span>
+                            9. ສາທິດລະບົບ &amp; ຖາມ-ຕອບ (LIVE DEMO &amp; Q&amp;A)
+                        </div>
+                        <h1 class="ai-cover-title">
+                            ຂອບໃຈ
+                            <span>ຖາມ &amp; ຕອບ</span>
+                        </h1>
+                        <p class="ai-cover-description">
+                            ຂໍຂອບໃຈທຸກທ່ານທີ່ຮັບຟັງ. ຕໍ່ໄປແມ່ນການສາທິດແອັບ Streamlit ແບບສົດ,
+                            ຈາກນັ້ນເປີດໂອກາດໃຫ້ຖາມຄຳຖາມ ແລະ ແລກປ່ຽນຄຳຄິດເຫັນ.
+                        </p>
+
+                        <div class="ai-closing-takeaways" aria-label="ຜົນຫຼັກຂອງໂຄງການ (Key takeaways)">
+                            <article>
+                                <span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-trophy"></use></svg></span>
+                                <small>ແບບຈຳລອງທີ່ເລືອກ</small>
+                                <strong data-result-key="best_model">—</strong>
+                                <em>MAPE <b data-result-key="best_model_mape">—</b></em>
+                            </article>
+                            <article>
+                                <span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-line"></use></svg></span>
+                                <small>ຄາດຄະເນປີ 2026</small>
+                                <strong data-result-key="best_model_2026">—</strong>
+                                <em>ຄົນ · ທົ່ວປະເທດ</em>
+                            </article>
+                            <article>
+                                <span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>
+                                <small>ຄາດຄະເນປີ <b data-result-key="best_model_end_year">—</b></small>
+                                <strong data-result-key="best_model_end_value">—</strong>
+                                <em>ຄົນ · ທົ່ວປະເທດ</em>
+                            </article>
+                        </div>
+
+                        <div class="ai-course-card">
+                            <span class="ai-course-label">ສາທິດ (DEMO)</span>
+                            <strong>streamlit run app.py</strong>
+                            <!-- <span class="ai-course-divider">|</span> -->
+                            <!-- <span>ກອງ · ປຽບທຽບ · ສົ່ງອອກ CSV/HTML</span> -->
+                        </div>
+                    </section>
+
+                    <section class="ai-cover-visual"
+                        aria-label="ລາຍການສາທິດລະບົບ (Demo checklist)">
+                        <div class="ai-code-window">
+                            <div class="ai-code-toolbar">
+                                <div class="ai-window-dots" aria-hidden="true">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <span>demo_checklist.py</span>
+                                <span class="ai-code-status">● ພ້ອມ (READY)</span>
+                            </div>
+                            <div class="ai-code-body">
+                                <div><span class="code-green">✓</span> <span class="code-blue">load</span>(<span class="code-orange">"data/dataDistrict.csv"</span>)</div>
+                                <div><span class="code-green">✓</span> <span class="code-blue">check_quality</span>() <span class="code-purple"># ຄຸນນະພາບຂໍ້ມູນ</span></div>
+                                <div><span class="code-green">✓</span> <span class="code-blue">correct_outliers</span>(threshold=<span class="code-orange">3.5</span>)</div>
+                                <div><span class="code-green">✓</span> <span class="code-blue">compare_models</span>([Linear, Polynomial, Exponential])</div>
+                                <div><span class="code-green">✓</span> <span class="code-blue">forecast</span>(district, age, sex)</div>
+                                <div><span class="code-green">✓</span> <span class="code-blue">export</span>(<span class="code-orange">"csv"</span>, <span class="code-orange">"html"</span>)</div>
+                                <div class="ai-code-output">❯ ພ້ອມຮັບຄຳຖາມ (Ready for your questions)</div>
+                            </div>
+                            <div class="ai-forecast-card ai-closing-qa-card">
+                                <span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-qa"></use></svg></span>
+                                <div>
+                                    <span>ຖາມ &amp; ຕອບ (Q&amp;A)</span>
+                                    <strong>ມີຄຳຖາມ ຫຼື ຄຳແນະນຳບໍ?</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ai-node ai-node-one" aria-hidden="true">DEMO</div>
+                        <div class="ai-node ai-node-two" aria-hidden="true">Q&amp;A</div>
+                        <div class="ai-node ai-node-three" aria-hidden="true">THANK YOU</div>
+                    </section>
+                </main>
+
+                <footer class="ai-cover-footer">
+                    <div class="ai-team-heading">
+                        <strong>ກຸ່ມທີ່ II</strong>
+                    </div>
+                    <div class="ai-team-members">
+                        <span>ວຽງທອງ ຈົ່ງຫວາຊົ່ງ</span>
+                        <span>ບູນສີຊົ່ງ ເຍ່ຍລູ</span>
+                        <span>ກົ້ງເມັ່ງ ທໍ່</span>
+                    </div>
+                    <div class="ai-cohort">
+                        <span>Samsung Innovation Campus</span>
+                        <small>AI Developer · ຮຸ່ນ 2 · 2026</small>
+                    </div>
+                </footer>
+            </div>
         </div>
 
 
@@ -1128,14 +1128,11 @@
     </div>
 
     <div class="controls">
-        <button onclick="changeSlide(-1)" style="font-family: 'Noto Sans Lao';">
-            🞀 ກັບຄືນ</button>
-        <!-- ⏪⏩ -->
-        <button onclick="changeSlide(1)" style="font-family: 'Noto Sans Lao';">ຕໍ່ໄປ 🞂</button>
-        <button id="presentation-fullscreen" onclick="togglePresentationFullscreen()"
-            style="font-family: 'Noto Sans Lao';">⛶ ເຕັມຈໍ</button>
+        <button type="button" onclick="changeSlide(-1)">‹ ກັບຄືນ</button>
+        <button type="button" onclick="changeSlide(1)">ຕໍ່ໄປ ›</button>
+        <button id="presentation-fullscreen" type="button" onclick="togglePresentationFullscreen()">⛶ ເຕັມຈໍ</button>
         <button id="presentation-overview" class="overview-button" type="button" onclick="openSlideOverview()"
-            style="font-family: 'Noto Sans Lao';" aria-haspopup="dialog">▦ ພາບລວມ (Overall)</button>
+            aria-haspopup="dialog">▦ ພາບລວມ (Overall)</button>
     </div>
 
     <div class="slide-number" id="slide-num">1 / 11</div>

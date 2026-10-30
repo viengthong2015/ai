@@ -124,7 +124,7 @@ table{
     gap: 10px;
     margin-bottom: 12px;
     color: #8df0bd;
-    font-family: Consolas, Monaco, monospace;
+    font-family: 'Noto Sans Lao', sans-serif;
     font-size: clamp(0.75rem, 1vw, 0.95rem);
     font-weight: 700;
     line-height: 1.45;
@@ -684,7 +684,8 @@ button {
     transition: 0.3s;
     width: 120px;
     height: 35px;
-    background: #012073
+    background: #012073;
+    font-family: 'Noto Sans Lao', sans-serif;
 }
 
 button:hover {
@@ -3100,4 +3101,147 @@ button.correction-baseline-tab.is-active:focus-visible {
     .architecture-flow article { width: 100%; min-height: auto; }
     .architecture-flow > b { transform: rotate(90deg); text-align: center; }
     .validation-chart { height: 280px; min-height: 280px; }
+}
+
+
+/* Slide 2: metadata table */
+.metadata-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Noto Sans Lao', sans-serif;
+}
+
+.metadata-table th,
+.metadata-table td {
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    text-align: left;
+}
+
+.metadata-table thead tr {
+    background-color: #008080;
+    color: white;
+}
+
+.metadata-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.metadata-table td:first-child {
+    text-align: center;
+}
+
+/* Slide 4: model panel cards */
+.panel-container .panel-card {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 10px;
+}
+
+.panel-container .panel-card--task { flex-grow: 1.5; }
+.panel-container .panel-card--models { flex-grow: 1.3; padding: 24px 20px; }
+.panel-container .panel-card--libraries { flex-grow: 1; }
+
+.panel-container .card-number {
+    font-size: 35px;
+}
+
+.panel-card-list {
+    display: flex;
+    flex-direction: column;
+    padding-left: 10px;
+    text-align: left;
+}
+
+.panel-card-list ol {
+    margin: 4px 0 8px;
+}
+
+.panel-card-details {
+    width: 100%;
+}
+
+.panel-card-details .content {
+    text-align: left;
+}
+
+@media (max-width: 900px) {
+    .panel-container { flex-direction: column; }
+}
+
+/* Closing slide (reuses the AI cover styles) */
+.ai-closing-slide .ai-cover-title {
+    margin-bottom: 12px;
+}
+
+.ai-closing-takeaways {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.ai-closing-takeaways article {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid rgba(99, 243, 174, 0.22);
+    border-radius: 12px;
+    background: rgba(8, 55, 35, 0.6);
+}
+
+.ai-closing-takeaways .content-icon {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 4px;
+}
+
+.ai-closing-takeaways small {
+    color: #8fa7b9;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.ai-closing-takeaways strong {
+    color: #63f3ae;
+    font-size: clamp(1rem, 1.45vw, 1.35rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.ai-closing-takeaways em {
+    color: #b8cada;
+    font-size: 0.78rem;
+    font-style: normal;
+}
+
+.ai-closing-slide .ai-code-body {
+    line-height: 1.55;
+}
+
+.ai-closing-slide .ai-code-body > div:not(.ai-code-output) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ai-closing-qa-card {
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.ai-closing-qa-card .topic-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.ai-closing-slide .ai-cohort > span {
+    display: block;
+    color: #63f3ae;
+}
+
+@media (max-width: 600px) {
+    .ai-closing-takeaways { grid-template-columns: 1fr; }
 }
