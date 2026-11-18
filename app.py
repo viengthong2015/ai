@@ -8,11 +8,13 @@ import json
 import mimetypes
 from pathlib import Path
 
+from matplotlib import font_manager
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, StrMethodFormatter
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 from plotly.offline import get_plotlyjs
 from plotly.subplots import make_subplots
 import streamlit as st
@@ -70,6 +72,22 @@ STREAMLIT_CHART_TEXT = "#31333F"
 STREAMLIT_CHART_MUTED = "#6B7280"
 STREAMLIT_CHART_GRID = "#E6E9EF"
 STREAMLIT_CHART_FORECAST_BAND = "#EAF4FB"
+LAO_FONT_FAMILIES = ["Noto Sans Lao", "Phetsarath OT"]
+LAO_FONT_STACK = "'Noto Sans Lao', 'Phetsarath OT', sans-serif"
+
+# Plotly charts (Streamlit and the embedded presentation): Lao font everywhere.
+pio.templates["lao_font"] = go.layout.Template(
+    layout={"font": {"family": LAO_FONT_STACK}}
+)
+PLOTLY_TEMPLATE = "plotly_white+lao_font"
+
+# Matplotlib charts: use whichever Lao fonts are installed, with DejaVu Sans
+# as the fallback for Latin characters.
+_installed_fonts = {font.name for font in font_manager.fontManager.ttflist}
+plt.rcParams["font.family"] = [
+    *(name for name in LAO_FONT_FAMILIES if name in _installed_fonts),
+    "DejaVu Sans",
+]
 
 st.set_page_config(
     page_title="Laos Population Forecast",
@@ -472,7 +490,7 @@ def interactive_forecast_figure(
     )
     figure.update_yaxes(title_text="ປະຊາກອນ (ຄົນ)", tickformat=",.0f")
     figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         height=900,
         barmode="group",
         hovermode="closest",
@@ -745,7 +763,7 @@ def interactive_actual_vs_predicted_figure(
         col=1,
     )
     figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         title={
             "text": (
                 "ປະຊາກອນຈິງ ທຽບກັບ ຄາດຄະເນ (Actual vs predicted population — historical fit)"
@@ -833,7 +851,7 @@ def interactive_validation_figure(
             )
         )
     figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         height=440,
         hovermode="x unified",
         margin={"l": 70, "r": 28, "t": 28, "b": 60},
@@ -1603,7 +1621,7 @@ if not nationwide_corrections.empty:
         title_text="ກໍລະນີຢືນຢັນ (Confirmed cases)", rangemode="tozero", row=2, col=2
     )
     outlier_evidence_figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         height=560,
         barmode="stack",
         margin={"l": 90, "r": 36, "t": 58, "b": 52},
@@ -1640,7 +1658,7 @@ else:
         font={"size": 18, "color": "#5E7077"},
     )
     outlier_evidence_figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         height=300,
         margin={"l": 24, "r": 24, "t": 20, "b": 20},
         xaxis={"visible": False},
@@ -1747,7 +1765,7 @@ if not presentation_corrections.empty:
         )
     )
     correction_comparison_figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         height=390,
         margin={"l": 62, "r": 24, "t": 18, "b": 52},
         hovermode="x unified",
@@ -1792,7 +1810,7 @@ else:
         font={"size": 18, "color": "#5E7077"},
     )
     correction_comparison_figure.update_layout(
-        template="plotly_white",
+        template=PLOTLY_TEMPLATE,
         height=300,
         margin={"l": 24, "r": 24, "t": 20, "b": 20},
         xaxis={"visible": False},

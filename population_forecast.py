@@ -293,10 +293,11 @@ def dataframe_to_html_bytes(df: pd.DataFrame) -> bytes:
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Polynomial Population Forecast</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap" rel="stylesheet">
     <style>
         :root {{
             color-scheme: light;
-            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            font-family: "Noto Sans Lao", "Phetsarath OT", sans-serif;
             background: #eef4f9;
             color: #172033;
         }}
