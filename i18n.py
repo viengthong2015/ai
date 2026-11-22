@@ -410,6 +410,13 @@ LAO: dict[str, str] = {
     "{count} sexes": "{count} ເພດ",
     "{count} values": "{count} ຄ່າ",
     "Lao PDR": "ສປປ ລາວ",
+    "Forecast years": "ປີຄາດຄະເນ",
+    "Outlier correction": "ການແກ້ໄຂຄ່າຜິດປົກກະຕິ",
+    "threshold {value}": "ເກນ {value}",
+    "Filters": "ຕົວກອງ",
+    "{count} active": "ເປີດໃຊ້ {count}",
+    "All data": "ຂໍ້ມູນທັງໝົດ",
+    "Without an upload, the app uses {name}.": "ຖ້າບໍ່ອັບໂຫຼດ, ແອັບຈະໃຊ້ {name}.",
     "Does the forecast follow the past trend?": "ການຄາດຄະເນສອດຄ່ອງກັບແນວໂນ້ມໃນອະດີດບໍ?",
     "Actual {start}–{last} and forecast {first}–{end} ({model}), using the baseline data "
     "and sidebar filters. Hatched bars and dashed lines are forecasts.": (

@@ -236,7 +236,8 @@ def cached_outlier_correction(
     )
 
 
-def filter_data(df: pd.DataFrame) -> pd.DataFrame:
+def filter_data(df: pd.DataFrame, container=None) -> pd.DataFrame:
+    container = container or st.sidebar
     filtered = df
     filter_specs = (
         ("ouName", "Districts", "All districts"),
@@ -247,7 +248,7 @@ def filter_data(df: pd.DataFrame) -> pd.DataFrame:
         if column not in df.columns:
             continue
         options = sorted(df[column].dropna().astype(str).unique().tolist())
-        selected = st.sidebar.multiselect(
+        selected = container.multiselect(
             tr(label),
             options,
             placeholder=tr(placeholder),
@@ -1663,6 +1664,58 @@ st.markdown(
         color: #FFFFFF !important;
     }
 
+    /* Numbered sidebar sections */
+    [data-testid="stSidebarContent"] {
+        counter-reset: side-step;
+    }
+
+    [class*="st-key-side-step-"] {
+        counter-increment: side-step;
+    }
+
+    [class*="st-key-side-step-"] summary {
+        gap: 0.6rem;
+    }
+
+    [class*="st-key-side-step-"] summary::before {
+        content: counter(side-step);
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 1.7rem;
+        height: 1.7rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #17864F, #4FD08A);
+        color: #FFFFFF;
+        font-size: 0.9rem;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(23, 134, 79, 0.35);
+    }
+
+    [class*="st-key-side-step-"] summary p {
+        margin: 0;
+        color: #1E7B4F;
+        font-size: 0.86rem;
+        font-weight: 500;
+        line-height: 1.35;
+    }
+
+    [class*="st-key-side-step-"] summary p strong {
+        color: var(--atlas-ink);
+        font-size: 0.98rem;
+        font-weight: 700;
+    }
+
+    [class*="st-key-side-step-"] summary [data-testid="stExpanderIcon"],
+    [class*="st-key-side-step-"] summary [data-testid="stIconMaterial"],
+    [class*="st-key-side-step-"] summary span:has(> [data-testid="stIconMaterial"]) {
+        display: none;
+    }
+
+    [class*="st-key-side-step-"] details[open] summary::before {
+        box-shadow: 0 0 0 3px rgba(79, 208, 138, 0.3), 0 2px 8px rgba(23, 134, 79, 0.35);
+    }
+
     /* Sidebar switches stay on one line. */
     [data-testid="stSidebar"] [data-testid="stButtonGroup"] > div {
         flex-wrap: nowrap !important;
@@ -1850,56 +1903,51 @@ masthead.markdown(
 )
 
 st.sidebar.header(tr("Data and forecast"))
-uploaded_file = st.sidebar.file_uploader(
-    tr("Upload population CSV"), type=["csv"], key="upload_csv"
-)
-future_end = st.sidebar.slider(tr("Forecast through"), 2026, 2040, 2030, key="future_end")
-map_background_options = {
-    "osm": tr("OpenStreetMap"),
-    "none": tr("None"),
-}
-map_background_key = lang_key("map_background")
-show_basemap = (
-    remember(
-        "map_background",
-        st.sidebar.segmented_control(
-            tr("Map background"),
-            list(map_background_options),
-            required=True,
-            format_func=map_background_options.get,
-            default=None if map_background_key in st.session_state else "osm",
-            key=map_background_key,
-            width="stretch",
-            help=tr(
-                "OpenStreetMap needs an internet connection. Choose None to show the "
-                "maps offline."
-            ),
-        )
-        or "osm",
-    )
-    == "osm"
-)
 
-correction_threshold = st.sidebar.slider(
-    tr("Outlier correction threshold"),
-    min_value=2.5,
-    max_value=6.0,
-    value=DEFAULT_CORRECTION_THRESHOLD,
-    step=0.25,
-    help=tr(
-        "Lower values flag and potentially correct more observations. Higher values "
-        "require more exceptional robust scores. Every correction still requires an "
-        "independent demographic confirmation."
-    ),
-    key="correction_threshold",
-)
-selected_model_option = st.sidebar.selectbox(
-    tr("Forecast model"),
-    [ALL_MODELS_OPTION, *MODEL_NAMES],
-    format_func={ALL_MODELS_OPTION: tr(ALL_MODELS_OPTION), **MODEL_LABELS}.get,
-    help=tr("Choose one model to inspect, or All models to compare their results and accuracy."),
-    key=lang_key("forecast_model"),
-)
+
+def side_step(number: int, title: str, value: str, expanded: bool = False):
+    """A numbered sidebar section; the collapsed label shows the current setting."""
+    return st.sidebar.expander(
+        f"**{title}**  \n{value}", expanded=expanded, key=f"side-step-{number}"
+    )
+
+
+uploaded_name = getattr(st.session_state.get("upload_csv"), "name", None) or DEFAULT_DATA.name
+with side_step(1, tr("Data source"), uploaded_name):
+    uploaded_file = st.file_uploader(
+        tr("Upload population CSV"), type=["csv"], key="upload_csv"
+    )
+    st.caption(tr("Without an upload, the app uses {name}.", name=DEFAULT_DATA.name))
+
+with side_step(2, tr("Forecast years"), f"2026–{st.session_state.get('future_end', 2030)}"):
+    future_end = st.slider(tr("Forecast through"), 2026, 2040, 2030, key="future_end")
+
+side_threshold = st.session_state.get("correction_threshold", DEFAULT_CORRECTION_THRESHOLD)
+with side_step(3, tr("Outlier correction"), tr("threshold {value}", value=f"{side_threshold:g}")):
+    correction_threshold = st.slider(
+        tr("Outlier correction threshold"),
+        min_value=2.5,
+        max_value=6.0,
+        value=DEFAULT_CORRECTION_THRESHOLD,
+        step=0.25,
+        help=tr(
+            "Lower values flag and potentially correct more observations. Higher values "
+            "require more exceptional robust scores. Every correction still requires an "
+            "independent demographic confirmation."
+        ),
+        key="correction_threshold",
+    )
+model_key = lang_key("forecast_model")
+model_labels = {ALL_MODELS_OPTION: tr(ALL_MODELS_OPTION), **MODEL_LABELS}
+with side_step(4, tr("Forecast model"), model_labels[st.session_state.get(model_key, ALL_MODELS_OPTION)]):
+    selected_model_option = st.selectbox(
+        tr("Forecast model"),
+        [ALL_MODELS_OPTION, *MODEL_NAMES],
+        format_func=model_labels.get,
+        help=tr("Choose one model to inspect, or All models to compare their results and accuracy."),
+        key=model_key,
+        label_visibility="collapsed",
+    )
 remember("forecast_model", selected_model_option)
 selected_models = (
     list(MODEL_NAMES)
@@ -1956,12 +2004,56 @@ except Exception as error:
     st.error(tr("Could not load the population data: {error}", error=error))
     st.stop()
 
-filtered_original_data = filter_data(data)
+filter_count = sum(
+    bool(st.session_state.get(f"filter_{column}"))
+    for column in ("ouName", "sexName", "cocName")
+)
+with side_step(
+    5,
+    tr("Filters"),
+    tr("{count} active", count=filter_count) if filter_count else tr("All data"),
+) as filter_container:
+    filtered_original_data = filter_data(data, filter_container)
+
+map_background_options = {
+    "osm": tr("OpenStreetMap"),
+    "none": tr("None"),
+}
+map_background_key = lang_key("map_background")
+with side_step(
+    6,
+    tr("Map background"),
+    map_background_options[st.session_state.get(map_background_key) or "osm"],
+):
+    show_basemap = (
+        remember(
+            "map_background",
+            st.segmented_control(
+                tr("Map background"),
+                list(map_background_options),
+                required=True,
+                format_func=map_background_options.get,
+                default=None if map_background_key in st.session_state else "osm",
+                key=map_background_key,
+                width="stretch",
+                label_visibility="collapsed",
+            )
+            or "osm",
+        )
+        == "osm"
+    )
+    st.caption(
+        tr(
+            "OpenStreetMap needs an internet connection. Choose None to show the maps "
+            "offline."
+        )
+    )
+
 if filtered_original_data.empty:
     st.warning(tr("The selected filters contain no records. Change or clear the filters."))
     st.stop()
 
-with st.sidebar.expander(tr("5–7 minute demo path")):
+with st.sidebar.expander(tr("5–7 minute demo path"), icon=":material/route:"):
     st.markdown(block("demo_path", current_language()))
 
 filtered_corrected_data = corrected_data.loc[filtered_original_data.index].copy()
