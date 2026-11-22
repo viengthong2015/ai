@@ -1361,11 +1361,11 @@ st.markdown(
         border-right: 1px solid rgba(61, 186, 116, 0.25);
     }
 
-    /* Cards: mint glass with a faint green edge. */
+    /* Cards: mint glass with a faint green edge. No backdrop-filter here: it
+       would trap a chart's fullscreen view inside the card. */
     [class*="st-key-glass-"],
     [data-testid="stExpander"] details {
-        background: linear-gradient(160deg, rgba(255, 255, 255, 0.86), rgba(226, 244, 233, 0.66)) !important;
-        backdrop-filter: blur(16px) saturate(150%);
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(226, 244, 233, 0.74)) !important;
         border: 1px solid rgba(61, 186, 116, 0.32) !important;
         border-radius: 16px !important;
         box-shadow:
