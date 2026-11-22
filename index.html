@@ -126,87 +126,47 @@
     </div>
     <div class="slide-container">
         <!-- Slide 1 -->
-        <div class="slide active ai-cover-slide">
-            <div class="ai-cover-orb ai-cover-orb-one" aria-hidden="true"></div>
-            <div class="ai-cover-orb ai-cover-orb-two" aria-hidden="true"></div>
+        <div class="slide active atlas-sheet atlas-cover">
+            <p class="atlas-sheet__course">ໂຄງການຮຽນຮູ້ AI Developer, Samsung Innovation Campus 2026</p>
 
-            <div class="ai-cover-shell">
-                <main class="ai-cover-main">
-                    <section class="ai-cover-copy">
-                        <div class="ai-cover-eyebrow">
-                            <span class="ai-live-dot" aria-hidden="true"></span>
-                            ໂຄງການຮຽນຮູ້ນັກພັດທະນາປັນຍາປະດິດ (AI DEVELOPER LEARNING PROJECT) · 2026
-                        </div>
-                        <h1 class="ai-cover-title">
-                            ການຄາດຄະເນ
-                            <span>ປະຊາກອນລາວ</span>
-                        </h1>
+            <div class="atlas-sheet__body">
+                <h1 class="atlas-sheet__title">ການຄາດຄະເນ<br>ປະຊາກອນລາວ</h1>
+                <p class="atlas-sheet__lede">ແຍກຕາມ 148 ເມືອງ, ອາຍຸ ແລະ ເພດ, ຈາກຂໍ້ມູນ DHIS2 ຂອງກະຊວງສາທາລະນະສຸກ.</p>
 
-                        <div class="ai-course-card">
-                            <span class="ai-course-label">ຫຼັກສູດ (COURSE)</span>
-                            <strong>AI Developer</strong>
-                            <span class="ai-course-divider">|</span>
-                            <span>Samsung Innovation Campus</span>
-                        </div>
-                    </section>
-
-                    <section class="ai-cover-visual"
-                        aria-label="ພາບປະກອບການຄາດຄະເນດ້ວຍ AI (AI forecasting illustration)">
-                        <div class="ai-code-window">
-                            <div class="ai-code-toolbar">
-                                <div class="ai-window-dots" aria-hidden="true">
-                                    <span></span><span></span><span></span>
-                                </div>
-                                <span>population_forecast.py</span>
-                                <span class="ai-code-status">● ສົດ (LIVE)</span>
-                            </div>
-                            <div class="ai-code-body" aria-hidden="true">
-                                <div><span class="code-blue">validation</span> = time_holdout_validation(data)</div>
-                                <div><span class="code-blue">best_model</span> = validation.metrics[<span
-                                        class="code-green">"MAPE (%)"</span>].idxmin()</div>
-                                <div><span class="code-blue">forecast</span> = forecast_totals(</div>
-                                <div class="code-indent">data, <span class="code-green">future_end</span>=2030</div>
-                                <div>) <span class="code-purple"># ຝຶກສອນຄືນໃໝ່ (retrain) 2016–2025</span></div>
-                                <div class="ai-code-output">✓ ສ້າງຜົນຄາດຄະເນສຳເລັດ (Forecast generated successfully)
-                                </div>
-                            </div>
-                            <div class="ai-forecast-card">
-                                <div>
-                                    <span>ແບບຈຳລອງ (MODEL)</span>
-                                    <strong data-result-key="best_model">Polynomial Regression</strong>
-                                </div>
-                                <div class="ai-mini-chart" aria-hidden="true">
-                                    <i style="height: 30%"></i>
-                                    <i style="height: 42%"></i>
-                                    <i style="height: 55%"></i>
-                                    <i style="height: 68%"></i>
-                                    <i style="height: 84%"></i>
-                                    <i style="height: 100%"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ai-node ai-node-one" aria-hidden="true">AI</div>
-                        <div class="ai-node ai-node-two" aria-hidden="true">ML</div>
-                        <div class="ai-node ai-node-three" aria-hidden="true">DATA</div>
-                    </section>
-                </main>
-
-                <footer class="ai-cover-footer">
-                    <div class="ai-team-heading">
-                        <strong>ກຸ່ມທີ່ II</strong>
+                <section class="atlas-ribbon" aria-label="ປະຊາກອນລາວ: ປີຝຶກສອນ, ປີທົດສອບ ແລະ ປີຄາດຄະເນ">
+                    <div class="atlas-ribbon__seg atlas-ribbon__seg--train">
+                        <div class="atlas-ribbon__span" data-result-key="validation_train_period">2016–2022</div>
+                        <div class="atlas-ribbon__band" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                        <div class="atlas-ribbon__label">ຝຶກສອນ (Train)</div>
+                        <strong class="atlas-ribbon__value" data-result-key="population_2016">—</strong>
+                        <div class="atlas-ribbon__note">ປະຊາກອນ ປີ 2016</div>
                     </div>
-                    <div class="ai-team-members">
-                        <span>ວຽງທອງ ຈົ່ງຫວາຊົ່ງ</span>
-                        <span>ບຸນສີຊົ່ງ ເຍ່ຍລູ</span>
-                        <span>ກົ້ງເມັ່ງ ທໍ່</span>
+                    <div class="atlas-ribbon__seg atlas-ribbon__seg--test">
+                        <div class="atlas-ribbon__span" data-result-key="validation_test_period">2023–2025</div>
+                        <div class="atlas-ribbon__band" aria-hidden="true"><i></i><i></i><i></i></div>
+                        <div class="atlas-ribbon__label">ທົດສອບ (Test)</div>
+                        <strong class="atlas-ribbon__value" data-result-key="population_2025">—</strong>
+                        <div class="atlas-ribbon__note">ປະຊາກອນ ປີ 2025</div>
                     </div>
-                    <div class="ai-cohort">
-                        <span>ຮຸ່ນ (COHORT)</span>
-                        <strong>2</strong>
-                        <small>ມີນາ – ພະຈິກ 2026</small>
+                    <div class="atlas-ribbon__seg atlas-ribbon__seg--forecast">
+                        <div class="atlas-ribbon__span" data-result-key="forecast_period">2026–2030</div>
+                        <div class="atlas-ribbon__band" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                        <div class="atlas-ribbon__label">ຄາດຄະເນ (Forecast)</div>
+                        <strong class="atlas-ribbon__value" data-result-key="best_model_end_value">—</strong>
+                        <div class="atlas-ribbon__note">ປີ <span data-result-key="best_model_end_year">2030</span>, <span data-result-key="best_model">Polynomial Regression</span></div>
                     </div>
-                </footer>
+                </section>
             </div>
+
+            <footer class="atlas-team">
+                <strong>ກຸ່ມທີ່ II</strong>
+                <ul>
+                    <li>ວຽງທອງ ຈົ່ງຫວາຊົ່ງ</li>
+                    <li>ບູນສີຊົ່ງ ເຍ່ຍລູ</li>
+                    <li>ກົ້ງເມັ່ງ ທໍ່</li>
+                </ul>
+                <span class="atlas-team__cohort">ຮຸ່ນ 2, ມີນາ – ພະຈິກ 2026</span>
+            </footer>
         </div>
 
         <div class="slide short-overview-slide">
@@ -1026,106 +986,61 @@
         </div>
 
         <!-- Slide 11 -->
-        <div class="slide ai-cover-slide ai-closing-slide">
-            <div class="ai-cover-orb ai-cover-orb-one" aria-hidden="true"></div>
-            <div class="ai-cover-orb ai-cover-orb-two" aria-hidden="true"></div>
+        <div class="slide atlas-sheet atlas-closing">
+            <p class="atlas-sheet__course">9. ສາທິດລະບົບ ແລະ ຖາມ-ຕອບ</p>
 
-            <div class="ai-cover-shell">
-                <main class="ai-cover-main">
-                    <section class="ai-cover-copy">
-                        <div class="ai-cover-eyebrow">
-                            <span class="ai-live-dot" aria-hidden="true"></span>
-                            9. ສາທິດລະບົບ &amp; ຖາມ-ຕອບ (LIVE DEMO &amp; Q&amp;A)
-                        </div>
-                        <h1 class="ai-cover-title">
-                            ຂອບໃຈ
-                            <span>ຖາມ &amp; ຕອບ</span>
-                        </h1>
-                        <p class="ai-cover-description">
-                            ຂໍຂອບໃຈທຸກທ່ານທີ່ຮັບຟັງ. ຕໍ່ໄປແມ່ນການສາທິດແອັບ Streamlit ແບບສົດ,
-                            ຈາກນັ້ນເປີດໂອກາດໃຫ້ຖາມຄຳຖາມ ແລະ ແລກປ່ຽນຄຳຄິດເຫັນ.
-                        </p>
+            <div class="atlas-sheet__body">
+                <h1 class="atlas-sheet__title">ຂອບໃຈ</h1>
+                <p class="atlas-sheet__lede">ຕໍ່ໄປແມ່ນການສາທິດແອັບ Streamlit ແບບສົດ, ຈາກນັ້ນເປີດໃຫ້ຖາມຄຳຖາມ ແລະ ແລກປ່ຽນຄຳຄິດເຫັນ.</p>
 
-                        <div class="ai-closing-takeaways" aria-label="ຜົນຫຼັກຂອງໂຄງການ (Key takeaways)">
-                            <article>
-                                <span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-trophy"></use></svg></span>
-                                <small>ແບບຈຳລອງທີ່ເລືອກ</small>
-                                <strong data-result-key="best_model">—</strong>
-                                <em>MAPE <b data-result-key="best_model_mape">—</b></em>
-                            </article>
-                            <article>
-                                <span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-line"></use></svg></span>
-                                <small>ຄາດຄະເນປີ 2026</small>
-                                <strong data-result-key="best_model_2026">—</strong>
-                                <em>ຄົນ · ທົ່ວປະເທດ</em>
-                            </article>
-                            <article>
-                                <span class="content-icon" aria-hidden="true"><svg><use href="#content-icon-growth"></use></svg></span>
-                                <small>ຄາດຄະເນປີ <b data-result-key="best_model_end_year">—</b></small>
-                                <strong data-result-key="best_model_end_value">—</strong>
-                                <em>ຄົນ · ທົ່ວປະເທດ</em>
-                            </article>
-                        </div>
-
-                        <div class="ai-course-card">
-                            <span class="ai-course-label">ສາທິດ (DEMO)</span>
-                            <strong>streamlit run app.py</strong>
-                            <!-- <span class="ai-course-divider">|</span> -->
-                            <!-- <span>ກອງ · ປຽບທຽບ · ສົ່ງອອກ CSV/HTML</span> -->
-                        </div>
+                <div class="atlas-closing__grid">
+                    <section aria-labelledby="atlas-demo-steps">
+                        <h2 class="atlas-closing__heading" id="atlas-demo-steps">ລຳດັບການສາທິດ</h2>
+                        <ol class="atlas-steps">
+                            <li>ໂຫຼດຂໍ້ມູນ DHIS2 ທົ່ວປະເທດ (data/dataDistrict.csv)</li>
+                            <li>ກວດຄຸນນະພາບຂໍ້ມູນ ແລະ ແກ້ໄຂຄ່າຜິດປົກກະຕິ (threshold <span data-result-key="correction_threshold">3.5</span>)</li>
+                            <li>ປຽບທຽບ 3 ແບບຈຳລອງ ດ້ວຍປີທົດສອບ <span data-result-key="validation_test_period">2023–2025</span></li>
+                            <li>ເບິ່ງຜົນຄາດຄະເນແຍກຕາມເມືອງ, ອາຍຸ ແລະ ເພດ ໃນ pyramid ແລະ ແຜນທີ່</li>
+                            <li>ສົ່ງອອກຜົນເປັນ CSV ແລະ HTML</li>
+                        </ol>
                     </section>
 
-                    <section class="ai-cover-visual"
-                        aria-label="ລາຍການສາທິດລະບົບ (Demo checklist)">
-                        <div class="ai-code-window">
-                            <div class="ai-code-toolbar">
-                                <div class="ai-window-dots" aria-hidden="true">
-                                    <span></span><span></span><span></span>
-                                </div>
-                                <span>demo_checklist.py</span>
-                                <span class="ai-code-status">● ພ້ອມ (READY)</span>
-                            </div>
-                            <div class="ai-code-body">
-                                <div><span class="code-green">✓</span> <span class="code-blue">load</span>(<span class="code-orange">"data/dataDistrict.csv"</span>)</div>
-                                <div><span class="code-green">✓</span> <span class="code-blue">check_quality</span>() <span class="code-purple"># ຄຸນນະພາບຂໍ້ມູນ</span></div>
-                                <div><span class="code-green">✓</span> <span class="code-blue">correct_outliers</span>(threshold=<span class="code-orange">3.5</span>)</div>
-                                <div><span class="code-green">✓</span> <span class="code-blue">compare_models</span>([Linear, Polynomial, Exponential])</div>
-                                <div><span class="code-green">✓</span> <span class="code-blue">forecast</span>(district, age, sex)</div>
-                                <div><span class="code-green">✓</span> <span class="code-blue">export</span>(<span class="code-orange">"csv"</span>, <span class="code-orange">"html"</span>)</div>
-                                <div class="ai-code-output ai-code-output--lao">❯ ພ້ອມຮັບຄຳຖາມ (Ready for your questions)</div>
-                            </div>
-                            <div class="ai-forecast-card ai-closing-qa-card">
-                                <span class="topic-icon" aria-hidden="true"><svg><use href="#topic-icon-qa"></use></svg></span>
-                                <div>
-                                    <span>ຖາມ &amp; ຕອບ (Q&amp;A)</span>
-                                    <strong>ມີຄຳຖາມ ຫຼື ຄຳແນະນຳບໍ?</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="ai-node ai-node-one" aria-hidden="true">DEMO</div>
-                        <div class="ai-node ai-node-two" aria-hidden="true">Q&amp;A</div>
-                        <div class="ai-node ai-node-three" aria-hidden="true">THANK YOU</div>
+                    <section aria-labelledby="atlas-results">
+                        <h2 class="atlas-closing__heading" id="atlas-results">ຜົນຫຼັກ</h2>
+                        <table class="atlas-ledger">
+                            <tbody>
+                                <tr>
+                                    <th scope="row">ແບບຈຳລອງທີ່ເລືອກ<small>MAPE ຂອງປີທົດສອບ</small></th>
+                                    <td><span data-result-key="best_model">—</span><small data-result-key="best_model_mape">—</small></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">ປະຊາກອນ ປີ 2025</th>
+                                    <td data-result-key="population_2025">—</td>
+                                </tr>
+                                <tr class="is-forecast">
+                                    <th scope="row">ຄາດຄະເນ ປີ 2026</th>
+                                    <td data-result-key="best_model_2026">—</td>
+                                </tr>
+                                <tr class="is-forecast">
+                                    <th scope="row">ຄາດຄະເນ ປີ <span data-result-key="best_model_end_year">2030</span></th>
+                                    <td data-result-key="best_model_end_value">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </section>
-                </main>
-
-                <footer class="ai-cover-footer">
-                    <div class="ai-team-heading">
-                        <strong>ກຸ່ມທີ່ II</strong>
-                    </div>
-                    <div class="ai-team-members">
-                        <span>ວຽງທອງ ຈົ່ງຫວາຊົ່ງ</span>
-                        <span>ບູນສີຊົ່ງ ເຍ່ຍລູ</span>
-                        <span>ກົ້ງເມັ່ງ ທໍ່</span>
-                    </div>
-                    <div class="ai-cohort">
-                        <span>Samsung Innovation Campus</span>
-                        <small>AI Developer · ຮຸ່ນ 2 · 2026</small>
-                    </div>
-                </footer>
+                </div>
             </div>
+
+            <footer class="atlas-team">
+                <strong>ກຸ່ມທີ່ II</strong>
+                <ul>
+                    <li>ວຽງທອງ ຈົ່ງຫວາຊົ່ງ</li>
+                    <li>ບູນສີຊົ່ງ ເຍ່ຍລູ</li>
+                    <li>ກົ້ງເມັ່ງ ທໍ່</li>
+                </ul>
+                <span class="atlas-team__cohort">Samsung Innovation Campus, AI Developer 2026</span>
+            </footer>
         </div>
-
-
 
     </div>
 

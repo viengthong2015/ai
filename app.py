@@ -24,6 +24,15 @@ from outlier_detection import (
     OutlierResults,
     correct_population_outliers,
 )
+from i18n import DEFAULT_LANGUAGE, LANGUAGES, block, translate
+import population_map
+from population_map import (
+    DENSITY_COLORSCALE,
+    district_totals,
+    load_boundaries,
+    population_map_figure,
+    province_totals,
+)
 from population_forecast import (
     HISTORICAL_COLUMNS,
     HISTORICAL_YEARS,
@@ -41,12 +50,31 @@ from population_forecast import (
 
 APP_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA = APP_DIR / "data" / "dataDistrict.csv"
+BOUNDARY_FILE = APP_DIR / "data" / "orgunits.geojson"
+MAP_LEVEL_OPTIONS = {
+    "Province (level 2)": "provinces",
+    "District (level 3)": "districts",
+}
 PRESENTATION_FILE = APP_DIR / "index.html"
 PLOTLY_JAVASCRIPT = get_plotlyjs()
+# Atlas palette, shared with the presentation (image/style.css). Mekong, Madder
+# and Rice were checked for colour-blind separation as a set.
+ATLAS_PAPER = "#F6F7F3"
+ATLAS_INK = "#14302A"
+ATLAS_SLATE = "#5C6470"
+ATLAS_RULE = "#D3DED5"
+ATLAS_MEKONG = "#1D6AAE"
+ATLAS_MEKONG_SOFT = "#DCE8F3"
+ATLAS_FOREST = "#1E7B4F"
+ATLAS_FOREST_SOFT = "#DDEFE3"
+ATLAS_MADDER = "#A63D4F"
+ATLAS_RICE = "#5C8A2E"
+ATLAS_GOLD = "#B8902F"
+ATLAS_GOLD_SOFT = "#F4ECD8"
 MODEL_STYLES = {
-    "Linear": {"color": "#FF2B2B", "linestyle": "--"},
-    "Polynomial": {"color": "#29B09D", "linestyle": "-."},
-    "Exponential": {"color": "#FF8700", "linestyle": ":"},
+    "Linear": {"color": ATLAS_MEKONG, "linestyle": "--"},
+    "Polynomial": {"color": ATLAS_MADDER, "linestyle": "-."},
+    "Exponential": {"color": ATLAS_RICE, "linestyle": ":"},
 }
 MODEL_LABELS = {
     "Linear": "Linear Regression",
@@ -67,11 +95,11 @@ ALL_MODELS_OPTION = "All models"
 CORRECTED_INPUT_OPTION = "Corrected data (recommended)"
 ORIGINAL_INPUT_OPTION = "Original data"
 DEFAULT_CORRECTION_THRESHOLD = 3.5
-STREAMLIT_CHART_BLUE = "#0068C9"
-STREAMLIT_CHART_TEXT = "#31333F"
-STREAMLIT_CHART_MUTED = "#6B7280"
-STREAMLIT_CHART_GRID = "#E6E9EF"
-STREAMLIT_CHART_FORECAST_BAND = "#EAF4FB"
+STREAMLIT_CHART_BLUE = ATLAS_INK  # actual (observed) values
+STREAMLIT_CHART_TEXT = ATLAS_INK
+STREAMLIT_CHART_MUTED = ATLAS_SLATE
+STREAMLIT_CHART_GRID = "#E4E7E0"
+STREAMLIT_CHART_FORECAST_BAND = ATLAS_GOLD_SOFT
 LAO_FONT_FAMILIES = ["Noto Sans Lao", "Phetsarath OT"]
 LAO_FONT_STACK = "'Noto Sans Lao', 'Phetsarath OT', sans-serif"
 
@@ -94,6 +122,32 @@ st.set_page_config(
     page_icon="📈",
     layout="wide",
 )
+
+
+def current_language() -> str:
+    """The demo language chosen in the sidebar ("lo" or "en")."""
+    return st.session_state.get("demo_language") or DEFAULT_LANGUAGE
+
+
+def tr(text: str, **values: object) -> str:
+    """Demo text in the selected language; translations live in i18n.py."""
+    return translate(text, current_language(), **values)
+
+
+def tr_table(df: pd.DataFrame, value_columns: tuple[str, ...] = ()) -> pd.DataFrame:
+    """Translate a table's headers, and the fixed text in ``value_columns``."""
+    table = df.copy()
+    for column in value_columns:
+        if column in table:
+            table[column] = table[column].map(
+                lambda value: tr(value) if isinstance(value, str) else value
+            )
+    return table.rename(columns=lambda column: tr(column) if isinstance(column, str) else column)
+
+
+def tr_formats(formats: dict[str, str]) -> dict[str, str]:
+    """Translate the column names of a Styler format mapping."""
+    return {tr(column): pattern for column, pattern in formats.items()}
 
 
 @st.cache_data(show_spinner=False)
@@ -147,9 +201,27 @@ def load_embedded_presentation(
     return html.replace("</body>", f"<script>{javascript}</script></body>")
 
 
+@st.cache_data(show_spinner="Loading map boundaries…")
+def cached_boundaries(path: str, modified_time: float, loader_version: float) -> dict:
+    # Both arguments only invalidate the cache: when the GeoJSON changes, or when
+    # population_map.py changes (Streamlit does not see edits to that module).
+    del modified_time, loader_version
+    return load_boundaries(path)
+
+
+def map_boundaries() -> dict:
+    return cached_boundaries(
+        str(BOUNDARY_FILE),
+        BOUNDARY_FILE.stat().st_mtime,
+        Path(population_map.__file__).stat().st_mtime,
+    )
+
+
 @st.cache_data(show_spinner="Calculating row-level forecasts…")
-def cached_row_forecast(df: pd.DataFrame, future_end: int) -> pd.DataFrame:
-    return forecast_each_row(df, future_end)
+def cached_row_forecast(
+    df: pd.DataFrame, future_end: int, round_and_clip: bool = True
+) -> pd.DataFrame:
+    return forecast_each_row(df, future_end, round_and_clip=round_and_clip)
 
 
 @st.cache_data(show_spinner="Preparing conservative outlier corrections…")
@@ -167,18 +239,19 @@ def cached_outlier_correction(
 def filter_data(df: pd.DataFrame) -> pd.DataFrame:
     filtered = df
     filter_specs = (
-        ("ouName", "Districts"),
-        ("sexName", "Sex"),
-        ("cocName", "Age groups"),
+        ("ouName", "Districts", "All districts"),
+        ("sexName", "Sex", "All sexes"),
+        ("cocName", "Age groups", "All age groups"),
     )
-    for column, label in filter_specs:
+    for column, label, placeholder in filter_specs:
         if column not in df.columns:
             continue
         options = sorted(df[column].dropna().astype(str).unique().tolist())
         selected = st.sidebar.multiselect(
-            label,
+            tr(label),
             options,
-            placeholder=f"All {label.lower()}",
+            placeholder=tr(placeholder),
+            key=f"filter_{column}",
         )
         if selected:
             filtered = filtered[filtered[column].astype(str).isin(selected)]
@@ -246,7 +319,7 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
             **MODEL_STYLES[name],
         )
     forecast_axis.axvline(
-        2025, color="#9CA3AF", linestyle="--", linewidth=1.1, alpha=0.9
+        2025, color=ATLAS_GOLD, linestyle="-", linewidth=1.6, alpha=1
     )
     forecast_axis.axvspan(
         2025,
@@ -320,7 +393,7 @@ def forecast_figure(result, selected_models: list[str]) -> plt.Figure:
     for divider_position in (year_positions[:-1] + year_positions[1:]) / 2:
         residual_axis.axvline(
             divider_position,
-            color="#F0F2F6",
+            color="#ECEEE8",
             linewidth=0.8,
             alpha=1.0,
             zorder=1,
@@ -362,8 +435,12 @@ def interactive_forecast_figure(
         row_heights=[0.58, 0.42],
         vertical_spacing=0.16,
         subplot_titles=(
-            "ສົມທຽບຄວາມຊັດເຈນຂອງ ຜົນການຄາດຄະເນປະຊາກອນ",
-            "ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການຄາດຄະເນ)",
+            "ສົມທຽບຄວາມຊັດເຈນຂອງ ຜົນການຄາດຄະເນປະຊາກອນ"
+            if lao_presentation
+            else tr("Accuracy of the population forecasts"),
+            "ຄ່າຜິດດ່ຽງຂອງການຄາດຄະເນ (ຕົວຈິງ − ຜົນການຄາດຄະເນ)"
+            if lao_presentation
+            else tr("Forecast residuals (actual − predicted)"),
         ),
     )
     figure.add_trace(
@@ -373,7 +450,7 @@ def interactive_forecast_figure(
             name=(
                 "ປະຊາກອນຕົວຈິງ (Actual population)"
                 if lao_presentation
-                else "Actual population"
+                else tr("Actual population")
             ),
             mode="lines+markers",
             line={"color": STREAMLIT_CHART_BLUE, "width": 3},
@@ -389,8 +466,8 @@ def interactive_forecast_figure(
                 )
                 if lao_presentation
                 else (
-                    "<b>Actual population</b><br>Year: %{x}<br>"
-                    "Population: %{y:,.0f}<extra></extra>"
+                    f"<b>{tr('Actual population')}</b><br>{tr('Year')}: %{{x}}<br>"
+                    f"{tr('Population')}: %{{y:,.0f}}<extra></extra>"
                 )
             ),
         ),
@@ -419,7 +496,7 @@ def interactive_forecast_figure(
                     f"<b>{label}</b><br>ປີ (Year): %{{x}}<br>"
                     "ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
                     if lao_presentation
-                    else f"<b>{label}</b><br>Year: %{{x}}<br>Population: %{{y:,.0f}}<extra></extra>"
+                    else f"<b>{label}</b><br>{tr('Year')}: %{{x}}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>"
                 ),
             ),
             row=1,
@@ -438,7 +515,7 @@ def interactive_forecast_figure(
                 name=(
                     f"ຄ່າຄົງເຫຼືອຂອງ {label} (residual)"
                     if lao_presentation
-                    else f"{label} residual"
+                    else tr("{model} residual", model=label)
                 ),
                 marker={
                     "color": MODEL_STYLES[name]["color"],
@@ -452,7 +529,7 @@ def interactive_forecast_figure(
                     f"<b>{label}</b><br>ປີ (Year): %{{x}}<br>"
                     "ຄ່າຄົງເຫຼືອ (Residual: Actual − Predicted): %{y:+,.0f}<extra></extra>"
                     if lao_presentation
-                    else f"<b>{label}</b><br>Year: %{{x}}<br>Residual (Actual − Predicted): %{{y:+,.0f}}<extra></extra>"
+                    else f"<b>{label}</b><br>{tr('Year')}: %{{x}}<br>{tr('Residual (actual − predicted)')}: %{{y:+,.0f}}<extra></extra>"
                 ),
             ),
             row=2,
@@ -471,7 +548,7 @@ def interactive_forecast_figure(
     )
     figure.add_vline(
         x=2025,
-        line={"color": "#9CA3AF", "width": 1.2, "dash": "dash"},
+        line={"color": ATLAS_GOLD, "width": 1.6},
         row=1,
         col=1,
     )
@@ -482,13 +559,16 @@ def interactive_forecast_figure(
         col=1,
     )
     figure.update_xaxes(
-        title_text="ປີ",
+        title_text="ປີ" if lao_presentation else tr("Year"),
         tickmode="array",
         tickvals=HISTORICAL_YEARS,
         row=2,
         col=1,
     )
-    figure.update_yaxes(title_text="ປະຊາກອນ (ຄົນ)", tickformat=",.0f")
+    figure.update_yaxes(
+        title_text="ປະຊາກອນ (ຄົນ)" if lao_presentation else tr("Population (people)"),
+        tickformat=",.0f",
+    )
     figure.update_layout(
         template=PLOTLY_TEMPLATE,
         height=900,
@@ -503,8 +583,8 @@ def interactive_forecast_figure(
             "x": 0,
         },
         hoverlabel={"bgcolor": "#FFFFFF", "font_color": STREAMLIT_CHART_TEXT},
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
     figure.update_xaxes(gridcolor=STREAMLIT_CHART_GRID, zeroline=False)
     figure.update_yaxes(gridcolor=STREAMLIT_CHART_GRID, zeroline=False)
@@ -587,7 +667,7 @@ def actual_vs_predicted_figure(result, selected_models: list[str]) -> plt.Figure
                     label_color = STREAMLIT_CHART_MUTED
                 else:
                     label = f"{rounded_difference:+.4f}%".replace("-", "−")
-                    label_color = "#29B09D" if rounded_difference > 0 else "#FF2B2B"
+                    label_color = ATLAS_INK
             axis.annotate(
                 label,
                 xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
@@ -686,14 +766,14 @@ def interactive_actual_vs_predicted_figure(
             label_colors.append(
                 STREAMLIT_CHART_MUTED
                 if rounded == 0
-                else "#29B09D" if rounded > 0 else "#FF2B2B"
+                else ATLAS_INK
             )
 
         figure.add_trace(
             go.Bar(
                 x=HISTORICAL_YEARS,
                 y=actual_values,
-                name="ຄ່າຈິງ (Actual)" if lao_presentation else "Actual",
+                name="ຄ່າຈິງ (Actual)" if lao_presentation else tr("Actual"),
                 legendgroup="actual",
                 showlegend=row_number == 1,
                 marker={
@@ -704,7 +784,7 @@ def interactive_actual_vs_predicted_figure(
                     "<b>ຄ່າຈິງ (Actual)</b><br>ປີ (Year): %{x}<br>"
                     "ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
                     if lao_presentation
-                    else "<b>Actual</b><br>Year: %{x}<br>Population: %{y:,.0f}<extra></extra>"
+                    else f"<b>{tr('Actual')}</b><br>{tr('Year')}: %{{x}}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>"
                 ),
             ),
             row=row_number,
@@ -714,7 +794,7 @@ def interactive_actual_vs_predicted_figure(
             go.Bar(
                 x=HISTORICAL_YEARS,
                 y=predicted_values,
-                name="ຄ່າຄາດຄະເນ (Predicted)" if lao_presentation else "Predicted",
+                name="ຄ່າຄາດຄະເນ (Predicted)" if lao_presentation else tr("Predicted"),
                 legendgroup="predicted",
                 showlegend=row_number == 1,
                 marker={
@@ -731,7 +811,11 @@ def interactive_actual_vs_predicted_figure(
                     "ປະຊາກອນ (Population): %{y:,.0f}<br>ຜົນຕ່າງ (Difference): %{customdata[0]}"
                     "<extra></extra>"
                     if lao_presentation
-                    else f"<b>{label} prediction</b><br>Year: %{{x}}<br>Population: %{{y:,.0f}}<br>Difference: %{{customdata[0]}}<extra></extra>"
+                    else (
+                        "<b>" + tr("{model} prediction", model=label) + "</b><br>"
+                        f"{tr('Year')}: %{{x}}<br>{tr('Population')}: %{{y:,.0f}}<br>"
+                        f"{tr('Difference')}: %{{customdata[0]}}<extra></extra>"
+                    )
                 ),
             ),
             row=row_number,
@@ -748,7 +832,7 @@ def interactive_actual_vs_predicted_figure(
             title_text=(
                 "ປະຊາກອນ (Population)"
                 if lao_presentation
-                else "Population"
+                else tr("Population")
             ),
             tickformat=",.0f",
             gridcolor=STREAMLIT_CHART_GRID,
@@ -758,7 +842,7 @@ def interactive_actual_vs_predicted_figure(
         )
 
     figure.update_xaxes(
-        title_text="ປີ (Year)" if lao_presentation else "Year",
+        title_text="ປີ (Year)" if lao_presentation else tr("Year"),
         row=panel_count,
         col=1,
     )
@@ -768,7 +852,7 @@ def interactive_actual_vs_predicted_figure(
             "text": (
                 "ປະຊາກອນຈິງ ທຽບກັບ ຄາດຄະເນ (Actual vs predicted population — historical fit)"
                 if lao_presentation
-                else "Actual vs predicted population (historical fit)"
+                else tr("Actual vs predicted population (historical fit)")
             ),
             "x": 0.5,
             "xanchor": "center",
@@ -787,8 +871,8 @@ def interactive_actual_vs_predicted_figure(
             "x": 0,
         },
         hoverlabel={"bgcolor": "#FFFFFF", "font_color": STREAMLIT_CHART_TEXT},
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
     figure.update_annotations(font={"color": STREAMLIT_CHART_TEXT, "size": 16})
     return figure
@@ -806,7 +890,7 @@ def interactive_validation_figure(
             name=(
                 "ປະຊາກອນຈິງ (Actual population)"
                 if lao_presentation
-                else "Actual population"
+                else tr("Actual population")
             ),
             mode="lines+markers",
             line={"color": STREAMLIT_CHART_BLUE, "width": 4},
@@ -814,7 +898,7 @@ def interactive_validation_figure(
             hovertemplate=(
                 "ຄ່າຈິງ (Actual)<br>ປີ (Year): %{x}<br>ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
                 if lao_presentation
-                else "Actual<br>Year: %{x}<br>Population: %{y:,.0f}<extra></extra>"
+                else f"{tr('Actual')}<br>{tr('Year')}: %{{x}}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>"
             ),
         )
     )
@@ -846,7 +930,7 @@ def interactive_validation_figure(
                     f"{label}<br>ປີ (Year): %{{x}}<br>ຄ່າຄາດຄະເນ (Prediction): %{{y:,.0f}}"
                     "<br>ຄວາມຜິດພາດ (Error): %{customdata:+.4f}%<extra></extra>"
                     if lao_presentation
-                    else f"{label}<br>Year: %{{x}}<br>Prediction: %{{y:,.0f}}<br>Error: %{{customdata:+.4f}}%<extra></extra>"
+                    else f"{label}<br>{tr('Year')}: %{{x}}<br>{tr('Prediction')}: %{{y:,.0f}}<br>{tr('Error')}: %{{customdata:+.4f}}%<extra></extra>"
                 ),
             )
         )
@@ -862,14 +946,14 @@ def interactive_validation_figure(
             "xanchor": "left",
             "x": 0,
         },
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
     figure.update_xaxes(
         title_text=(
             "ປີຂອງຊຸດທົດສອບ (Holdout year)"
             if lao_presentation
-            else "Holdout year"
+            else tr("Holdout year")
         ),
         tickmode="array",
         tickvals=validation.test_years,
@@ -879,7 +963,7 @@ def interactive_validation_figure(
         title_text=(
             "ປະຊາກອນ (Population)"
             if lao_presentation
-            else "Population"
+            else tr("Population")
         ),
         tickformat=",.0f",
         gridcolor=STREAMLIT_CHART_GRID,
@@ -893,8 +977,8 @@ def population_pyramid_figure(
     year: int,
     year_label: str | None = None,
     age_display: str = "By age group",
-) -> tuple[plt.Figure, int, int]:
-    """Build a population pyramid for the requested district and age bands."""
+) -> tuple[go.Figure, int, int]:
+    """Build an interactive population pyramid for the requested district and age bands."""
     required_columns = {"ouName", "cocCode", "sexCode", str(year)}
     missing_columns = sorted(required_columns.difference(df.columns))
     if missing_columns:
@@ -964,49 +1048,61 @@ def population_pyramid_figure(
 
     male_values = profile[sex_codes["M"]].to_numpy(dtype=float)
     female_values = profile[sex_codes["F"]].to_numpy(dtype=float)
-    positions = np.arange(len(profile.index))
-
-    figure, axis = plt.subplots(figsize=(12, figure_height))
-    axis.barh(
-        positions,
-        -male_values,
-        height=0.82,
-        color="#277da1",
-        edgecolor="white",
-        linewidth=0.35,
-        label="Male",
-    )
-    axis.barh(
-        positions,
-        female_values,
-        height=0.82,
-        color="#e76f91",
-        edgecolor="white",
-        linewidth=0.35,
-        label="Female",
-    )
-    axis.axvline(0, color="#495057", linewidth=0.9)
-    axis.set_yticks(positions, profile.index)
-    axis.tick_params(axis="y", labelsize=7)
-    axis.xaxis.set_major_formatter(
-        FuncFormatter(lambda value, _position: f"{abs(value):,.0f}")
-    )
+    total = max(float(male_values.sum() + female_values.sum()), 1.0)
     population_limit = max(float(male_values.max()), float(female_values.max()), 1.0)
-    axis.set_xlim(-population_limit * 1.12, population_limit * 1.12)
-    axis.set_xlabel("Population (people)")
-    axis.set_ylabel(y_axis_label)
-    location_label = district if district is not None else "All districts"
-    axis.set_title(
-        f"Population pyramid — {location_label} ({year_label or year})",
-        fontsize=15,
-        fontweight="bold",
-        pad=14,
+    figure = go.Figure()
+    for values, sign, label, color in (
+        (male_values, -1, tr("Male"), ATLAS_MEKONG),
+        (female_values, 1, tr("Female"), ATLAS_MADDER),
+    ):
+        figure.add_trace(
+            go.Bar(
+                y=list(profile.index),
+                x=sign * values,
+                customdata=np.column_stack([values, values / total * 100]),
+                name=label,
+                orientation="h",
+                marker={"color": color, "opacity": 0.82, "line": {"color": "#FFFFFF", "width": 1}},
+                hovertemplate=(
+                    f"<b>%{{y}}</b> · {label}<br>{tr('Population')}: %{{customdata[0]:,.0f}}"
+                    f"<br>{tr('Share')}: %{{customdata[1]:.2f}}%<extra></extra>"
+                ),
+            )
+        )
+    tick_step = 10 ** max(int(np.floor(np.log10(population_limit))), 0)
+    if population_limit / tick_step < 3:
+        tick_step /= 2
+    ticks = np.arange(-population_limit, population_limit + tick_step, tick_step)
+    ticks = np.round(ticks / tick_step) * tick_step
+    location_label = district if district is not None else tr("All districts")
+    figure.update_layout(
+        template=PLOTLY_TEMPLATE,
+        title={
+            "text": tr(
+                "Population pyramid — {location} ({year})",
+                location=location_label,
+                year=year_label or year,
+            ),
+            "x": 0,
+            "xanchor": "left",
+        },
+        barmode="relative",
+        bargap=0.08,
+        height=max(460, 22 * len(profile.index) + 160),
+        margin={"l": 10, "r": 10, "t": 60, "b": 10},
+        legend={"orientation": "h", "x": 1, "xanchor": "right", "y": 1.0, "yanchor": "bottom"},
+        hoverlabel={"bgcolor": "rgba(255,255,255,0.95)", "font_color": ATLAS_INK},
     )
-    axis.grid(axis="x", linestyle="--", linewidth=0.7, alpha=0.3)
-    axis.set_axisbelow(True)
-    axis.spines[["top", "right", "left"]].set_visible(False)
-    axis.legend(loc="upper right", frameon=False, ncol=2)
-    figure.tight_layout()
+    figure.update_xaxes(
+        title_text=tr("Population (people)"),
+        range=[-population_limit * 1.12, population_limit * 1.12],
+        tickvals=ticks,
+        ticktext=[f"{abs(value):,.0f}" for value in ticks],
+        gridcolor="rgba(20,48,42,0.08)",
+        zeroline=True,
+        zerolinecolor=ATLAS_INK,
+    )
+    figure.update_yaxes(title_text=tr(y_axis_label), automargin=True)
     return figure, int(np.rint(male_values.sum())), int(np.rint(female_values.sum()))
 
 
@@ -1045,30 +1141,32 @@ def show_outlier_check(
     visible_data: pd.DataFrame,
     years: list[int],
 ) -> pd.DataFrame:
-    st.markdown(f"#### {title}")
-    st.caption(description)
+    st.markdown(f"#### {tr(title)}")
+    st.caption(tr(description))
     visible = filter_outlier_results(results, visible_data)
     visible = visible[visible["Year"].isin(years)].reset_index(drop=True)
-    st.metric("Flagged observations", f"{len(visible):,}")
+    st.metric(tr("Flagged observations"), f"{len(visible):,}")
     if visible.empty:
-        st.success("No observations exceed the selected robust-score threshold.")
+        st.success(tr("No observations exceed the selected robust-score threshold."))
         return visible
-    st.bar_chart(visible.groupby("Year").size().rename("Flags"), height=220)
+    st.bar_chart(visible.groupby("Year").size().rename(tr("Flags")), height=220)
     st.dataframe(
-        visible.style.format(
-            {
-                "Population": "{:,.0f}",
-                "Observed": "{:,.3f}",
-                "Expected": "{:,.3f}",
-                "Robust score": "{:+.2f}",
-            }
+        tr_table(visible, ("Check", "Reason", "Unit")).style.format(
+            tr_formats(
+                {
+                    "Population": "{:,.0f}",
+                    "Observed": "{:,.3f}",
+                    "Expected": "{:,.3f}",
+                    "Robust score": "{:+.2f}",
+                }
+            )
         ),
         hide_index=True,
         width="stretch",
         height=360,
     )
     st.download_button(
-        f"Download {title.lower()} flags",
+        tr("Download flags: {title}", title=tr(title)),
         visible.to_csv(index=False).encode("utf-8-sig"),
         file_name=f"{title.lower().replace(' ', '_')}_flags.csv",
         mime="text/csv",
@@ -1080,197 +1178,375 @@ def show_outlier_check(
 st.markdown(
     """
     <style>
-    @keyframes global-loading-pulse {
-        0%, 100% {
-            box-shadow: 0 10px 30px rgba(21, 101, 192, 0.22);
-            transform: translate(-50%, -50%) scale(1);
-        }
-        50% {
-            box-shadow: 0 12px 34px rgba(2, 136, 209, 0.38);
-            transform: translate(-50%, -50%) scale(1.025);
-        }
+    /* Atlas styling. Colours come from .streamlit/config.toml; this block only
+       adds what the theme cannot express. */
+    :root {
+        --atlas-ink: #14302A;
+        --atlas-slate: #5C6470;
+        --atlas-rule: #D3DED5;
+        --atlas-forest: #1E7B4F;
+        --atlas-gradient: linear-gradient(120deg, #0B5D3B 0%, #17864F 55%, #3DBA74 100%);
+        --atlas-gold: #B8902F;
+        --atlas-gold-soft: #F4ECD8;
     }
 
+    /* Headings: Noto Sans Lao at a condensed width, so titles read as an atlas
+       heading rather than body text set large. */
+    [data-testid="stHeading"] h1,
+    [data-testid="stHeading"] h2,
+    [data-testid="stHeading"] h3,
+    .atlas-masthead h1 {
+        font-stretch: 80%;
+        letter-spacing: -0.005em;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    /* Busy state: a flat ink label while the forecast recalculates. */
     .stApp[data-test-script-state="running" i]::before {
-        content: "⏳ ກຳລັງດຳເນີນການ, ກະລຸນາລໍຖ້າ…";
+        content: "ກຳລັງຄຳນວນ…";
         position: fixed;
+        top: 1rem;
         left: 50%;
-        top: 50%;
         z-index: 999999;
-        padding: 1.15rem 1.8rem;
-        border: 1px solid rgba(255, 255, 255, 0.38);
-        border-radius: 999px;
-        background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%);
+        transform: translateX(-50%);
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.3rem;
+        background: var(--atlas-ink);
         color: #ffffff;
-        font-size: 1.4rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        line-height: 1.25;
+        font-size: 1.05rem;
+        font-weight: 600;
         pointer-events: none;
-        animation: global-loading-pulse 1.15s ease-in-out infinite;
     }
 
-    @media (max-width: 640px) {
-        .stApp[data-test-script-state="running" i]::before {
-            max-width: calc(100vw - 2rem);
-            padding: 0.95rem 1.25rem;
-            font-size: 1.1rem;
-            text-align: center;
-            white-space: nowrap;
-        }
+    /* Tabs: larger labels on Streamlit's own underline tabs. */
+    div[data-testid="stTabs"] button[data-baseweb="tab"] p {
+        font-size: 1.05rem;
+        font-weight: 600;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .stApp[data-test-script-state="running" i]::before {
-            animation: none;
-            transform: translate(-50%, -50%);
-        }
+    /* Masthead */
+    .atlas-masthead {
+        margin: 0.25rem 0 1.5rem;
     }
 
-    .baseline-caption {
-        display: inline-flex;
-        align-items: center;
-        margin-top: 0.15rem;
-        padding: 0.45rem 0.85rem;
-        border: 1px solid #bfdbfe;
-        border-left: 4px solid #0288d1;
-        border-radius: 0.55rem;
-        background: linear-gradient(135deg, #eff8ff 0%, #e8f4ff 100%);
-        color: #0f4c81;
+    .atlas-masthead h1 {
+        margin: 0;
+        padding: 0;
+        width: fit-content;
+        color: var(--atlas-ink);
+        background: var(--atlas-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: clamp(2.3rem, 4.6vw, 3.6rem);
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .atlas-masthead p {
+        max-width: 68ch;
+        margin: 0.5rem 0 0;
+        color: var(--atlas-slate);
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    /* Time ribbon: train → test → forecast, one cell per year. */
+    .atlas-ribbon {
+        display: grid;
+        grid-template-columns: var(--ribbon-columns);
+        gap: 0 0.35rem;
+        margin: 0 0 1.75rem;
+        font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    .atlas-ribbon__span {
+        color: var(--atlas-slate);
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    .atlas-ribbon__band {
+        display: flex;
+        gap: 2px;
+        height: 14px;
+        margin: 0.45rem 0 0.7rem;
+    }
+
+    .atlas-ribbon__band i {
+        flex: 1;
+        background: var(--atlas-gradient);
+    }
+
+    .atlas-ribbon__seg--test .atlas-ribbon__band i {
+        background: repeating-linear-gradient(
+            135deg,
+            var(--atlas-forest) 0 2px,
+            transparent 2px 5px
+        );
+        box-shadow: inset 0 0 0 1.5px var(--atlas-forest);
+    }
+
+    /* The gold thread: forecast years are woven, not solid. */
+    .atlas-ribbon__seg--forecast .atlas-ribbon__band i {
+        background:
+            repeating-linear-gradient(90deg, var(--atlas-gold) 0 3px, transparent 3px 6px),
+            var(--atlas-gold-soft);
+        box-shadow: inset 0 0 0 1.5px var(--atlas-gold);
+    }
+
+    .atlas-ribbon__label {
+        color: var(--atlas-ink);
         font-size: 1rem;
         font-weight: 700;
-        letter-spacing: 0.01em;
-        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.1);
     }
 
-    div[data-testid="stButtonGroup"] {
-        margin: 0.35rem 0 1.25rem;
+    .atlas-ribbon__value {
+        margin-top: 0.15rem;
+        color: var(--atlas-ink);
+        font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+        font-weight: 750;
+        font-stretch: 85%;
+        line-height: 1.15;
     }
 
-    div[data-testid="stButtonGroup"] [role="radiogroup"] {
-        gap: 0.55rem !important;
-        padding: 0.42rem !important;
-        border: 1px solid #dbe5f0;
-        border-radius: 1rem;
-        background: linear-gradient(135deg, #f8fbff 0%, #f1f5f9 100%);
-        box-shadow: 0 8px 24px rgba(15, 76, 129, 0.08);
+    .atlas-ribbon__note {
+        color: var(--atlas-slate);
+        font-size: 0.92rem;
+        line-height: 1.45;
     }
 
-    div[data-testid="stButtonGroup"] button {
-        min-height: 3.15rem;
-        position: relative;
-        border: 1px solid #dbe5f0 !important;
-        border-radius: 0.75rem !important;
-        background: #ffffff !important;
-        color: #475569 !important;
-        font-weight: 650 !important;
-        letter-spacing: 0.01em;
-        transition:
-            transform 160ms ease,
-            box-shadow 160ms ease,
-            background 160ms ease,
-            color 160ms ease !important;
+    .atlas-ribbon__seg--forecast .atlas-ribbon__span {
+        color: #7A5F1C;
     }
 
-    div[data-testid="stButtonGroup"] button:hover {
-        border-color: #bfdbfe !important;
-        background: #ffffff !important;
-        color: #1565c0 !important;
-        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.12);
-        transform: translateY(-1px);
+    .atlas-meta {
+        margin: -0.75rem 0 1.5rem;
+        color: var(--atlas-slate);
+        font-size: 0.95rem;
     }
 
-    div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"],
-    div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {
-        border-color: transparent !important;
-        background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%) !important;
-        color: #ffffff !important;
+    @media (max-width: 760px) {
+        .atlas-ribbon {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+st.markdown(
+    """
+    <style>
+    /* ---------- Crystal layer: mint glass, glowing edges, dark-green step bar ---------- */
+    .stApp {
+        background:
+            radial-gradient(circle at 8% 0%, rgba(61, 186, 116, 0.22), transparent 36%),
+            radial-gradient(circle at 92% 6%, rgba(61, 186, 116, 0.16), transparent 32%),
+            radial-gradient(circle at 50% 100%, rgba(30, 123, 79, 0.10), transparent 45%),
+            linear-gradient(180deg, #EEF8F1 0%, #E4F3E9 100%);
+        background-attachment: fixed;
+    }
+
+    [data-testid="stSidebar"] > div:first-child {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(220, 241, 228, 0.6));
+        backdrop-filter: blur(18px) saturate(140%);
+        border-right: 1px solid rgba(61, 186, 116, 0.25);
+    }
+
+    /* Cards: mint glass with a faint green edge. */
+    [class*="st-key-glass-"],
+    [data-testid="stExpander"] details {
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.86), rgba(226, 244, 233, 0.66)) !important;
+        backdrop-filter: blur(16px) saturate(150%);
+        border: 1px solid rgba(61, 186, 116, 0.32) !important;
+        border-radius: 16px !important;
         box-shadow:
-            0 8px 20px rgba(21, 101, 192, 0.32),
-            inset 0 1px 0 rgba(255, 255, 255, 0.28);
-        transform: translateY(-1px);
+            0 10px 28px rgba(30, 123, 79, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
     }
 
-    div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"] *,
-    div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] * {
-        color: #ffffff !important;
+    [class*="st-key-glass-"] {
+        padding: 1rem 1.1rem 0.6rem !important;
+        transition: box-shadow 200ms ease, border-color 200ms ease;
     }
 
-    div[data-testid="stButtonGroup"] button[kind="segmented_controlActive"]::after,
-    div[data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"]::after {
-        content: "✓";
-        display: inline-grid;
-        place-items: center;
-        width: 1.35rem;
-        height: 1.35rem;
-        margin-left: 0.5rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.2);
-        color: #ffffff;
-        font-size: 0.78rem;
+    [class*="st-key-glass-"]:hover {
+        border-color: rgba(61, 186, 116, 0.55) !important;
+        box-shadow:
+            0 14px 34px rgba(30, 123, 79, 0.18),
+            0 0 16px rgba(61, 186, 116, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    [class*="st-key-glass-"] ul li::marker {
+        color: #2BAA63;
+        font-size: 1.15em;
+    }
+
+    /* Tiles: glowing crystal edge. */
+    [data-testid="stMetric"] {
+        padding: 0.75rem 1rem 0.55rem !important;
+        background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(206, 238, 218, 0.72)) !important;
+        backdrop-filter: blur(14px) saturate(150%);
+        border: 1.5px solid rgba(61, 186, 116, 0.6) !important;
+        border-radius: 14px !important;
+        box-shadow:
+            0 8px 22px rgba(30, 123, 79, 0.16),
+            0 0 14px rgba(61, 186, 116, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    [data-testid="stMetricValue"] {
         font-weight: 800;
     }
 
-    div[data-testid="stButtonGroup"] button:focus-visible {
-        outline: 3px solid rgba(2, 136, 209, 0.28) !important;
-        outline-offset: 2px;
+    .st-key-dataset-tiles [data-testid="stMetricValue"] {
+        font-size: 1.7rem;
     }
 
+    /* Tiles in a row share one height. */
+    [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) {
+        align-items: stretch;
+    }
+
+    [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) > [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
+    [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) [data-testid="stElementContainer"]:has(> [data-testid="stMetric"]) {
+        height: 100%;
+    }
+
+    [data-testid="stMetric"] {
+        height: 100%;
+    }
+
+    [data-testid="stMetricDelta"] {
+        background: rgba(61, 186, 116, 0.16) !important;
+        border-radius: 999px;
+    }
+
+    /* Sub-tabs (inside a step): light glass bar. */
     div[data-testid="stTabs"] div[data-baseweb="tab-list"] {
-        gap: 0.55rem;
-        padding: 0.42rem;
-        overflow-x: auto;
-        border: 1px solid #dbe5f0;
-        border-radius: 1rem;
-        background: linear-gradient(135deg, #f8fbff 0%, #f1f5f9 100%);
-        box-shadow: 0 8px 24px rgba(15, 76, 129, 0.08);
+        gap: 0.35rem;
+        padding: 0.35rem;
+        border: 1px solid rgba(61, 186, 116, 0.3);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.62);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 6px 18px rgba(30, 123, 79, 0.08);
     }
 
     div[data-testid="stTabs"] button[data-baseweb="tab"] {
-        flex: 1 0 auto;
-        min-height: 3rem;
-        padding: 0.65rem 1rem;
-        border: 1px solid #dbe5f0;
-        border-radius: 0.75rem;
-        background: #ffffff;
-        color: #475569;
-        font-weight: 650;
-        letter-spacing: 0.01em;
-        transition:
-            transform 160ms ease,
-            box-shadow 160ms ease,
-            background 160ms ease,
-            color 160ms ease;
-    }
-
-    div[data-testid="stTabs"] button[data-baseweb="tab"]:hover {
-        border-color: #bfdbfe;
-        color: #1565c0;
-        box-shadow: 0 4px 12px rgba(21, 101, 192, 0.12);
-        transform: translateY(-1px);
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
     }
 
     div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
-        border-color: transparent;
-        background: linear-gradient(135deg, #1565c0 0%, #0288d1 100%);
-        color: #ffffff;
-        box-shadow:
-            0 8px 20px rgba(21, 101, 192, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.28);
-        transform: translateY(-1px);
+        background: linear-gradient(120deg, #17864F 0%, #2BAA63 60%, #4FD08A 100%);
+        box-shadow: 0 4px 14px rgba(43, 170, 99, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
     }
 
-    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] * {
-        color: #ffffff !important;
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p,
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] span {
+        color: #FFFFFF !important;
     }
 
-    div[data-testid="stTabs"] button[data-baseweb="tab"]:focus-visible {
-        outline: 3px solid rgba(2, 136, 209, 0.28);
-        outline-offset: 2px;
-    }
-
-    div[data-testid="stTabs"] div[data-baseweb="tab-highlight"] {
+    div[data-testid="stTabs"] div[data-baseweb="tab-highlight"],
+    div[data-testid="stTabs"] div[data-baseweb="tab-border"] {
         display: none;
+    }
+
+    /* The step bar: a dark green band with a glowing active step. */
+    .st-key-step-tabs > div > div[data-baseweb="tab-list"],
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) {
+        padding: 0.45rem;
+        border: 1px solid rgba(120, 220, 160, 0.35);
+        border-radius: 16px;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+            linear-gradient(120deg, #072B1D 0%, #0D4430 50%, #0A3524 100%);
+        box-shadow:
+            0 12px 30px rgba(7, 43, 29, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"] p {
+        color: rgba(225, 245, 233, 0.86);
+        font-size: 1.05rem;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:hover p {
+        color: #FFFFFF;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(120deg, #2BAA63 0%, #4FD08A 100%);
+        box-shadow:
+            0 0 18px rgba(79, 208, 138, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    /* Step header: a glossy green orb with the step number. */
+    .step-hero {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin: 0.9rem 0 1.1rem;
+        padding: 0;
+    }
+
+    .step-hero__number {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 3.4rem;
+        height: 3.4rem;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55), transparent 32%),
+            radial-gradient(circle at 50% 55%, #1E9E5F 0%, #0B5D3B 62%, #06331F 100%);
+        color: #FFFFFF;
+        font-size: 1.55rem;
+        font-weight: 800;
+        box-shadow:
+            0 10px 22px rgba(7, 43, 29, 0.35),
+            0 0 0 4px rgba(61, 186, 116, 0.18);
+    }
+
+    .step-hero h2 {
+        margin: 0;
+        padding: 0;
+        color: var(--atlas-ink);
+        font-size: 1.55rem;
+        font-weight: 800;
+        font-stretch: 85%;
+    }
+
+    .step-hero p {
+        margin: 0.15rem 0 0;
+        color: var(--atlas-slate);
+        font-size: 0.98rem;
+    }
+
+    /* Step 1 map: OpenStreetMap inside a rounded frame. */
+    .st-key-dark-map {
+        overflow: hidden;
+        border: 1px solid rgba(61, 186, 116, 0.45);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(30, 123, 79, 0.16);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [class*="st-key-glass-"],
+        div[data-testid="stTabs"] button[data-baseweb="tab"] {
+            transition: none;
+        }
     }
     </style>
     """,
@@ -1281,9 +1557,10 @@ app_view = st.segmented_control(
     "Page",
     ["Presentation", "Demo"],
     default="Demo",
-    format_func=lambda view: (
-        "🎞️  Presentation" if view == "Presentation" else "📊  Demo"
-    ),
+    format_func={
+        "Presentation": "🎞️  " + tr("Presentation"),
+        "Demo": "📊  " + tr("Demo"),
+    }.get,
     label_visibility="collapsed",
     width="stretch",
 )
@@ -1376,66 +1653,121 @@ if app_view == "Presentation":
     st.iframe(presentation_html, height=900, width="stretch")
     st.stop()
 
-st.title("ການຄາດຄະເນປະຊາກອນລາວ (ແຍກເປັນ: ເມືອງ, ອາຍຸ ແລະ ເພດ)")
-st.caption(
-    '<span class="baseline-caption">ຂໍ້ມູນພື້ນຖານ (baseline)</span>',
+st.sidebar.segmented_control(
+    "ພາສາ / Language",
+    list(LANGUAGES),
+    default=DEFAULT_LANGUAGE,
+    format_func=LANGUAGES.get,
+    key="demo_language",
+    width="stretch",
+)
+st.markdown(
+    "<style>.stApp[data-test-script-state=\"running\" i]::before "
+    f"{{ content: \"{tr('Calculating…')}\"; }}</style>",
     unsafe_allow_html=True,
 )
 
-st.sidebar.header("Data and forecast")
-uploaded_file = st.sidebar.file_uploader("Upload population CSV", type=["csv"])
-future_end = st.sidebar.slider("Forecast through", 2026, 2040, 2030)
+# Option widgets whose labels change with the language get one key per
+# language: Streamlit matches their state by the displayed text, so a shared key
+# would lose the selection. The chosen value is copied over when the language
+# switches.
+language_changed = (
+    st.session_state.get("_previous_language", current_language()) != current_language()
+)
+st.session_state["_previous_language"] = current_language()
+
+
+def lang_key(name: str) -> str:
+    key = f"{name}__{current_language()}"
+    saved = st.session_state.get(f"_{name}_value")
+    if saved is not None and (language_changed or key not in st.session_state):
+        st.session_state[key] = saved
+    return key
+
+
+def remember(name: str, value: object) -> object:
+    st.session_state[f"_{name}_value"] = value
+    return value
+
+
+masthead = st.container()
+masthead.markdown(
+    f"""
+    <header class="atlas-masthead">
+        <h1>{tr("Laos population forecast")}</h1>
+        <p>{tr("By district, age and sex, from Ministry of Health DHIS2 data.")}</p>
+    </header>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.sidebar.header(tr("Data and forecast"))
+uploaded_file = st.sidebar.file_uploader(
+    tr("Upload population CSV"), type=["csv"], key="upload_csv"
+)
+future_end = st.sidebar.slider(tr("Forecast through"), 2026, 2040, 2030, key="future_end")
 correction_threshold = st.sidebar.slider(
-    "Outlier correction threshold",
+    tr("Outlier correction threshold"),
     min_value=2.5,
     max_value=6.0,
     value=DEFAULT_CORRECTION_THRESHOLD,
     step=0.25,
-    help=(
+    help=tr(
         "Lower values flag and potentially correct more observations. Higher values "
         "require more exceptional robust scores. Every correction still requires an "
         "independent demographic confirmation."
     ),
+    key="correction_threshold",
 )
 selected_model_option = st.sidebar.selectbox(
-    "Forecast model",
+    tr("Forecast model"),
     [ALL_MODELS_OPTION, *MODEL_NAMES],
-    format_func=lambda name: MODEL_LABELS.get(name, name),
-    help="Choose one model to inspect, or All models to compare their results and accuracy.",
+    format_func={ALL_MODELS_OPTION: tr(ALL_MODELS_OPTION), **MODEL_LABELS}.get,
+    help=tr("Choose one model to inspect, or All models to compare their results and accuracy."),
+    key=lang_key("forecast_model"),
 )
+remember("forecast_model", selected_model_option)
 selected_models = (
     list(MODEL_NAMES)
     if selected_model_option == ALL_MODELS_OPTION
     else [selected_model_option]
 )
 
+def baseline_label(option: str) -> str:
+    if option == ORIGINAL_INPUT_OPTION:
+        return tr("Original data")
+    return tr(
+        "Outlier-corrected data (threshold {threshold})",
+        threshold=f"{correction_threshold:g}",
+    )
+
+
+baseline_key = lang_key("baseline_type")
 forecast_input_option = st.segmented_control(
-    "Baseline data type",
+    tr("Baseline data type"),
     [ORIGINAL_INPUT_OPTION, CORRECTED_INPUT_OPTION],
-    default=CORRECTED_INPUT_OPTION,
-    format_func=lambda option: (
-        "Original data"
-        if option == ORIGINAL_INPUT_OPTION
-        else f"Outlier-corrected data (threshold {correction_threshold:g})"
-    ),
-    help=(
+    default=None if baseline_key in st.session_state else CORRECTED_INPUT_OPTION,
+    format_func={
+        option: baseline_label(option)
+        for option in (ORIGINAL_INPUT_OPTION, CORRECTED_INPUT_OPTION)
+    }.get,
+    help=tr(
         "Choose the baseline used by the forecast. Outlier-corrected data changes only "
-        "temporal anomalies independently confirmed by a demographic check; the "
-        "original upload is never overwritten."
+        "temporal anomalies independently confirmed by a demographic check; the original "
+        "upload is never overwritten."
     ),
     width="stretch",
+    key=baseline_key,
 )
-forecast_input_option = forecast_input_option or CORRECTED_INPUT_OPTION
-forecast_input_label = (
-    "Original data"
-    if forecast_input_option == ORIGINAL_INPUT_OPTION
-    else f"Outlier-corrected data (threshold {correction_threshold:g})"
+forecast_input_option = remember(
+    "baseline_type", forecast_input_option or CORRECTED_INPUT_OPTION
 )
+forecast_input_label = baseline_label(forecast_input_option)
 
 try:
     if uploaded_file is None:
         if not DEFAULT_DATA.exists():
-            st.error(f"Default data file not found: {DEFAULT_DATA}")
+            st.error(tr("Default data file not found: {path}", path=DEFAULT_DATA))
             st.stop()
         raw_data = load_default_data(str(DEFAULT_DATA), DEFAULT_DATA.stat().st_mtime)
         source_name = DEFAULT_DATA.name
@@ -1446,25 +1778,16 @@ try:
     correction_result = cached_outlier_correction(data, correction_threshold)
     corrected_data = correction_result.data
 except Exception as error:
-    st.error(f"Could not load the population data: {error}")
+    st.error(tr("Could not load the population data: {error}", error=error))
     st.stop()
 
 filtered_original_data = filter_data(data)
 if filtered_original_data.empty:
-    st.warning("The selected filters contain no records. Change or clear the filters.")
+    st.warning(tr("The selected filters contain no records. Change or clear the filters."))
     st.stop()
 
-with st.sidebar.expander("5–7 minute demo path"):
-    st.markdown(
-        """
-1. **Forecast Overview** — show holdout validation, selected model and national forecast.
-2. **Source data & outliers** — explain the nationwide correction summary and audit trail.
-3. **Population pyramid** — switch between nationwide and one district.
-4. **Row-level exports** — show reusable CSV/HTML outputs.
-
-The methodology tab is supporting material; it does not need to be opened during the timed demo.
-        """
-    )
+with st.sidebar.expander(tr("5–7 minute demo path")):
+    st.markdown(block("demo_path", current_language()))
 
 filtered_corrected_data = corrected_data.loc[filtered_original_data.index].copy()
 filtered_data = (
@@ -1541,7 +1864,7 @@ if not nationwide_corrections.empty:
         nationwide_corrections.groupby(["Year", "Sex"]).size().unstack(fill_value=0)
         .reindex(HISTORICAL_YEARS, fill_value=0)
     )
-    sex_colors = {"Female": "#D946EF", "Male": "#1686A3"}
+    sex_colors = {"Female": ATLAS_MADDER, "Male": ATLAS_MEKONG}
     for sex_name in year_sex_counts.columns:
         values = year_sex_counts[sex_name].astype(int).tolist()
         outlier_evidence_figure.add_trace(
@@ -1555,7 +1878,7 @@ if not nationwide_corrections.empty:
                     if str(sex_name) == "Male"
                     else str(sex_name)
                 ),
-                marker_color=sex_colors.get(str(sex_name), "#D97706"),
+                marker_color=sex_colors.get(str(sex_name), ATLAS_SLATE),
                 text=values,
                 textposition="auto",
                 hovertemplate=(
@@ -1574,7 +1897,7 @@ if not nationwide_corrections.empty:
             y=top_districts.index.astype(str),
             orientation="h",
             name="ກໍລະນີຕາມເມືອງ (District cases)",
-            marker_color="#027235",
+            marker_color=ATLAS_FOREST,
             text=top_districts.astype(int),
             textposition="auto",
             hovertemplate="%{y}<br>ກໍລະນີຢືນຢັນ (Confirmed cases): %{x:,}<extra></extra>",
@@ -1590,7 +1913,7 @@ if not nationwide_corrections.empty:
             y=top_ages.index.astype(str),
             orientation="h",
             name="ກໍລະນີຕາມກຸ່ມອາຍຸ (Age-group cases)",
-            marker_color="#D97706",
+            marker_color=ATLAS_FOREST,
             text=top_ages.astype(int),
             textposition="auto",
             hovertemplate="%{y}<br>ກໍລະນີຢືນຢັນ (Confirmed cases): %{x:,}<extra></extra>",
@@ -1632,8 +1955,8 @@ if not nationwide_corrections.empty:
             "xanchor": "left",
             "x": 0,
         },
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
     outlier_evidence_figure.update_annotations(
         font={"color": STREAMLIT_CHART_TEXT, "size": 14}
@@ -1655,7 +1978,7 @@ else:
         xref="paper",
         yref="paper",
         showarrow=False,
-        font={"size": 18, "color": "#5E7077"},
+        font={"size": 18, "color": ATLAS_SLATE},
     )
     outlier_evidence_figure.update_layout(
         template=PLOTLY_TEMPLATE,
@@ -1708,7 +2031,7 @@ if not presentation_corrections.empty:
             y=original_series,
             name="ຍອດລວມທົ່ວປະເທດຕົ້ນສະບັບ (Original nationwide total)",
             mode="lines+markers",
-            line={"color": "#D97706", "width": 3, "dash": "dash"},
+            line={"color": ATLAS_SLATE, "width": 2, "dash": "dash"},
             marker={"size": 7, "symbol": "circle-open"},
             hovertemplate=(
                 "ຍອດລວມທົ່ວປະເທດຕົ້ນສະບັບ (Original nationwide total)<br>ປີ (Year): %{x}<br>ປະຊາກອນ (Population): %{y:,.0f}"
@@ -1722,7 +2045,7 @@ if not presentation_corrections.empty:
             y=corrected_series,
             name="ຍອດລວມທົ່ວປະເທດທີ່ແກ້ໄຂແລ້ວ (Corrected nationwide total)",
             mode="lines+markers",
-            line={"color": "#027235", "width": 3},
+            line={"color": ATLAS_FOREST, "width": 2.5},
             marker={"size": 7},
             customdata=annual_adjustments,
             hovertemplate=(
@@ -1737,7 +2060,7 @@ if not presentation_corrections.empty:
             y=original_series[corrected_positions],
             name="ກ່ອນແກ້ໄຂ — ປີທີ່ໄດ້ຮັບຜົນ (Before treatment — affected year)",
             mode="markers",
-            marker={"color": "#DC2626", "size": 14, "symbol": "x", "line": {"width": 2}},
+            marker={"color": ATLAS_MADDER, "size": 13, "symbol": "x", "line": {"width": 2}},
             hovertemplate=(
                 "ປີທີ່ໄດ້ຮັບຜົນກ່ອນແກ້ໄຂ (Affected year before treatment)<br>ປີ (Year): %{x}"
                 "<br>ຍອດລວມທົ່ວປະເທດ (Nationwide total): %{y:,.0f}<extra></extra>"
@@ -1751,7 +2074,7 @@ if not presentation_corrections.empty:
             name="ຫຼັງແກ້ໄຂ — ປີທີ່ໄດ້ຮັບຜົນ (After treatment — affected year)",
             mode="markers",
             marker={
-                "color": "#16A34A",
+                "color": ATLAS_FOREST,
                 "size": 13,
                 "symbol": "diamond",
                 "line": {"color": "#FFFFFF", "width": 1.5},
@@ -1776,8 +2099,8 @@ if not presentation_corrections.empty:
             "xanchor": "left",
             "x": 0,
         },
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
     )
     correction_comparison_figure.update_xaxes(
         title_text="ປີ (Year)",
@@ -1807,7 +2130,7 @@ else:
         xref="paper",
         yref="paper",
         showarrow=False,
-        font={"size": 18, "color": "#5E7077"},
+        font={"size": 18, "color": ATLAS_SLATE},
     )
     correction_comparison_figure.update_layout(
         template=PLOTLY_TEMPLATE,
@@ -1966,71 +2289,768 @@ for model_name in MODEL_NAMES:
             live_results[f"{model_key}_{year}"] = "—"
 st.session_state["presentation_results"] = live_results
 
-summary_column_count = 4 if selected_model_option == ALL_MODELS_OPTION else 4
-summary_columns = st.columns(summary_column_count)
-summary_columns[0].metric("ຈຳນວນຂໍ້ມູນ (Rows)", f"{len(filtered_data):,}")
-summary_columns[1].metric("ປະຊາກອນ ປີ 2016", f"{result.actual[0]:,.0f}")
-summary_columns[2].metric("ປະຊາກອນ ປີ 2025", f"{result.actual[-1]:,.0f}")
+# Time ribbon in the masthead: train → test → forecast, one cell per year.
+ribbon_model = (
+    presentation_best_model
+    if selected_model_option == ALL_MODELS_OPTION
+    else selected_model_option
+)
+ribbon_mape = validation_result.metrics.loc[ribbon_model, "MAPE (%)"]
+ribbon_train_years = list(validation_result.train_years)
+ribbon_test_years = list(validation_result.test_years)
 
-summary_columns[3].metric("ແຫຼ່ງຂໍ້ມູນ", f"DHIS2, ກສທ")
+# Land area of the districts in the current selection (all of Lao PDR when no
+# district filter is set), measured from the map boundaries.
+ribbon_area_km2 = 0.0
+if BOUNDARY_FILE.exists() and "ouID" in filtered_data.columns:
+    boundary_names = map_boundaries()["names"]
+    district_areas = boundary_names.loc[
+        boundary_names["level"] == population_map.DISTRICT_LEVEL
+    ].set_index("ouID")["area_km2"]
+    ribbon_area_km2 = float(
+        district_areas.reindex(filtered_data["ouID"].unique()).sum()
+    )
 
-st.markdown(
-            '<hr style="border: none; border-top: 2px solid #2196F3;">',
-            unsafe_allow_html=True
-        )
-if selected_model_option == ALL_MODELS_OPTION:
-    best_model = validation_result.metrics.loc[selected_models, "MAPE (%)"].idxmin()
-    st.subheader("Time-based validation model comparison")
-    st.caption(
-        "Models are trained on 2016–2022 and evaluated on the unseen 2023–2025 "
-        "holdout period. The final 2026+ forecasts are then retrained on all 2016–2025 data."
+
+# ------------------------------------------------------------------ the three steps
+def crystal(figure: go.Figure, height: int | None = None) -> go.Figure:
+    """Crystal chart style: transparent glass background, soft grid, clear hover."""
+    figure.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        hoverlabel={
+            "bgcolor": "rgba(255,255,255,0.95)",
+            "bordercolor": "rgba(20,48,42,0.18)",
+            "font_color": ATLAS_INK,
+        },
+        margin={"l": 8, "r": 8, "t": 12, "b": 8},
+        legend={"orientation": "h", "x": 0, "y": 1.02, "yanchor": "bottom"},
     )
-    all_model_summary = validation_result.metrics.loc[list(MODEL_NAMES)].reset_index()
-    all_model_summary["Model"] = all_model_summary["Model"].map(MODEL_LABELS)
-    st.dataframe(
-        all_model_summary.style.format(
-            {
-                "MAE": "{:,.2f}",
-                "RMSE": "{:,.2f}",
-                "MAPE (%)": "{:.4f}",
-                "R²": "{:.4f}",
-                "Accuracy (%)": "{:.4f}",
-            }
-        ).highlight_min(subset=["MAPE (%)"], color="#d1e7dd"),
-        hide_index=True,
-        width="stretch",
-        height=143,
-    )
-    # st.caption(f"Best fit by MAPE: {MODEL_LABELS[best_model]}")
+    if height:
+        figure.update_layout(height=height)
+    figure.update_xaxes(gridcolor="rgba(20,48,42,0.07)", zeroline=False, showline=False)
+    figure.update_yaxes(gridcolor="rgba(20,48,42,0.07)", zeroline=False, showline=False)
+    return figure
+
+
+_glass_count = 0
+
+
+def glass(parent=None):
+    """A frosted-glass card; the .st-key-glass-* CSS gives it the crystal look."""
+    global _glass_count
+    _glass_count += 1
+    return (parent or st).container(border=True, key=f"glass-{_glass_count}")
+
+
+def card_title(icon: str, title: str, caption: str | None = None) -> None:
+    st.markdown(f":material/{icon}: **{title}**")
+    if caption:
+        st.caption(caption)
+
+
+def step_header(number: int, title: str, text: str) -> None:
     st.markdown(
-        '<hr style="border: none; border-top: 2px solid #2196F3;">',
-        unsafe_allow_html=True
+        f'<div class="step-hero"><span class="step-hero__number">{number}</span>'
+        f"<div><h2>{title}</h2><p>{text}</p></div></div>",
+        unsafe_allow_html=True,
     )
-    # st.divider()
-else:
-    selected_mape = validation_result.metrics.loc[selected_model_option, "MAPE (%)"]
-    summary_columns[3].metric("Validation MAPE", f"{selected_mape:.4f}%")
-# st.caption(f"Source: {source_name} · {len(data):,} total source rows")
 
 
-overview_tab, data_tab, pyramid_tab, export_tab, methodology_tab = st.tabs(
+CRYSTAL_CHART_CONFIG = {
+    "displaylogo": False,
+    "modeBarButtonsToRemove": ["lasso2d", "select2d"],
+}
+
+step1_tab, step2_tab, step3_tab = st.tabs(
     [
-        "Forecast Overview",
-        "Source data & outliers",
-        "Population pyramid",
-        "Row-level exports",
-        "Methodology & limitations",
+        ":material/database: " + tr("Step 1: Dataset and sources"),
+        ":material/model_training: " + tr("Step 2: Forecasting and visualization"),
+        ":material/dashboard: " + tr("Step 3: Summary dashboard"),
+    ],
+    key="step-tabs",
+)
+with step1_tab:
+    step_header(
+        1,
+        tr("Dataset and data sources"),
+        tr(
+            "Population by age, sex, district and year from the Ministry of Health DHIS2 "
+            "system: what the data covers, where it comes from and how complete it is."
+        ),
+    )
+    step1_overview = st.container()
+    step1_source = st.container()
+with step2_tab:
+    step_header(
+        2,
+        tr("Forecasting details and visualization"),
+        tr(
+            "How the models are built and tested, how outliers are handled, the forecast "
+            "results, and maps and charts of the population."
+        ),
+    )
+    methodology_tab, data_tab, overview_tab, pyramid_tab, analysis_tab = st.tabs(
+        [
+            ":material/functions: " + tr("Methodology"),
+            ":material/rule: " + tr("Outliers"),
+            ":material/query_stats: " + tr("Results"),
+            ":material/map: " + tr("Maps & charts"),
+            ":material/analytics: " + tr("Further analysis"),
+        ]
+    )
+with step3_tab:
+    step_header(
+        3,
+        tr("Summary and interactive dashboard"),
+        tr(
+            "The headline numbers, key findings and downloads in one place. Everything "
+            "follows the sidebar settings and the baseline data type."
+        ),
+    )
+    step3_dashboard = st.container()
+    step3_findings = st.container()
+    export_tab = st.container()
+    step3_info = st.container()
+
+# ------------------------------------------------------------------ step 1 content
+with step1_overview:
+    latest_year = HISTORICAL_YEARS[-1]
+    latest_column = str(latest_year)
+    district_filter_active = bool(st.session_state.get("filter_ouName"))
+    province_count = data["ouName"].astype(str).str[:2].nunique()
+    boundary_info = map_boundaries() if BOUNDARY_FILE.exists() else None
+    country_area_km2 = 0.0
+    if boundary_info is not None:
+        boundary_table = boundary_info["names"].copy()
+        country_area_km2 = float(
+            boundary_table.loc[
+                boundary_table["level"] == population_map.DISTRICT_LEVEL, "area_km2"
+            ].sum()
+        )
+
+    tiles = st.container(key="dataset-tiles").columns(5)
+    tiles[0].metric(
+        ":material/table_rows: " + tr("Records"),
+        f"{len(data):,}",
+        delta=tr("{count} values", count=f"{len(data) * len(HISTORICAL_YEARS):,}"),
+        delta_color="off",
+        delta_arrow="off",
+        help=tr("district–age–sex series"),
+        border=True,
+    )
+    tiles[1].metric(
+        ":material/location_city: " + tr("Districts"),
+        f"{data['ouID'].nunique():,}",
+        delta=tr("{count} provinces", count=province_count),
+        delta_color="off",
+        delta_arrow="off",
+        border=True,
+    )
+    tiles[2].metric(
+        ":material/groups: " + tr("Age groups"),
+        f"{data['cocID'].nunique():,}",
+        delta=tr("{count} sexes", count=data["sexID"].nunique()),
+        delta_color="off",
+        delta_arrow="off",
+        help=tr("{count} sexes, single years 0–80+", count=data["sexID"].nunique()),
+        border=True,
+    )
+    tiles[3].metric(
+        ":material/calendar_month: " + tr("Years"),
+        f"{len(HISTORICAL_YEARS)}",
+        delta=f"{HISTORICAL_YEARS[0]}–{latest_year}",
+        delta_color="off",
+        delta_arrow="off",
+        border=True,
+    )
+    tiles[4].metric(
+        ":material/landscape: " + tr("Area (km²)"),
+        f"{country_area_km2:,.0f}" if country_area_km2 else "—",
+        delta=tr("Lao PDR"),
+        delta_color="off",
+        delta_arrow="off",
+        help=tr("measured from the map boundaries"),
+        border=True,
+    )
+
+    map_column, source_column = st.columns([1.3, 1])
+    with map_column:
+        with glass():
+            card_title(
+                "public",
+                tr("Lao PDR: area covered by the data")
+                if not district_filter_active
+                else tr("Selected districts in Lao PDR"),
+                tr(
+                    "The whole country (level 1) is shown when all districts are selected. "
+                    "Choose districts in the sidebar to highlight them. Hover for area, "
+                    "population ({year}) and density.",
+                    year=latest_year,
+                ),
+            )
+            if boundary_info is None:
+                st.warning(tr("Map boundary file not found: {path}", path=BOUNDARY_FILE))
+            else:
+                district_population = data.groupby("ouID")[latest_column].sum()
+                area_table = boundary_table.copy()
+                area_table["Population"] = area_table["ouID"].map(district_population)
+                province_codes = area_table["name"].astype(str).str[:2]
+                district_codes = data.groupby("ouID")["ouName"].first().astype(str).str[:2]
+                province_population = district_population.groupby(district_codes).sum()
+                is_province = area_table["level"] == population_map.PROVINCE_LEVEL
+                area_table.loc[is_province, "Population"] = province_codes[is_province].map(
+                    province_population
+                )
+                is_country = area_table["level"] == population_map.COUNTRY_LEVEL
+                area_table.loc[is_country, "Population"] = district_population.sum()
+                area_table.loc[is_country, "area_km2"] = country_area_km2
+                area_table["Population"] = area_table["Population"].fillna(0)
+                area_table["Density"] = area_table["Population"] / area_table["area_km2"]
+                highlight_ids = (
+                    list(filtered_original_data["ouID"].unique()) if district_filter_active else None
+                )
+                st.container(key="dark-map").plotly_chart(
+                    population_map.area_overview_figure(
+                        boundary_info,
+                        area_table,
+                        highlight_ids,
+                        {
+                            "area": tr("Area (km²)"),
+                            "population": tr("Population"),
+                            "density": tr("People per km²"),
+                        },
+                        PLOTLY_TEMPLATE,
+                        height=470,
+                    ),
+                    width="stretch",
+                    config={"displaylogo": False, "scrollZoom": True},
+                )
+                if district_filter_active:
+                    selected_area = area_table.loc[
+                        area_table["ouID"].isin(highlight_ids), "area_km2"
+                    ].sum()
+                    st.caption(
+                        tr(
+                            "{count} selected district(s): {area} km², {share} of the country.",
+                            count=len(highlight_ids),
+                            area=f"{selected_area:,.0f}",
+                            share=f"{selected_area / country_area_km2:.1%}",
+                        )
+                    )
+
+    with source_column:
+        with glass():
+            card_title("source", tr("Data source"))
+            st.markdown(block("data_source", current_language()))
+            st.caption(tr("Loaded file: {name}", name=source_name))
+        with glass():
+            card_title("verified", tr("Data quality checks"))
+            total_cells = data.size
+            missing_cells = int(data.isna().sum().sum())
+            duplicate_keys = int(data.duplicated(["ouID", "deID", "cocID", "sexID"]).sum())
+            year_values = data[[str(year) for year in HISTORICAL_YEARS]].apply(
+                pd.to_numeric, errors="coerce"
+            )
+            invalid_values = int((year_values.isna() | (year_values < 0)).sum().sum())
+            expected_rows = data["ouID"].nunique() * data["cocID"].nunique() * data["sexID"].nunique()
+            quality = pd.DataFrame(
+                [
+                    (tr("Completeness"), (total_cells - missing_cells) / total_cells, tr("{count} empty cells", count=f"{missing_cells:,}")),
+                    (tr("Unique keys"), (len(data) - duplicate_keys) / len(data), tr("{count} duplicate keys", count=f"{duplicate_keys:,}")),
+                    (tr("Valid values"), (year_values.size - invalid_values) / year_values.size, tr("numeric and not negative")),
+                    (tr("Structural coverage"), len(data) / expected_rows if expected_rows else np.nan, tr("districts × ages × sexes")),
+                ],
+                columns=[tr("Check"), tr("Score"), tr("Detail")],
+            )
+            st.dataframe(
+                quality,
+                hide_index=True,
+                width="stretch",
+                column_config={
+                    tr("Score"): st.column_config.ProgressColumn(
+                        format="percent", min_value=0.0, max_value=1.0
+                    ),
+                },
+            )
+
+    st.caption(
+        tr(
+            "Charts below use the source data as loaded (before outlier correction), with "
+            "the sidebar filters applied."
+        )
+    )
+    year_chart_column, age_chart_column = st.columns(2)
+    with year_chart_column:
+        with glass():
+            card_title("stacked_bar_chart", tr("Population by year and sex"))
+            by_sex = (
+                filtered_original_data.groupby("sexName")[[str(year) for year in HISTORICAL_YEARS]]
+                .sum()
+                .T
+            )
+            year_figure = go.Figure()
+            for sex_name, color in (("Male", ATLAS_MEKONG), ("Female", ATLAS_MADDER)):
+                if sex_name in by_sex:
+                    year_figure.add_trace(
+                        go.Bar(
+                            x=HISTORICAL_YEARS,
+                            y=by_sex[sex_name],
+                            name=tr(sex_name),
+                            marker={"color": color, "opacity": 0.78, "line": {"color": "#FFFFFF", "width": 1.2}},
+                            hovertemplate=f"<b>%{{x}}</b> · {tr(sex_name)}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>",
+                        )
+                    )
+            year_figure.update_layout(barmode="stack", bargap=0.28)
+            year_figure.update_xaxes(tickmode="array", tickvals=HISTORICAL_YEARS)
+            year_figure.update_yaxes(tickformat=",.0f")
+            st.plotly_chart(crystal(year_figure, 360), width="stretch", config=CRYSTAL_CHART_CONFIG)
+    with age_chart_column:
+        with glass():
+            card_title("area_chart", tr("Population by single age, {year}", year=latest_year))
+            single_ages = pd.to_numeric(
+                filtered_original_data["cocCode"].astype(str).str.extract(r"(\d+)", expand=False),
+                errors="coerce",
+            )
+            by_age = (
+                filtered_original_data.assign(age=single_ages)
+                .groupby(["age", "sexName"])[latest_column]
+                .sum()
+                .unstack(fill_value=0)
+                .sort_index()
+            )
+            age_figure = go.Figure()
+            for sex_name, rgb in (("Male", "29,106,174"), ("Female", "166,61,79")):
+                if sex_name in by_age:
+                    age_figure.add_trace(
+                        go.Scatter(
+                            x=by_age.index,
+                            y=by_age[sex_name],
+                            name=tr(sex_name),
+                            mode="lines",
+                            line={"color": f"rgb({rgb})", "width": 2.5, "shape": "spline"},
+                            fill="tozeroy",
+                            fillgradient={
+                                "type": "vertical",
+                                "colorscale": [[0, f"rgba({rgb},0.02)"], [1, f"rgba({rgb},0.30)"]],
+                            },
+                            hovertemplate=f"{tr('Age')} %{{x}} · {tr(sex_name)}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>",
+                        )
+                    )
+            age_figure.update_xaxes(title_text=tr("Age"))
+            age_figure.update_yaxes(tickformat=",.0f")
+            st.plotly_chart(crystal(age_figure, 360), width="stretch", config=CRYSTAL_CHART_CONFIG)
+
+    with glass():
+        card_title(
+            "leaderboard",
+            tr("Largest districts, {year}", year=latest_year),
+            tr("Top 12 districts in the current selection by population."),
+        )
+        top_districts = (
+            filtered_original_data.groupby("ouName")[latest_column].sum().nlargest(12).sort_values()
+        )
+        district_figure = go.Figure(
+            go.Bar(
+                x=top_districts.values,
+                y=top_districts.index,
+                orientation="h",
+                marker={
+                    "color": top_districts.values,
+                    "colorscale": [[0, "rgba(61,186,116,0.55)"], [1, "rgba(11,93,59,0.9)"]],
+                    "line": {"color": "#FFFFFF", "width": 1.2},
+                },
+                text=[f"{value:,.0f}" for value in top_districts.values],
+                textposition="outside",
+                cliponaxis=False,
+                hovertemplate=f"<b>%{{y}}</b><br>{tr('Population')}: %{{x:,.0f}}<extra></extra>",
+            )
+        )
+        district_figure.update_xaxes(tickformat=",.0f")
+        st.plotly_chart(
+            crystal(district_figure, 420), width="stretch", config=CRYSTAL_CHART_CONFIG
+        )
+
+    with st.expander(":material/menu_book: " + tr("Data dictionary")):
+        dictionary_rows = [
+            ("ouID", "text", tr("District identifier in DHIS2")),
+            ("ouName", "text", tr("District code and name (the first two digits are the province)")),
+            ("deID / deName", "text", tr("Data element (Population)")),
+            ("cocID / cocName / cocCode", "text / number", tr("Age: single years 0–79 and 80+")),
+            ("sexID / sexName / sexCode", "text", tr("Sex: Male (M) or Female (F)")),
+            (f"{HISTORICAL_YEARS[0]} … {latest_year}", "number", tr("Population in each year (one column per year)")),
+        ]
+        st.dataframe(
+            pd.DataFrame(dictionary_rows, columns=[tr("Column"), tr("Type"), tr("Description")]),
+            hide_index=True,
+            width="stretch",
+        )
+
+# Summary dashboard (step 3): stat tiles, the population trajectory
+# (train / test / forecast years as background bands) and the age structure.
+summary_years = [*HISTORICAL_YEARS, *future_years]
+history_count = len(HISTORICAL_YEARS)
+summary_population = np.concatenate(
+    [
+        np.asarray(result.actual, dtype=float),
+        np.asarray(result.future[ribbon_model], dtype=float),
     ]
 )
+summary_density = (
+    summary_population / ribbon_area_km2
+    if ribbon_area_km2
+    else np.full_like(summary_population, np.nan)
+)
+summary_growth = np.concatenate(
+    [[np.nan], np.diff(summary_population) / summary_population[:-1] * 100]
+)
+first_population = summary_population[0]
+last_actual_population = summary_population[history_count - 1]
+end_population = summary_population[-1]
+first_year, last_actual_year = HISTORICAL_YEARS[0], HISTORICAL_YEARS[-1]
+forecast_model_label = MODEL_LABELS[ribbon_model]
+average_forecast_growth = (
+    (end_population / last_actual_population) ** (1 / len(future_years)) - 1
+) * 100
+
+
+def sparkline(values) -> list[float]:
+    """Change from the first value: the tile charts show the trend's shape."""
+    values = np.asarray(values, dtype=float)
+    return [round(float(value), 2) for value in values - values[0]]
+
+
+test_errors = (
+    np.abs(validation_result.predictions[ribbon_model] - validation_result.actual)
+    / validation_result.actual
+    * 100
+)
+
+with step3_dashboard:
+    st.subheader(":material/monitoring: " + tr("Interactive summary dashboard"))
+    tiles = st.columns(4)
+    tiles[0].metric(
+        tr("Population in {year}", year=last_actual_year),
+        f"{last_actual_population:,.0f}",
+        delta=tr(
+            "{change} since {year}",
+            change=f"{(last_actual_population / first_population - 1) * 100:+.1f}%",
+            year=first_year,
+        ),
+        delta_color="normal",
+        chart_data=sparkline(summary_population[:history_count]),
+        chart_type="area",
+        border=True,
+    )
+    tiles[1].metric(
+        tr("Forecast for {year}", year=future_end),
+        f"{end_population:,.0f}",
+        delta=tr(
+            "{change} vs {year}",
+            change=f"{(end_population / last_actual_population - 1) * 100:+.1f}%",
+            year=last_actual_year,
+        ),
+        delta_color="normal",
+        chart_data=sparkline(summary_population),
+        chart_type="area",
+        border=True,
+        help=tr("Model used for the forecast: {model}.", model=forecast_model_label),
+    )
+    if ribbon_area_km2:
+        tiles[2].metric(
+            tr("People per km², {year}", year=future_end),
+            f"{summary_density[-1]:,.1f}",
+            delta=tr(
+                "{change} vs {year}",
+                change=f"{summary_density[-1] - summary_density[history_count - 1]:+.1f}",
+                year=last_actual_year,
+            ),
+            delta_color="normal",
+            chart_data=sparkline(summary_density),
+            chart_type="area",
+            border=True,
+        )
+    tiles[3].metric(
+        tr("Test-year MAPE"),
+        f"{ribbon_mape:.4f}%",
+        delta=forecast_model_label,
+        delta_color="off",
+        delta_arrow="off",
+        chart_data=[round(float(value), 4) for value in test_errors],
+        chart_type="bar",
+        border=True,
+        help=tr(
+            "Mean absolute percentage error on the unseen {start}–{end} test years. The "
+            "bars show the error in each test year.",
+            start=ribbon_test_years[0],
+            end=ribbon_test_years[-1],
+        ),
+    )
+
+    measure_options = ["population", "density"] if ribbon_area_km2 else ["population"]
+    measure_labels = {
+        "population": tr("Population"),
+        "density": tr("People per km²"),
+    }
+    measure_key = lang_key("summary_measure")
+    summary_measure = remember(
+        "summary_measure",
+        st.segmented_control(
+            tr("Show"),
+            measure_options,
+            format_func=measure_labels.get,
+            default=None if measure_key in st.session_state else "population",
+            key=measure_key,
+        )
+        or "population",
+    )
+    trajectory_column, age_column = st.columns([1.7, 1])
+    with glass(trajectory_column):
+        y_values = summary_density if summary_measure == "density" else summary_population
+        hover_data = np.column_stack([summary_population, summary_density, summary_growth])
+        hover_rows = (
+            f"{tr('Population')}: %{{customdata[0]:,.0f}}"
+            + (f"<br>{tr('People per km²')}: %{{customdata[1]:,.1f}}" if ribbon_area_km2 else "")
+            + f"<br>{tr('Annual growth')}: %{{customdata[2]:+.2f}}%"
+        )
+
+        trajectory = go.Figure()
+        phases = [
+            (ribbon_train_years, tr("Train"), "rgba(30, 123, 79, 0.07)", ATLAS_FOREST),
+            (ribbon_test_years, tr("Test"), "rgba(30, 123, 79, 0.16)", ATLAS_FOREST),
+            (future_years, tr("Forecast"), "rgba(184, 144, 47, 0.16)", "#7A5F1C"),
+        ]
+        for years, label, fill, text_color in phases:
+            trajectory.add_vrect(
+                x0=years[0] - 0.5,
+                x1=years[-1] + 0.5,
+                fillcolor=fill,
+                line_width=0,
+                layer="below",
+            )
+            trajectory.add_annotation(
+                x=(years[0] + years[-1]) / 2,
+                y=1.0,
+                yref="paper",
+                yanchor="bottom",
+                text=f"<b>{label}</b> {years[0]}–{years[-1]}",
+                showarrow=False,
+                font={"color": text_color, "size": 12},
+            )
+        trajectory.add_trace(
+            go.Scatter(
+                x=summary_years[:history_count],
+                y=y_values[:history_count],
+                customdata=hover_data[:history_count],
+                name=tr("Actual"),
+                mode="lines+markers",
+                line={"color": ATLAS_INK, "width": 3},
+                marker={"size": 7, "color": "#FFFFFF", "line": {"color": ATLAS_INK, "width": 2}},
+                hovertemplate=f"<b>%{{x}}</b> · {tr('Actual')}<br>{hover_rows}<extra></extra>",
+            )
+        )
+        trajectory.add_trace(
+            go.Scatter(
+                x=summary_years[history_count - 1 :],
+                y=y_values[history_count - 1 :],
+                customdata=hover_data[history_count - 1 :],
+                name=tr("Forecast ({model})", model=forecast_model_label),
+                mode="lines+markers",
+                line={"color": ATLAS_GOLD, "width": 3, "dash": "dash"},
+                marker={"size": 7, "color": ATLAS_GOLD},
+                hovertemplate=f"<b>%{{x}}</b> · {tr('Forecast')}<br>{hover_rows}<extra></extra>",
+            )
+        )
+        trajectory.update_layout(
+            template=PLOTLY_TEMPLATE,
+            title={
+                "text": tr(
+                    "Population trajectory {start}–{end}", start=first_year, end=future_end
+                ),
+                "x": 0,
+                "xanchor": "left",
+                "y": 0.98,
+            },
+            height=400,
+            margin={"l": 10, "r": 10, "t": 78, "b": 10},
+            hovermode="closest",
+            legend={"orientation": "h", "x": 1, "xanchor": "right", "y": -0.12},
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            hoverlabel={"bgcolor": "#FFFFFF", "font_color": ATLAS_INK},
+        )
+        trajectory.update_xaxes(
+            tickmode="array",
+            tickvals=summary_years,
+            showgrid=False,
+            range=[summary_years[0] - 0.5, summary_years[-1] + 0.5],
+        )
+        trajectory.update_yaxes(
+            tickformat=",.1f" if summary_measure == "density" else ",.0f",
+            gridcolor=STREAMLIT_CHART_GRID,
+            zeroline=False,
+        )
+        st.plotly_chart(
+            trajectory,
+            width="stretch",
+            config={"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
+        )
+
+    with glass(age_column):
+        age_labels = ["0–4", "5–18", "19–25", "26–40", "41–60", "61–80+"]
+        age_bins = [-1, 4, 18, 25, 40, 60, np.inf]
+        summary_rows = cached_row_forecast(filtered_data, future_end, round_and_clip=False)
+        summary_ages = pd.cut(
+            pd.to_numeric(
+                summary_rows["cocCode"].astype(str).str.extract(r"(\d+)", expand=False),
+                errors="coerce",
+            ),
+            bins=age_bins,
+            labels=age_labels,
+        )
+        end_column = f"{future_end}{MODEL_EXPORT_SUFFIXES[ribbon_model]}"
+        age_structure = (
+            pd.DataFrame(
+                {
+                    "Age group": summary_ages,
+                    "start": summary_rows[str(last_actual_year)].astype(float),
+                    "end": summary_rows[end_column].astype(float),
+                }
+            )
+            .groupby("Age group", observed=False)[["start", "end"]]
+            .sum()
+            .reindex(age_labels)
+        )
+        age_shares = age_structure / age_structure.sum() * 100
+        age_chart = go.Figure()
+        for column, year, color in (
+            ("start", last_actual_year, ATLAS_FOREST),
+            ("end", future_end, ATLAS_GOLD),
+        ):
+            age_chart.add_trace(
+                go.Bar(
+                    y=age_labels,
+                    x=age_shares[column],
+                    customdata=age_structure[column],
+                    name=str(year),
+                    orientation="h",
+                    marker={"color": color, "line": {"color": "#FFFFFF", "width": 1}},
+                    hovertemplate=(
+                        f"<b>%{{y}}</b> · {year}<br>{tr('Share')}: %{{x:.1f}}%"
+                        f"<br>{tr('Population')}: %{{customdata:,.0f}}<extra></extra>"
+                    ),
+                )
+            )
+        age_chart.update_layout(
+            template=PLOTLY_TEMPLATE,
+            title={
+                "text": tr(
+                    "Age structure: {start} vs {end}", start=last_actual_year, end=future_end
+                ),
+                "x": 0,
+                "xanchor": "left",
+                "y": 0.98,
+            },
+            barmode="group",
+            bargap=0.25,
+            height=400,
+            margin={"l": 10, "r": 10, "t": 78, "b": 10},
+            legend={
+                "orientation": "h",
+                "x": 1,
+                "xanchor": "right",
+                "y": 1.0,
+                "yanchor": "bottom",
+                "traceorder": "reversed",
+            },
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            hoverlabel={"bgcolor": "#FFFFFF", "font_color": ATLAS_INK},
+        )
+        age_chart.update_xaxes(
+            title_text=tr("Share of population (%)"),
+            ticksuffix="%",
+            gridcolor=STREAMLIT_CHART_GRID,
+            zeroline=False,
+        )
+        age_chart.update_yaxes(title_text=tr("Age group"))
+        st.plotly_chart(age_chart, width="stretch", config={"displaylogo": False})
+
+    st.markdown(
+        '<p class="atlas-meta">'
+        + tr(
+            "Average annual growth {start}–{end}: {rate}.",
+            start=last_actual_year,
+            end=future_end,
+            rate=f"{average_forecast_growth:+.2f}%",
+        )
+        + " "
+        + tr(
+            "{rows} data rows. Baseline: {baseline}. Source: DHIS2, Ministry of Health.",
+            rows=f"{len(filtered_data):,}",
+            baseline=forecast_input_label,
+        )
+        + (
+            " "
+            + tr(
+                "Land area {area} km², measured from the map boundaries.",
+                area=f"{ribbon_area_km2:,.0f}",
+            )
+            if ribbon_area_km2
+            else ""
+        )
+        + "</p>",
+        unsafe_allow_html=True,
+    )
 
 with overview_tab:
-    st.subheader("Time-based validation: 2016–2022 train → 2023–2025 test")
+    if selected_model_option == ALL_MODELS_OPTION:
+        best_model = validation_result.metrics.loc[selected_models, "MAPE (%)"].idxmin()
+        st.subheader(":material/leaderboard: " + tr("Time-based validation model comparison"))
+        st.caption(
+            tr(
+                "Models are trained on 2016–2022 and evaluated on the unseen 2023–2025 holdout "
+                "period. The final 2026+ forecasts are then retrained on all 2016–2025 data."
+            )
+        )
+        all_model_summary = validation_result.metrics.loc[list(MODEL_NAMES)].reset_index()
+        all_model_summary["Model"] = all_model_summary["Model"].map(MODEL_LABELS)
+        st.dataframe(
+            tr_table(all_model_summary).style.format(
+                tr_formats(
+                    {
+                        "MAE": "{:,.2f}",
+                        "RMSE": "{:,.2f}",
+                        "MAPE (%)": "{:.4f}",
+                        "R²": "{:.4f}",
+                        "Accuracy (%)": "{:.4f}",
+                    }
+                )
+            ).highlight_min(subset=["MAPE (%)"], color=ATLAS_FOREST_SOFT),
+            hide_index=True,
+            width="stretch",
+            height=143,
+        )
+        # st.caption(f"Best fit by MAPE: {MODEL_LABELS[best_model]}")
+        st.markdown(
+            '<hr style="border: none; border-top: 1px solid #D3DED5;">',
+            unsafe_allow_html=True
+        )
+        # st.divider()
+    # st.caption(f"Source: {source_name} · {len(data):,} total source rows")
+
+
+
+with overview_tab:
+    st.subheader(":material/fact_check: " + tr("Time-based validation: 2016–2022 train → 2023–2025 test"))
     st.caption(
-        "This chart measures performance on later historical years that each model did "
-        "not see during fitting. Model selection uses holdout MAPE, not training fit."
+        tr(
+            "This chart measures performance on later historical years that each model did "
+            "not see during fitting. Model selection uses holdout MAPE, not training fit."
+        )
     )
     validation_chart = interactive_validation_figure(validation_result, selected_models)
-    st.plotly_chart(
+    glass().plotly_chart(
         validation_chart,
         width="stretch",
         config={
@@ -2042,27 +3062,31 @@ with overview_tab:
     validation_table = validation_result.metrics.loc[selected_models].reset_index()
     validation_table["Model"] = validation_table["Model"].map(MODEL_LABELS)
     st.dataframe(
-        validation_table.style.format(
-            {
-                "MAE": "{:,.2f}",
-                "RMSE": "{:,.2f}",
-                "MAPE (%)": "{:.4f}",
-                "R²": "{:.4f}",
-                "Accuracy (%)": "{:.4f}",
-            }
-        ).highlight_min(subset=["MAPE (%)"], color="#d1e7dd"),
+        tr_table(validation_table).style.format(
+            tr_formats(
+                {
+                    "MAE": "{:,.2f}",
+                    "RMSE": "{:,.2f}",
+                    "MAPE (%)": "{:.4f}",
+                    "R²": "{:.4f}",
+                    "Accuracy (%)": "{:.4f}",
+                }
+            )
+        ).highlight_min(subset=["MAPE (%)"], color=ATLAS_FOREST_SOFT),
         hide_index=True,
         width="stretch",
     )
     st.caption(
-        "Accuracy is displayed as 100 − MAPE for continuity with the original project; "
-        "it is not classification accuracy."
+        tr(
+            "Accuracy is displayed as 100 − MAPE for continuity with the original project; "
+            "it is not classification accuracy."
+        )
     )
     st.markdown(
-        '<hr style="border: none; border-top: 2px solid #2196F3;">',
+        '<hr style="border: none; border-top: 1px solid #D3DED5;">',
         unsafe_allow_html=True,
     )
-    st.subheader("Final fit and forecast: retrained on all 2016–2025 observations")
+    st.subheader(":material/timeline: " + tr("Final fit and forecast: retrained on all 2016–2025 observations"))
     interactive_forecast_chart = interactive_forecast_figure(result, selected_models)
     live_results["forecast_plotly"] = json.loads(
         interactive_forecast_figure(
@@ -2071,7 +3095,7 @@ with overview_tab:
             lao_presentation=True,
         ).to_json()
     )
-    st.plotly_chart(
+    glass().plotly_chart(
         interactive_forecast_chart,
         width="stretch",
         config={
@@ -2081,7 +3105,7 @@ with overview_tab:
         },
     )
     st.markdown(
-            '<hr style="border: none; border-top: 2px solid #2196F3;">',
+            '<hr style="border: none; border-top: 1px solid #D3DED5;">',
             unsafe_allow_html=True
         )
     # performance_title = (
@@ -2106,7 +3130,7 @@ with overview_tab:
     #     width="stretch",
     # )
     # st.markdown(
-    #         '<hr style="border: none; border-top: 2px solid #2196F3;">',
+    #         '<hr style="border: none; border-top: 1px solid #D3DED5;">',
     #         unsafe_allow_html=True
     #     )
     # st.caption(
@@ -2114,7 +3138,7 @@ with overview_tab:
     #     "in-sample descriptive score, not a validation-set accuracy measure."
     # )
 
-    st.subheader("ສົມທຽບລະຫວ່າງຂໍ້ມູນຈິງ ແລະ ຜົນການຄາດຄະເນ (2016–2025), ຕາມແຕ່ລະແບບຈຳລອງ")
+    st.subheader(":material/compare_arrows: " + tr("Actual versus predicted population (2016–2025) by model"))
     interactive_actual_predicted_chart = interactive_actual_vs_predicted_figure(
         result, selected_models
     )
@@ -2125,7 +3149,7 @@ with overview_tab:
             lao_presentation=True,
         ).to_json()
     )
-    st.plotly_chart(
+    glass().plotly_chart(
         interactive_actual_predicted_chart,
         width="stretch",
         config={
@@ -2137,13 +3161,13 @@ with overview_tab:
     st.session_state["presentation_results"] = live_results
 
     st.markdown(
-            '<hr style="border: none; border-top: 2px solid #2196F3;">',
+            '<hr style="border: none; border-top: 1px solid #D3DED5;">',
             unsafe_allow_html=True
         )
-    st.subheader("ສະຫຼຸບການຄາດຄະເນ ປະຊາກອນໂດຍລວມ ປີ 2026-{future_end}, ຕາມແຕ່ລະແບບຈຳລອງ".format(future_end=future_end))
+    st.subheader(":material/table_chart: " + tr("Total population forecast 2026–{end} by model", end=future_end))
     future_table = pd.DataFrame(
         {
-            "ປີ": future_years,
+            tr("Year"): future_years,
             **{
                 MODEL_LABELS[name]: np.rint(result.future[name])
                 .clip(min=0)
@@ -2161,10 +3185,10 @@ with overview_tab:
     )
 
     st.markdown(
-        '<hr style="border: none; border-top: 2px solid #2196F3;">',
+        '<hr style="border: none; border-top: 1px solid #D3DED5;">',
         unsafe_allow_html=True,
     )
-    st.subheader("ອັດຕາການຂະຫຍາຍຕົວ ແລະ ອັດຕາສະເລ່ຍ")
+    st.subheader(":material/trending_up: " + tr("Growth rates and averages"))
     growth_rate_table, average_growth_rates = population_growth_rate_summary(
         result, selected_models
     )
@@ -2172,9 +3196,10 @@ with overview_tab:
     for column, (label, average_rate) in zip(
         average_columns, average_growth_rates.items()
     ):
-        column.metric(f"{label} average", f"{average_rate:+.2f}%")
+        column.metric(tr("{label} average", label=tr(label)), f"{average_rate:+.2f}%")
 
-    growth_columns = [column for column in growth_rate_table if column != "Year"]
+    growth_rate_table = tr_table(growth_rate_table)
+    growth_columns = [column for column in growth_rate_table if column != tr("Year")]
     st.dataframe(
         growth_rate_table.style.format(
             {column: "{:+.2f}%" for column in growth_columns}, na_rep="—"
@@ -2183,63 +3208,102 @@ with overview_tab:
         width="stretch",
     )
     st.caption(
-        "ແຕ່ລະຄ່າແມ່ນອັດຕາການປ່ຽນແປງ (ເຕີບໂຕ) ທຽບກັບປີຕໍ່ປີ (Year-over-Year). ຕົວເລກຕົວຈິງແມ່ນຮອດ ປີ 2025; ຕົວເລກຄາດຄະເນຂອງແບບຈຳລອງແມ່ນສືບຕໍ່ໄປຈົນຮອດປີທີເລືອກໄວ້."
+        tr(
+            "Each value is the year-over-year growth rate. Actual values run to 2025; model "
+            "forecasts continue to the selected end year."
+        )
     )
 
 with pyramid_tab:
-    st.subheader("Population pyramid by district")
+    st.subheader(":material/groups: " + tr("Population pyramid by district"))
     st.caption(
-        "Compare male and female populations in the age groups 0–4, 5–18, "
-        "19–25, 26–40, 41–60, and 61–80+."
+        tr(
+            "Compare male and female populations in the age groups 0–4, 5–18, 19–25, 26–40, "
+            "41–60, and 61–80+."
+        )
     )
     if "ouName" not in data.columns:
-        st.error("The uploaded data must contain an ouName district column.")
+        st.error(tr("The uploaded data must contain an ouName district column."))
     else:
         pyramid_districts = sorted(data["ouName"].dropna().astype(str).unique())
         district_column, year_column, age_display_column = st.columns(3)
         selected_pyramid_district = district_column.selectbox(
-            "District",
+            tr("District"),
             ["All", *pyramid_districts],
-            key="population_pyramid_district",
-            help="Choose All for the nationwide pyramid or select one district.",
+            format_func=lambda district, all_label=tr("All districts"): (
+                all_label if district == "All" else district
+            ),
+            key=lang_key("population_pyramid_district"),
+            help=tr("Choose All districts for the nationwide pyramid, or select one district."),
         )
+        remember("population_pyramid_district", selected_pyramid_district)
         selected_pyramid_year = year_column.selectbox(
-            "Year",
+            tr("Year"),
             [*HISTORICAL_YEARS, *future_years],
             index=len(HISTORICAL_YEARS) - 1,
             key="population_pyramid_year",
         )
         selected_age_display = age_display_column.selectbox(
-            "Age display",
+            tr("Age display"),
             ["By age group", "By single age"],
-            key="population_pyramid_age_display",
+            format_func={option: tr(option) for option in ("By age group", "By single age")}.get,
+            key=lang_key("population_pyramid_age_display"),
         )
-        pyramid_data = data
+        remember("population_pyramid_age_display", selected_age_display)
+        # Use the same forecast input as the overview (corrected or original),
+        # but not the sidebar filters: the pyramid has its own district selector.
+        pyramid_source = (
+            corrected_data
+            if forecast_input_option == CORRECTED_INPUT_OPTION
+            else data
+        )
+        pyramid_data = pyramid_source
         pyramid_year_label = str(selected_pyramid_year)
-        if selected_pyramid_year > HISTORICAL_YEARS[-1]:
+        is_future_pyramid = selected_pyramid_year > HISTORICAL_YEARS[-1]
+        if is_future_pyramid:
             pyramid_model = (
                 presentation_best_model
                 if selected_model_option == ALL_MODELS_OPTION
                 else selected_model_option
             )
-            pyramid_predictions = cached_row_forecast(data, future_end)
+            pyramid_predictions = cached_row_forecast(pyramid_source, future_end)
             prediction_column = (
                 f"{selected_pyramid_year}{MODEL_EXPORT_SUFFIXES[pyramid_model]}"
             )
             pyramid_data = pyramid_predictions.copy()
             pyramid_data[str(selected_pyramid_year)] = pyramid_data[prediction_column]
-            pyramid_year_label = (
-                f"{selected_pyramid_year} forecast · {MODEL_LABELS[pyramid_model]}"
+            # Raw model values (not rounded, negatives kept) for the totals, so
+            # they equal the overview forecast for the same district or nation.
+            raw_predictions = cached_row_forecast(
+                pyramid_source, future_end, round_and_clip=False
+            )
+            if selected_pyramid_district != "All":
+                raw_predictions = raw_predictions[
+                    raw_predictions["ouName"].astype(str).eq(selected_pyramid_district)
+                ]
+            raw_sex_codes = raw_predictions["sexCode"].astype(str).str.strip().str.upper()
+            raw_male = raw_predictions.loc[raw_sex_codes.eq("M"), prediction_column].sum()
+            raw_female = raw_predictions.loc[raw_sex_codes.eq("F"), prediction_column].sum()
+            pyramid_year_label = tr(
+                "{year} forecast, {model}",
+                year=selected_pyramid_year,
+                model=MODEL_LABELS[pyramid_model],
             )
             if selected_model_option == ALL_MODELS_OPTION:
                 st.info(
-                    "All models is selected, so this future pyramid uses the current "
-                    f"lowest-MAPE model: {MODEL_LABELS[pyramid_model]}."
+                    tr(
+                        "All models is selected, so this future pyramid uses the current "
+                        "lowest-MAPE model: {model}.",
+                        model=MODEL_LABELS[pyramid_model],
+                    )
                 )
             else:
                 st.caption(
-                    f"The {selected_pyramid_year} pyramid uses the selected "
-                    f"{MODEL_LABELS[pyramid_model]} forecast."
+                    tr(
+                        "The {year} pyramid uses the selected {model} forecast.",
+                        year=selected_pyramid_year,
+                        model=MODEL_LABELS[pyramid_model],
+                    )
                 )
         try:
             pyramid_chart, pyramid_male_total, pyramid_female_total = (
@@ -2256,23 +3320,212 @@ with pyramid_tab:
         except ValueError as error:
             st.error(str(error))
         else:
+            if is_future_pyramid:
+                combined_total = int(round(raw_male + raw_female))
+                pyramid_male_total = int(round(raw_male))
+                pyramid_female_total = combined_total - pyramid_male_total
+            else:
+                combined_total = pyramid_male_total + pyramid_female_total
             male_total_column, female_total_column, combined_total_column = st.columns(3)
-            male_total_column.metric("Male population", f"{pyramid_male_total:,}")
-            female_total_column.metric("Female population", f"{pyramid_female_total:,}")
-            combined_total_column.metric(
-                "Total population", f"{pyramid_male_total + pyramid_female_total:,}"
-            )
-            st.pyplot(pyramid_chart, width="stretch")
-            plt.close(pyramid_chart)
+            male_total_column.metric(tr("Male population"), f"{pyramid_male_total:,}")
+            female_total_column.metric(tr("Female population"), f"{pyramid_female_total:,}")
+            combined_total_column.metric(tr("Total population"), f"{combined_total:,}")
+            st.caption(tr("Data source: **{source}**.", source=forecast_input_label))
+            if is_future_pyramid:
+                st.caption(
+                    tr(
+                        "The totals are the model's forecast, the same as the overview. The "
+                        "bars show each district–age–sex series rounded to whole people, with "
+                        "series forecast below zero drawn as 0, so the bars can add up to "
+                        "slightly more than the total."
+                    )
+                )
+            glass().plotly_chart(pyramid_chart, width="stretch", config={"displaylogo": False})
 
-with data_tab:
-    st.subheader("Forecast source data")
+    st.divider()
+    st.subheader(":material/map: " + tr("Population map"))
     st.caption(
-        f"Forecasts currently use **{forecast_input_label}**. The original source "
-        "is preserved and remains available for comparison."
+        tr(
+            "Total population and population density by province (level 2) or district "
+            "(level 3). Hover over an area to see its name, population and density."
+        )
+    )
+    if not BOUNDARY_FILE.exists():
+        st.warning(tr("Map boundary file not found: {path}", path=BOUNDARY_FILE))
+    elif not {"ouID", "ouName"}.issubset(data.columns):
+        st.error(tr("The map requires ouID and ouName columns in the data."))
+    else:
+        map_level_column, map_year_column = st.columns(2)
+        map_level_key = lang_key("population_map_level")
+        selected_map_level = remember(
+            "population_map_level",
+            map_level_column.segmented_control(
+                tr("Administrative level"),
+                list(MAP_LEVEL_OPTIONS),
+                format_func={option: tr(option) for option in MAP_LEVEL_OPTIONS}.get,
+                default=None if map_level_key in st.session_state else "Province (level 2)",
+                key=map_level_key,
+            )
+            or "Province (level 2)",
+        )
+        selected_map_year = map_year_column.selectbox(
+            tr("Year"),
+            [*HISTORICAL_YEARS, *future_years],
+            index=len(HISTORICAL_YEARS) - 1,
+            key="population_map_year",
+        )
+        map_source = (
+            corrected_data
+            if forecast_input_option == CORRECTED_INPUT_OPTION
+            else data
+        )
+        if selected_map_year > HISTORICAL_YEARS[-1]:
+            map_model = (
+                presentation_best_model
+                if selected_model_option == ALL_MODELS_OPTION
+                else selected_model_option
+            )
+            # Raw model values, so the map adds up to the overview forecast.
+            map_values = cached_row_forecast(map_source, future_end, round_and_clip=False)
+            map_value_column = f"{selected_map_year}{MODEL_EXPORT_SUFFIXES[map_model]}"
+            map_year_label = tr(
+                "{year} forecast, {model}",
+                year=selected_map_year,
+                model=MODEL_LABELS[map_model],
+            )
+        else:
+            map_values = map_source
+            map_value_column = str(selected_map_year)
+            map_year_label = str(selected_map_year)
+
+        boundaries = map_boundaries()
+        map_names = boundaries["names"]
+        district_table = district_totals(map_values, map_value_column)
+        if MAP_LEVEL_OPTIONS[selected_map_level] == "provinces":
+            map_table = province_totals(district_table, map_names)
+        else:
+            map_table = district_table.merge(
+                map_names[["ouID", "name", "displayName", "area_km2"]], on="ouID", how="left"
+            )
+            map_table["name"] = map_table["name"].fillna(map_table["ouName"])
+            map_table["displayName"] = map_table["displayName"].fillna(map_table["ouName"])
+
+        missing_areas = int(
+            (~map_table["ouID"].isin(
+                [feature["id"] for feature in boundaries[MAP_LEVEL_OPTIONS[selected_map_level]]["features"]]
+            )).sum()
+        )
+        is_province_map = MAP_LEVEL_OPTIONS[selected_map_level] == "provinces"
+        map_geojson = boundaries[MAP_LEVEL_OPTIONS[selected_map_level]]
+        # Density = people per km² of land, using each area's size measured on
+        # its boundary (population_map.load_boundaries).
+        map_table["Density"] = map_table["Population"] / map_table["area_km2"]
+        total_population = map_table["Population"].sum()
+        nationwide_density = total_population / map_table["area_km2"].sum()
+        map_config = {"displaylogo": False, "scrollZoom": True}
+        population_column, density_column = st.columns(2)
+        glass(population_column).plotly_chart(
+            population_map_figure(
+                map_table,
+                map_geojson,
+                tr(
+                    "Population by province — {year}"
+                    if is_province_map
+                    else "Population by district — {year}",
+                    year=map_year_label,
+                ),
+                PLOTLY_TEMPLATE,
+                height=620,
+                value_label=tr("Population"),
+                hover_lines=[(tr("People per km²"), "Density", ",.1f")],
+            ),
+            width="stretch",
+            config=map_config,
+        )
+        glass(density_column).plotly_chart(
+            population_map_figure(
+                map_table,
+                map_geojson,
+                tr(
+                    "Population density by province — {year}"
+                    if is_province_map
+                    else "Population density by district — {year}",
+                    year=map_year_label,
+                ),
+                PLOTLY_TEMPLATE,
+                height=620,
+                value_label=tr("People per km²"),
+                value_column="Density",
+                value_format=",.1f",
+                colorscale=DENSITY_COLORSCALE,
+                hover_lines=[
+                    (tr("Population"), "Population", ",.0f"),
+                    (tr("Area (km²)"), "area_km2", ",.0f"),
+                ],
+            ),
+            width="stretch",
+            config=map_config,
+        )
+        st.caption(
+            tr(
+                "Data source: **{source}**. Nationwide total: **{total}** people, "
+                "**{density}** people per km². Colours use a log scale so smaller areas can "
+                "still be told apart.",
+                source=forecast_input_label,
+                total=f"{total_population:,.0f}",
+                density=f"{nationwide_density:,.1f}",
+            )
+            + " "
+            + tr(
+                "Density divides each area's population by its land area, measured from the "
+                "map boundaries."
+            )
+            + (
+                " " + tr("{count} area(s) in the data have no boundary on the map.", count=missing_areas)
+                if missing_areas
+                else ""
+            )
+        )
+        with st.expander(
+            tr("Population table by province" if is_province_map else "Population table by district")
+        ):
+            st.dataframe(
+                map_table[["name", "displayName", "Population", "area_km2", "Density"]]
+                .assign(
+                    Population=lambda table: table["Population"].round().astype("int64"),
+                    area_km2=lambda table: table["area_km2"].round().astype("int64"),
+                    Density=lambda table: table["Density"].round(1),
+                )
+                .sort_values("Density", ascending=False)
+                .rename(
+                    columns={
+                        "name": tr("Name (English)"),
+                        "displayName": tr("Name (Lao)"),
+                        "Population": tr("Population"),
+                        "area_km2": tr("Area (km²)"),
+                        "Density": tr("People per km²"),
+                    }
+                ),
+                hide_index=True,
+                width="stretch",
+                column_config={
+                    tr("Population"): st.column_config.NumberColumn(format="localized"),
+                    tr("Area (km²)"): st.column_config.NumberColumn(format="localized"),
+                    tr("People per km²"): st.column_config.NumberColumn(format="%.1f"),
+                },
+            )
+
+with step1_source:
+    st.subheader(":material/table_view: " + tr("Forecast source data"))
+    st.caption(
+        tr(
+            "Forecasts currently use **{source}**. The original source is preserved and "
+            "remains available for comparison.",
+            source=forecast_input_label,
+        )
     )
     original_source_tab, corrected_source_tab = st.tabs(
-        ["Original filtered data", "Corrected filtered data"]
+        [tr("Original filtered data"), tr("Corrected filtered data")]
     )
     with original_source_tab:
         st.dataframe(
@@ -2283,27 +3536,18 @@ with data_tab:
             filtered_corrected_data, hide_index=True, width="stretch", height=420
         )
 
-    st.subheader("Conservative outlier correction")
+with data_tab:
+    st.subheader(":material/auto_fix_high: " + tr("Conservative outlier correction"))
     st.caption(
-        f"Automatic correction uses the selected robust-score threshold of {correction_threshold:g}. A value is "
-        "changed only when a cohort-aware historical anomaly is independently confirmed "
-        "by a district-share, sex-ratio, or adjacent-age check."
-    )
-    with st.expander("ຂັ້ນຕອນການແກ້ໄຂຄ່າຜິດປົກກະຕິ", expanded=True):
-        st.markdown(
-            """
-1. Run the nationwide median/MAD outlier checks on the complete, unfiltered dataset.
-2. Require two independent signals: a historical cohort-change flag and at least one
-   demographic consistency or nationwide district-share flag.
-3. For an internal year, replace the confirmed value with **two-sided log-linear
-   interpolation** from the unchanged previous and following years:
-   `exp((log(1 + previous) + log(1 + following)) / 2) - 1`.
-4. For 2016 or 2025, use a **Theil–Sen endpoint estimate** calculated from the remaining
-   years' median pairwise log-growth slopes.
-5. Correct no more than two non-adjacent years in one district–age–sex series, clamp at
-   zero, and round to a whole person. The original values are retained in the audit log.
-            """
+        tr(
+            "Automatic correction uses the selected robust-score threshold of {threshold}. A "
+            "value is changed only when a cohort-aware historical anomaly is independently "
+            "confirmed by a district-share, sex-ratio, or adjacent-age check.",
+            threshold=f"{correction_threshold:g}",
         )
+    )
+    with st.expander(tr("Outlier correction steps"), expanded=True):
+        st.markdown(block("correction_steps", current_language()))
 
     visible_corrections = filter_outlier_results(
         correction_result.corrections, filtered_original_data
@@ -2322,33 +3566,35 @@ with data_tab:
         else 0.0
     )
     correction_metrics = st.columns(4)
-    correction_metrics[0].metric("Corrected observations", f"{len(visible_corrections):,}")
-    correction_metrics[1].metric("Affected series", f"{corrected_series:,}")
-    correction_metrics[2].metric("Share of historical cells", f"{corrected_percent:.3f}%")
+    correction_metrics[0].metric(tr("Corrected observations"), f"{len(visible_corrections):,}")
+    correction_metrics[1].metric(tr("Affected series"), f"{corrected_series:,}")
+    correction_metrics[2].metric(tr("Share of historical cells"), f"{corrected_percent:.3f}%")
     correction_metrics[3].metric(
-        "Net historical-cell adjustment",
+        tr("Net historical-cell adjustment"),
         f"{visible_corrections['Difference'].sum():+,.0f}"
         if not visible_corrections.empty
         else "0",
     )
 
     if visible_corrections.empty:
-        st.success("No observations in the current filters met the conservative correction rule.")
+        st.success(tr("No observations in the current filters met the conservative correction rule."))
     else:
         st.bar_chart(
-            visible_corrections.groupby("Year").size().rename("Corrections"),
+            visible_corrections.groupby("Year").size().rename(tr("Corrections")),
             height=220,
         )
         st.dataframe(
-            visible_corrections.style.format(
-                {
-                    "Original value": "{:,.0f}",
-                    "Corrected value": "{:,.0f}",
-                    "Difference": "{:+,.0f}",
-                    "Change (%)": "{:+.3f}%",
-                    "Temporal robust score": "{:+.2f}",
-                    "Supporting robust score": "{:+.2f}",
-                }
+            tr_table(visible_corrections, ("Supporting check", "Correction method")).style.format(
+                tr_formats(
+                    {
+                        "Original value": "{:,.0f}",
+                        "Corrected value": "{:,.0f}",
+                        "Difference": "{:+,.0f}",
+                        "Change (%)": "{:+.3f}%",
+                        "Temporal robust score": "{:+.2f}",
+                        "Supporting robust score": "{:+.2f}",
+                    }
+                )
             ),
             hide_index=True,
             width="stretch",
@@ -2357,24 +3603,26 @@ with data_tab:
 
     correction_download, corrected_data_download = st.columns(2)
     correction_download.download_button(
-        "Download correction audit",
+        tr("Download correction audit"),
         visible_corrections.to_csv(index=False).encode("utf-8-sig"),
         file_name="population_outlier_correction_audit.csv",
         mime="text/csv",
         width="stretch",
     )
     corrected_data_download.download_button(
-        "Download corrected source data",
+        tr("Download corrected source data"),
         dataframe_to_csv_bytes(corrected_data),
         file_name="dataDistrict_Corrected.csv",
         mime="text/csv",
         width="stretch",
     )
 
-    st.markdown("#### Forecast impact: original versus corrected data")
+    st.markdown("#### :material/compare: " + tr("Forecast impact: original versus corrected data"))
     st.caption(
-        "This comparison uses the current district, age, and sex filters. It shows how "
-        "the conservative corrections affect each of the existing three models."
+        tr(
+            "This comparison uses the current district, age, and sex filters. It shows how the "
+            "conservative corrections affect each of the existing three models."
+        )
     )
     impact_rows = []
     for model_name in MODEL_NAMES:
@@ -2399,35 +3647,40 @@ with data_tab:
             )
     forecast_impact = pd.DataFrame(impact_rows)
     st.dataframe(
-        forecast_impact.style.format(
-            {
-                "Original forecast": "{:,.0f}",
-                "Corrected-data forecast": "{:,.0f}",
-                "Difference": "{:+,.0f}",
-                "Change (%)": "{:+.4f}%",
-            }
+        tr_table(forecast_impact).style.format(
+            tr_formats(
+                {
+                    "Original forecast": "{:,.0f}",
+                    "Corrected-data forecast": "{:,.0f}",
+                    "Difference": "{:+,.0f}",
+                    "Change (%)": "{:+.4f}%",
+                }
+            )
         ),
         hide_index=True,
         width="stretch",
     )
 
-    st.subheader("Nationwide outlier review")
+    st.subheader(":material/troubleshoot: " + tr("Nationwide outlier review"))
     st.caption(
-        "Checks always use the complete nationwide dataset as their reference. "
-        "Sidebar selections and the year selection below only filter the displayed flags. "
-        "A flag indicates a record to review; it is not automatically an error."
+        tr(
+            "Checks always use the complete nationwide dataset as their reference. Sidebar "
+            "selections and the year selection below only filter the displayed flags. A flag "
+            "indicates a record to review; it is not automatically an error."
+        )
     )
     control_column, year_column = st.columns([1, 3])
     control_column.metric(
-        "Active robust-score threshold", f"{correction_threshold:g}"
+        tr("Active robust-score threshold"), f"{correction_threshold:g}"
     )
     selected_outlier_years = year_column.multiselect(
-        "Years to display",
+        tr("Years to display"),
         HISTORICAL_YEARS,
         default=HISTORICAL_YEARS,
+        key="outlier_years",
     )
     if not selected_outlier_years:
-        st.info("Select at least one year to display outlier results.")
+        st.info(tr("Select at least one year to display outlier results."))
         visible_outlier_results = {
             "nationwide": pd.DataFrame(),
             "historical": pd.DataFrame(),
@@ -2437,9 +3690,9 @@ with data_tab:
         outlier_results = correction_result.outliers
         nationwide_check, historical_check, demographic_check = st.tabs(
             [
-                "Nationwide district comparison",
-                "Historical change",
-                "Demographic consistency",
+                tr("Nationwide district comparison"),
+                tr("Historical change"),
+                tr("Demographic consistency"),
             ]
         )
         with nationwide_check:
@@ -2501,8 +3754,12 @@ with data_tab:
     st.session_state["presentation_results"] = live_results
 
 with export_tab:
+    st.subheader(":material/download: " + tr("Downloads and exports"))
     st.write(
-        "ຜົນການຄາດຄະເນປະຊາກອນ ສາມາດດາວໂຫຼດໄດ້ໃນແບບ CSV ຫຼື HTML. ປະກອບມີຂໍ້ມູນການຄາດຄະເນທັງໝົດ ຕາມແຕ່ລະແບບ Linear Regression, Polynomial Regression, ແລະ Exponential Growth."
+        tr(
+            "Download the population forecasts as CSV or HTML. The files include every "
+            "forecast from Linear Regression, Polynomial Regression and Exponential Growth."
+        )
     )
     predicted = row_predictions
     html_table = polynomial_html_table(predicted, future_end)
@@ -2518,20 +3775,21 @@ with export_tab:
     #     "The preview follows the selected model option. The all-model CSV continues to "
     #     "include Linear Regression, Polynomial Regression, and Exponential Growth."
     # )
-    st.dataframe(
-        predicted[preview_columns], hide_index=True, width="stretch", height=480
-    )
+    with st.expander(":material/table_view: " + tr("Preview the row-level forecasts")):
+        st.dataframe(
+            predicted[preview_columns], hide_index=True, width="stretch", height=480
+        )
 
     csv_column, html_column = st.columns(2)
     csv_column.download_button(
-        "Download all-model CSV",
+        tr("Download all-model CSV"),
         dataframe_to_csv_bytes(predicted),
         file_name="dataDistrict_Predicted_All_Models.csv",
         mime="text/csv",
         width="stretch",
     )
     html_column.download_button(
-        "Download Polynomial HTML",
+        tr("Download Polynomial HTML"),
         dataframe_to_html_bytes(html_table),
         file_name="dataDistrict_Predicted_Polynomial.html",
         mime="text/html",
@@ -2539,57 +3797,394 @@ with export_tab:
     )
 
 with methodology_tab:
+    st.subheader(":material/functions: " + tr("Forecasting models"))
+    st.caption(
+        tr(
+            "Each model is fitted to the yearly population totals, and separately to every "
+            "district–age–sex series for the row-level forecasts."
+        )
+    )
+    model_cards = (
+        ("Linear", "show_chart", r"\hat{y}_t = \beta_0 + \beta_1 t",
+         "A straight line: about the same number of people is added every year."),
+        ("Polynomial", "ssid_chart", r"\hat{y}_t = \beta_0 + \beta_1 (t-\bar{t}) + \beta_2 (t-\bar{t})^2",
+         "A degree-2 curve on centred years, so growth can speed up or slow down."),
+        ("Exponential", "trending_up", r"\ln \hat{y}_t = \beta_0 + \beta_1 t",
+         "A constant growth rate: about the same percentage is added every year."),
+    )
+    for column, (name, icon, formula, description) in zip(st.columns(3), model_cards):
+        with glass(column):
+            st.markdown(f":material/{icon}: **{MODEL_LABELS[name]}**")
+            st.latex(formula)
+            st.caption(tr(description))
+            st.markdown(
+                tr(
+                    "Test-year MAPE: **{mape}**",
+                    mape=f"{validation_result.metrics.loc[name, 'MAPE (%)']:.4f}%",
+                )
+            )
+    with glass():
+        card_title("schedule", tr("How the models are tested and used"))
+        st.markdown(block("validation_scheme", current_language()))
     st.info(
-        "Course purpose: help every student understand the end-to-end AI workflow "
-        "and apply it to a practical task that addresses a real-world problem."
+        tr(
+            "Course purpose: help every student understand the end-to-end AI workflow and "
+            "apply it to a practical task that addresses a real-world problem."
+        )
     )
-    st.subheader("CRISP-DM project workflow")
-    st.markdown(
-        """
-1. **Business understanding** — provide clearer population targets for health-service planning.
-2. **Data understanding** — review nationwide DHIS2 population data by district, age, sex, and year.
-3. **Data preparation** — validate the schema and treat only independently confirmed outliers.
-4. **Modeling** — compare Linear, degree-2 Polynomial, and Exponential Growth models.
-5. **Evaluation** — train on 2016–2022 and test on unseen 2023–2025 observations.
-6. **Deployment** — retrain on the full 2016–2025 history and deliver forecasts through Streamlit and downloadable exports.
-        """
+    st.subheader(":material/account_tree: " + tr("CRISP-DM project workflow"))
+    st.markdown(block("crisp_dm", current_language()))
+
+    st.subheader(":material/lan: " + tr("Application architecture"))
+    st.code(block("architecture", current_language()), language="text")
+
+    st.subheader(":material/warning: " + tr("Limitations and responsible use"))
+    st.markdown(block("limitations", current_language()))
+
+    st.subheader(":material/menu_book: " + tr("Method and software references"))
+    st.markdown(block("references", current_language()))
+
+# ------------------------------------------------------------------ shared summary tables
+name_column = "displayName" if current_language() == "lo" else "name"
+summary_rows_raw = cached_row_forecast(filtered_data, future_end, round_and_clip=False)
+summary_end_column = f"{future_end}{MODEL_EXPORT_SUFFIXES[ribbon_model]}"
+province_summary = pd.DataFrame()
+district_summary = pd.DataFrame()
+if BOUNDARY_FILE.exists():
+    summary_names = map_boundaries()["names"]
+    start_by_district = district_totals(summary_rows_raw, str(last_actual_year))
+    end_by_district = district_totals(summary_rows_raw, summary_end_column)
+    province_start = province_totals(start_by_district, summary_names)
+    province_end = province_totals(end_by_district, summary_names)
+    province_summary = province_start[["name", "displayName", "area_km2", "Population"]].rename(
+        columns={"Population": "start"}
+    )
+    province_summary["end"] = province_end["Population"].to_numpy()
+    province_summary = province_summary[province_summary["start"] > 0].copy()
+    province_summary["change"] = province_summary["end"] - province_summary["start"]
+    province_summary["change_pct"] = province_summary["change"] / province_summary["start"] * 100
+    province_summary["density_end"] = province_summary["end"] / province_summary["area_km2"]
+    district_summary = end_by_district.merge(
+        summary_names[["ouID", "name", "displayName", "area_km2"]], on="ouID", how="left"
+    )
+    district_summary["density_end"] = district_summary["Population"] / district_summary["area_km2"]
+
+year_summary = pd.DataFrame(
+    {
+        "year": summary_years,
+        "phase": [tr("Actual")] * history_count + [tr("Forecast")] * len(future_years),
+        "population": summary_population,
+        "growth": summary_growth,
+        "density": summary_density,
+    }
+)
+year_summary_display = year_summary.assign(
+    growth=[("—" if np.isnan(value) else f"{value:+.2f}%") for value in summary_growth]
+).rename(
+    columns={
+        "year": tr("Year"),
+        "phase": tr("Type"),
+        "population": tr("Population"),
+        "growth": tr("Annual growth (%)"),
+        "density": tr("People per km²"),
+    }
+)
+province_summary_display = (
+    province_summary.sort_values("change_pct", ascending=False)
+    .rename(
+        columns={
+            name_column: tr("Province"),
+            "start": tr("Population {year}", year=last_actual_year),
+            "end": tr("Forecast {year}", year=future_end),
+            "change": tr("Change"),
+            "change_pct": tr("Change (%)"),
+            "density_end": tr("People per km² ({year})", year=future_end),
+            "area_km2": tr("Area (km²)"),
+        }
+    )
+    .drop(columns=["displayName" if name_column == "name" else "name"])
+    if not province_summary.empty
+    else pd.DataFrame()
+)
+
+# ------------------------------------------------------------------ step 3: key findings
+with step3_findings:
+    st.subheader(":material/lightbulb: " + tr("Key findings"))
+    other_mapes = ", ".join(
+        f"{MODEL_LABELS[name]} {validation_result.metrics.loc[name, 'MAPE (%)']:.4f}%"
+        for name in MODEL_NAMES
+        if name != ribbon_model
+    )
+    older_share_start = float(age_shares.loc[["41–60", "61–80+"], "start"].sum())
+    older_share_end = float(age_shares.loc[["41–60", "61–80+"], "end"].sum())
+    findings = [
+        (
+            "trending_up",
+            tr("Population keeps growing"),
+            tr(
+                "From {start} in {start_year} to {end} in {end_year} ({change}), about {rate} a year.",
+                start=f"{last_actual_population:,.0f}",
+                start_year=last_actual_year,
+                end=f"{end_population:,.0f}",
+                end_year=future_end,
+                change=f"{(end_population / last_actual_population - 1) * 100:+.1f}%",
+                rate=f"{average_forecast_growth:+.2f}%",
+            ),
+        ),
+        (
+            "verified",
+            tr("Most accurate model: {model}", model=forecast_model_label),
+            tr(
+                "Test-year MAPE {mape}. Other models: {others}.",
+                mape=f"{ribbon_mape:.4f}%",
+                others=other_mapes,
+            ),
+        ),
+        (
+            "elderly",
+            tr("The population is getting older"),
+            tr(
+                "People aged 41 and over: {start} of the population in {start_year}, {end} in {end_year}.",
+                start=f"{older_share_start:.1f}%",
+                start_year=last_actual_year,
+                end=f"{older_share_end:.1f}%",
+                end_year=future_end,
+            ),
+        ),
+    ]
+    if ribbon_area_km2:
+        findings.append(
+            (
+                "landscape",
+                tr("Density rises"),
+                tr(
+                    "From {start} to {end} people per km² between {start_year} and {end_year}.",
+                    start=f"{summary_density[history_count - 1]:,.1f}",
+                    end=f"{summary_density[-1]:,.1f}",
+                    start_year=last_actual_year,
+                    end_year=future_end,
+                ),
+            )
+        )
+    if not province_summary.empty:
+        fastest = province_summary.nlargest(3, "change_pct")
+        findings.append(
+            (
+                "location_city",
+                tr("Fastest-growing provinces"),
+                ", ".join(
+                    f"{row[name_column]} ({row['change_pct']:+.1f}%)"
+                    for _, row in fastest.iterrows()
+                ),
+            )
+        )
+    corrected_count = len(correction_result.corrections)
+    findings.append(
+        (
+            "rule",
+            tr("Outliers corrected"),
+            tr(
+                "{count} values ({share}) were corrected; the original values are kept in the audit log.",
+                count=f"{corrected_count:,}",
+                share=f"{corrected_count / (len(data) * len(HISTORICAL_COLUMNS)):.2%}",
+            ),
+        )
+    )
+    for row_start in range(0, len(findings), 3):
+        columns = st.columns(3)
+        for column, (icon, title, text) in zip(columns, findings[row_start : row_start + 3]):
+            with glass(column):
+                st.markdown(f":material/{icon}: **{title}**")
+                st.markdown(text)
+
+    st.subheader(":material/table_chart: " + tr("Summary statistics"))
+    by_year_tab, by_province_tab = st.tabs(
+        [":material/calendar_month: " + tr("By year"), ":material/location_city: " + tr("By province")]
+    )
+    with by_year_tab:
+        st.dataframe(
+            year_summary_display,
+            hide_index=True,
+            width="stretch",
+            column_config={
+                tr("Year"): st.column_config.NumberColumn(format="%d"),
+                tr("Population"): st.column_config.NumberColumn(format="localized"),
+                tr("People per km²"): st.column_config.NumberColumn(format="%.1f"),
+            },
+        )
+    with by_province_tab:
+        if province_summary_display.empty:
+            st.info(tr("Map boundary file not found: {path}", path=BOUNDARY_FILE))
+        else:
+            st.dataframe(
+                province_summary_display,
+                hide_index=True,
+                width="stretch",
+                column_config={
+                    tr("Population {year}", year=last_actual_year): st.column_config.NumberColumn(format="localized"),
+                    tr("Forecast {year}", year=future_end): st.column_config.NumberColumn(format="localized"),
+                    tr("Change"): st.column_config.NumberColumn(format="%+.0f"),
+                    tr("Change (%)"): st.column_config.NumberColumn(format="%+.2f%%"),
+                    tr("People per km² ({year})", year=future_end): st.column_config.NumberColumn(format="%.1f"),
+                    tr("Area (km²)"): st.column_config.NumberColumn(format="localized"),
+                },
+            )
+
+# ------------------------------------------------------------------ step 3: more downloads
+with export_tab:
+    st.markdown(":material/folder_zip: **" + tr("Summary and audit files") + "**")
+    summary_downloads = st.columns(4)
+    summary_downloads[0].download_button(
+        ":material/calendar_month: " + tr("Summary by year (CSV)"),
+        year_summary.to_csv(index=False).encode("utf-8-sig"),
+        file_name="population_summary_by_year.csv",
+        mime="text/csv",
+        width="stretch",
+    )
+    summary_downloads[1].download_button(
+        ":material/location_city: " + tr("Summary by province (CSV)"),
+        province_summary.to_csv(index=False).encode("utf-8-sig"),
+        file_name="population_summary_by_province.csv",
+        mime="text/csv",
+        width="stretch",
+        disabled=province_summary.empty,
+    )
+    summary_downloads[2].download_button(
+        ":material/rule: " + tr("Download correction audit"),
+        correction_result.corrections.to_csv(index=False).encode("utf-8-sig"),
+        file_name="population_outlier_correction_audit_all.csv",
+        mime="text/csv",
+        width="stretch",
+        key="summary_audit_download",
+    )
+    summary_downloads[3].download_button(
+        ":material/database: " + tr("Download corrected source data"),
+        dataframe_to_csv_bytes(corrected_data),
+        file_name="dataDistrict_Corrected.csv",
+        mime="text/csv",
+        width="stretch",
+        key="summary_corrected_download",
     )
 
-    st.subheader("Application architecture")
-    st.code(
-        "DHIS2 / CSV\n"
-        "      ↓\n"
-        "Schema validation and nationwide outlier review\n"
-        "      ↓\n"
-        "Original or conservatively corrected baseline\n"
-        "      ↓\n"
-        "Time-based validation and model comparison\n"
-        "      ↓\n"
-        "Full-history retraining and 2026+ forecast\n"
-        "      ↓\n"
-        "Streamlit charts, audit tables, CSV and HTML exports",
-        language="text",
-    )
+with step3_info:
+    with st.expander(":material/info: " + tr("About this forecast: limitations and references")):
+        st.markdown(block("limitations", current_language()))
+        st.caption(
+            tr(
+                "Areas and densities use land areas measured from the DHIS2 map boundaries, "
+                "which total about 2% less than the official 236,800 km²."
+            )
+        )
+        st.markdown(block("references", current_language()))
 
-    st.subheader("Limitations and responsible use")
-    st.markdown(
-        """
-- Only ten annual observations are available, so long-horizon forecasts are uncertain.
-- The models extrapolate historical trends and do not directly model migration, policy changes, disasters, epidemics, fertility, or mortality.
-- Polynomial extrapolation can become unrealistic as the forecast horizon grows.
-- Automated outlier treatment can hide a genuine demographic event; original values and the correction audit are therefore retained.
-- Prediction intervals are not yet included.
-- Results are decision-support estimates and should not replace official projections or demographic expert review.
-        """
-    )
-
-    st.subheader("Method and software references")
-    st.markdown(
-        """
-- Chapman et al. (2000), *CRISP-DM 1.0: Step-by-step data mining guide*.
-- Theil (1950) and Sen (1968), robust median-slope estimation.
-- scikit-learn documentation: `LinearRegression`, regression metrics, and model evaluation.
-- Plotly and Streamlit documentation for interactive visualization and application delivery.
-- Population source: DHIS2, Ministry of Health dataset used by this application.
-        """
-    )
+# ------------------------------------------------------------------ step 2: further analysis
+with analysis_tab:
+    st.subheader(":material/analytics: " + tr("Further analysis"))
+    growth_column, models_column = st.columns(2)
+    with growth_column:
+        with glass():
+            card_title(
+                "location_city",
+                tr("Population change by province, {start}–{end}", start=last_actual_year, end=future_end),
+                tr("Forecast with {model}.", model=forecast_model_label),
+            )
+            if province_summary.empty:
+                st.info(tr("Map boundary file not found: {path}", path=BOUNDARY_FILE))
+            else:
+                ranked = province_summary.sort_values("change_pct")
+                province_figure = go.Figure(
+                    go.Bar(
+                        x=ranked["change_pct"],
+                        y=ranked[name_column],
+                        orientation="h",
+                        customdata=ranked[["start", "end"]].to_numpy(),
+                        marker={
+                            "color": ranked["change_pct"],
+                            "colorscale": [[0, "rgba(184,144,47,0.45)"], [1, "rgba(184,144,47,0.95)"]],
+                            "line": {"color": "#FFFFFF", "width": 1.2},
+                        },
+                        text=[f"{value:+.1f}%" for value in ranked["change_pct"]],
+                        textposition="outside",
+                        cliponaxis=False,
+                        hovertemplate=(
+                            f"<b>%{{y}}</b><br>{last_actual_year}: %{{customdata[0]:,.0f}}"
+                            f"<br>{future_end}: %{{customdata[1]:,.0f}}<br>{tr('Change')}: %{{x:+.2f}}%<extra></extra>"
+                        ),
+                    )
+                )
+                province_figure.update_xaxes(ticksuffix="%")
+                st.plotly_chart(crystal(province_figure, 560), width="stretch", config=CRYSTAL_CHART_CONFIG)
+    with models_column:
+        with glass():
+            card_title(
+                "stacked_line_chart",
+                tr("The three models compared, {start}–{end}", start=HISTORICAL_YEARS[0], end=future_end),
+                tr("How far the models disagree grows with the forecast horizon."),
+            )
+            models_figure = go.Figure()
+            models_figure.add_trace(
+                go.Scatter(
+                    x=HISTORICAL_YEARS,
+                    y=result.actual,
+                    name=tr("Actual"),
+                    mode="lines+markers",
+                    line={"color": ATLAS_INK, "width": 3, "shape": "spline"},
+                    marker={"size": 6},
+                    hovertemplate=f"<b>%{{x}}</b> · {tr('Actual')}<br>%{{y:,.0f}}<extra></extra>",
+                )
+            )
+            dash_styles = {"Linear": "dash", "Polynomial": "dashdot", "Exponential": "dot"}
+            for name in MODEL_NAMES:
+                models_figure.add_trace(
+                    go.Scatter(
+                        x=[HISTORICAL_YEARS[-1], *future_years],
+                        y=[result.actual[-1], *result.future[name]],
+                        name=MODEL_LABELS[name],
+                        mode="lines+markers",
+                        line={
+                            "color": MODEL_STYLES[name]["color"],
+                            "width": 3.5 if name == ribbon_model else 2,
+                            "dash": dash_styles[name],
+                            "shape": "spline",
+                        },
+                        marker={"size": 6},
+                        opacity=1 if name == ribbon_model else 0.7,
+                        hovertemplate=f"<b>%{{x}}</b> · {MODEL_LABELS[name]}<br>%{{y:,.0f}}<extra></extra>",
+                    )
+                )
+            models_figure.add_vrect(
+                x0=HISTORICAL_YEARS[-1], x1=future_end, fillcolor="rgba(184,144,47,0.10)", line_width=0, layer="below"
+            )
+            models_figure.update_yaxes(tickformat=",.0f")
+            st.plotly_chart(crystal(models_figure, 560), width="stretch", config=CRYSTAL_CHART_CONFIG)
+    if not district_summary.empty:
+        with glass():
+            card_title(
+                "density_medium",
+                tr("Most densely populated districts, {year}", year=future_end),
+                tr("People per km², forecast with {model}.", model=forecast_model_label),
+            )
+            densest = district_summary.nlargest(12, "density_end").sort_values("density_end")
+            density_figure = go.Figure(
+                go.Bar(
+                    x=densest["density_end"],
+                    y=densest[name_column].fillna(densest["ouName"]),
+                    orientation="h",
+                    customdata=densest[["Population", "area_km2"]].to_numpy(),
+                    marker={
+                        "color": densest["density_end"],
+                        "colorscale": [[0, "rgba(29,106,174,0.45)"], [1, "rgba(14,63,110,0.95)"]],
+                        "line": {"color": "#FFFFFF", "width": 1.2},
+                    },
+                    text=[f"{value:,.0f}" for value in densest["density_end"]],
+                    textposition="outside",
+                    cliponaxis=False,
+                    hovertemplate=(
+                        f"<b>%{{y}}</b><br>{tr('People per km²')}: %{{x:,.1f}}"
+                        f"<br>{tr('Population')}: %{{customdata[0]:,.0f}}"
+                        f"<br>{tr('Area (km²)')}: %{{customdata[1]:,.0f}}<extra></extra>"
+                    ),
+                )
+            )
+            density_figure.update_xaxes(tickformat=",.0f")
+            st.plotly_chart(crystal(density_figure, 440), width="stretch", config=CRYSTAL_CHART_CONFIG)

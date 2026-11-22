@@ -199,8 +199,16 @@ def time_holdout_validation(
     )
 
 
-def forecast_each_row(df: pd.DataFrame, future_end: int = 2030) -> pd.DataFrame:
-    """Create row-level predictions for all models using vectorized multi-output fits."""
+def forecast_each_row(
+    df: pd.DataFrame, future_end: int = 2030, round_and_clip: bool = True
+) -> pd.DataFrame:
+    """Create row-level predictions for all models using vectorized multi-output fits.
+
+    By default predictions are rounded to whole people and negatives are set to
+    zero.  With ``round_and_clip=False`` the raw model values are returned; for
+    the linear and polynomial models these add up exactly to
+    :func:`forecast_totals` for the same rows.
+    """
     future_years = np.arange(2026, future_end + 1)
     historical_x = np.asarray(HISTORICAL_YEARS).reshape(-1, 1)
     future_x = future_years.reshape(-1, 1)
@@ -224,9 +232,10 @@ def forecast_each_row(df: pd.DataFrame, future_end: int = 2030) -> pd.DataFrame:
         "Exp": exponential_predictions,
     }
     for suffix, predictions in model_predictions.items():
-        rounded = np.rint(predictions).clip(min=0).astype(np.int64)
+        if round_and_clip:
+            predictions = np.rint(predictions).clip(min=0).astype(np.int64)
         for position, year in enumerate(future_years):
-            result[f"{year}_{suffix}"] = rounded[:, position]
+            result[f"{year}_{suffix}"] = predictions[:, position]
     return result
 
 

@@ -1,4 +1,27 @@
 [theme]
-# Lao font for all app text: Noto Sans Lao (loaded from Google Fonts),
-# then Phetsarath OT if it is installed on the computer.
-font = "'Noto Sans Lao':https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap, 'Phetsarath OT', sans-serif"
+base = "light"
+# Atlas palette (shared with image/style.css and the ATLAS_* constants in app.py)
+primaryColor = "#1E7B4F"              # Forest green
+backgroundColor = "#F6F7F3"           # Paper
+secondaryBackgroundColor = "#E6EFE8"
+textColor = "#14302A"                 # Deep green ink
+linkColor = "#1E7B4F"
+borderColor = "#D3DED5"
+dataframeBorderColor = "#E4E7E0"
+dataframeHeaderBackgroundColor = "#E6EFE8"
+showWidgetBorder = true
+baseRadius = "small"
+buttonRadius = "small"
+chartCategoricalColors = ["#1D6AAE", "#A63D4F", "#5C8A2E"]
+# Metric deltas and tile charts use the forest green rather than the default green.
+greenColor = "#1E7B4F"
+greenBackgroundColor = "#DDEFE3"
+greenTextColor = "#1E7B4F"
+# Lao font for all app text: Noto Sans Lao (loaded from Google Fonts, with its
+# width axis for condensed headings), then Phetsarath OT if it is installed.
+font = "'Noto Sans Lao':https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wdth,wght@62.5..100,100..900&display=swap, 'Phetsarath OT', sans-serif"
+headingFontWeights = [800, 700, 650, 600, 600, 600]
+
+[theme.sidebar]
+backgroundColor = "#E6EFE8"
+secondaryBackgroundColor = "#FFFFFF"
