@@ -205,6 +205,8 @@ def _log_ticks(low: float, high: float) -> list[float]:
 # OpenStreetMap standard tiles behind every map. The tiles load from the
 # internet; Plotly shows the required "(c) OpenStreetMap contributors" credit.
 BASEMAP_STYLE = "open-street-map"
+# Plain style used when the map background is switched off (works offline).
+PLAIN_STYLE = "white-bg"
 
 
 def _map_view(geojson_layers: list[dict], height: int, width: int = 520) -> dict:
@@ -247,6 +249,7 @@ def population_map_figure(
     value_format: str = ",.0f",
     colorscale: list | None = None,
     hover_lines: list[tuple[str, str, str]] | None = None,
+    basemap: bool = True,
 ) -> go.Figure:
     """Choropleth of ``value_column`` in ``table`` (also needs ouID, name, displayName).
 
@@ -279,7 +282,7 @@ def population_map_figure(
             zmin=low,
             zmax=high,
             colorscale=colorscale or MAP_COLORSCALE,
-            marker={"opacity": 0.68, "line": {"color": "#ffffff", "width": 0.7}},
+            marker={"opacity": 0.68 if basemap else 1.0, "line": {"color": "#ffffff", "width": 0.7}},
             customdata=customdata,
             hovertemplate=(
                 "<b>%{customdata[0]}</b><br>%{customdata[1]}<br>"
@@ -308,7 +311,10 @@ def population_map_figure(
         height=height,
         margin={"l": 0, "r": 0, "t": 48, "b": 70},
         hoverlabel={"bgcolor": "#ffffff", "font_size": 14},
-        map={"style": BASEMAP_STYLE, **_map_view([geojson], height - 118)},
+        map={
+            "style": BASEMAP_STYLE if basemap else PLAIN_STYLE,
+            **_map_view([geojson], height - 118),
+        },
     )
     return figure
 
@@ -320,6 +326,7 @@ def area_overview_figure(
     labels: dict[str, str],
     template: str,
     height: int = 560,
+    basemap: bool = True,
 ) -> go.Figure:
     """Map of Laos for the dataset step, on OpenStreetMap.
 
@@ -360,14 +367,19 @@ def area_overview_figure(
         selected = districts[districts["ouID"].isin(highlight_ids)]
         figure.add_trace(layer(boundaries["districts"], selected, "rgba(30,123,79,0.55)", "#0B5D3B", 1.4, True))
     else:
-        figure.add_trace(layer(boundaries["country"], country, "rgba(30,123,79,0.28)", "rgba(11,93,59,0.95)", 2.0, True))
-        figure.add_trace(layer(boundaries["provinces"], provinces, "rgba(0,0,0,0)", "rgba(11,93,59,0.55)", 0.9, False))
+        country_fill = "rgba(30,123,79,0.28)" if basemap else "rgba(122,196,150,0.9)"
+        figure.add_trace(layer(boundaries["country"], country, country_fill, "rgba(11,93,59,0.95)", 2.0, True))
+        province_line = "rgba(11,93,59,0.55)" if basemap else "rgba(255,255,255,0.85)"
+        figure.add_trace(layer(boundaries["provinces"], provinces, "rgba(0,0,0,0)", province_line, 0.9, False))
     figure.update_layout(
         template=template,
         height=height,
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
         paper_bgcolor="rgba(0,0,0,0)",
         hoverlabel={"bgcolor": "rgba(255,255,255,0.95)", "font_size": 14},
-        map={"style": BASEMAP_STYLE, **_map_view([boundaries["country"]], height)},
+        map={
+            "style": BASEMAP_STYLE if basemap else PLAIN_STYLE,
+            **_map_view([boundaries["country"]], height),
+        },
     )
     return figure

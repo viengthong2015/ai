@@ -410,6 +410,30 @@ LAO: dict[str, str] = {
     "{count} sexes": "{count} ເພດ",
     "{count} values": "{count} ຄ່າ",
     "Lao PDR": "ສປປ ລາວ",
+    "Does the forecast follow the past trend?": "ການຄາດຄະເນສອດຄ່ອງກັບແນວໂນ້ມໃນອະດີດບໍ?",
+    "Actual {start}–{last} and forecast {first}–{end} ({model}), using the baseline data "
+    "and sidebar filters. Hatched bars and dashed lines are forecasts.": (
+        "ຂໍ້ມູນຈິງ {start}–{last} ແລະ ຄາດຄະເນ {first}–{end} ({model}), ຕາມຂໍ້ມູນພື້ນຖານ "
+        "ແລະ ຕົວກອງໃນແຖບຂ້າງ. ແທ່ງທີ່ມີລາຍຂີດ ແລະ ເສັ້ນປະ ແມ່ນຄ່າຄາດຄະເນ."
+    ),
+    "Population by year and sex, {start}–{end}": "ປະຊາກອນ ຕາມປີ ແລະ ເພດ, {start}–{end}",
+    "Population by single age: {start} vs {end}": "ປະຊາກອນ ຕາມອາຍຸແຕ່ລະປີ: {start} ທຽບກັບ {end}",
+    "Dataset and sources": "ຂໍ້ມູນ ແລະ ແຫຼ່ງຂໍ້ມູນ",
+    "Forecasting and visualization": "ການຄາດຄະເນ ແລະ ການສະແດງພາບ",
+    "Summary dashboard": "ສະຫຼຸບ ແລະ ແຜງຄວບຄຸມ",
+    "Use responsibly": "ໃຊ້ຢ່າງຮັບຜິດຊອບ",
+    "Limitations": "ຂໍ້ຈຳກັດ",
+    "References": "ເອກະສານອ້າງອິງ",
+    "Number": "ຈຳນວນ",
+    "Share (%)": "ສັດສ່ວນ (%)",
+    "Total": "ລວມ",
+    "Growth vs previous year": "ເຕີບໂຕທຽບກັບປີກ່ອນ",
+    "Map background": "ພື້ນຫຼັງແຜນທີ່",
+    "OpenStreetMap": "OpenStreetMap",
+    "None": "ບໍ່ມີ",
+    "OpenStreetMap needs an internet connection. Choose None to show the maps offline.": (
+        "OpenStreetMap ຕ້ອງໃຊ້ອິນເຕີເນັດ. ເລືອກ ບໍ່ມີ ເພື່ອສະແດງແຜນທີ່ແບບອອບລາຍ."
+    ),
     "Land area (km²)": "ເນື້ອທີ່ດິນ (ກມ²)",
     "Years": "ປີ",
     "{count} annual values": "{count} ຄ່າລາຍປີ",
@@ -536,6 +560,20 @@ LAO: dict[str, str] = {
 }
 
 BLOCKS: dict[str, dict[str, str]] = {
+    "use_responsibly": {
+        "en": """
+- The forecasts are based on only 10 values (10 years) of data.
+- Migration, births, deaths and policy changes are not used as explicit predictors in this forecast.
+- Original values and the correction audits must remain available for review.
+- The forecasts can support planning, but they do not replace official projections.
+""",
+        "lo": """
+- ຂໍ້ມູນທີ່ນຳມາເປັນຖານໃນການພະຍາກອນ ມີ 10 ຄ່າ (10 ປີ) ເທົ່ານັ້ນ.
+- ປັດໄຈ: ການຍ້າຍຖິ່ນ, ການເກີດ, ການເສຍຊີວິດ ແລະ ການປ່ຽນແປງນະໂຍບາຍ ບໍ່ໄດ້ນຳມາພິຈາລະນາໃນການພະຍາກອນຄັ້ງນີ້ (explicit predictors).
+- ຄ່າຕົ້ນສະບັບ ແລະ ການກວດສອບການແກ້ໄຂ (correction audits) ຕ້ອງສາມາດທົບທວນໄດ້.
+- ຜົນຄາດຄະເນສາມາດຊ່ວຍສະໜັບສະໜູນການວາງແຜນ, ແຕ່ບໍ່ໄດ້ທົດແທນການຄາດຄະເນທາງການ.
+""",
+    },
     "data_source": {
         "en": """
 - **System:** DHIS2 (District Health Information Software 2), Ministry of Health, Lao PDR.

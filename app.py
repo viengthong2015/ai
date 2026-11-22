@@ -1462,10 +1462,13 @@ st.markdown(
         display: none;
     }
 
-    /* The step bar: a dark green band with a glowing active step. */
-    .st-key-step-tabs > div > div[data-baseweb="tab-list"],
+    /* The step bar: a stepper on a dark green band. Each step has a round
+       number badge and a line joining it to the next step; finished steps
+       show a check mark and a green line. */
     .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) {
-        padding: 0.45rem;
+        counter-reset: step;
+        gap: 0 !important;
+        padding: 0.7rem 1.4rem;
         border: 1px solid rgba(120, 220, 160, 0.35);
         border-radius: 16px;
         background:
@@ -1476,20 +1479,99 @@ st.markdown(
             inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 
-    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"] p {
-        color: rgba(225, 245, 233, 0.86);
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"] {
+        counter-increment: step;
+        display: flex;
+        flex: 1 1 0;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.2rem 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:last-of-type {
+        flex: 0 1 auto;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"] > div {
+        flex: none;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]::before {
+        content: counter(step);
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 2.4rem;
+        height: 2.4rem;
+        border: 2px solid rgba(160, 230, 190, 0.55);
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(225, 245, 233, 0.9);
         font-size: 1.05rem;
+        font-weight: 800;
+        transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:not(:last-of-type)::after {
+        content: "";
+        flex: 1 1 auto;
+        min-width: 1.5rem;
+        height: 2px;
+        margin: 0 1rem 0 0.25rem;
+        border-radius: 2px;
+        background: rgba(160, 230, 190, 0.3);
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"] p {
+        color: rgba(225, 245, 233, 0.8);
+        font-size: 1.05rem;
+        white-space: nowrap;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:hover::before {
+        border-color: #FFFFFF;
     }
 
     .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:hover p {
         color: #FFFFFF;
     }
 
-    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(120deg, #2BAA63 0%, #4FD08A 100%);
-        box-shadow:
-            0 0 18px rgba(79, 208, 138, 0.55),
-            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    /* Current step */
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"][aria-selected="true"]::before {
+        border-color: transparent;
+        background:
+            radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.5), transparent 38%),
+            linear-gradient(135deg, #2BAA63, #4FD08A);
+        color: #FFFFFF;
+        box-shadow: 0 0 0 4px rgba(79, 208, 138, 0.25), 0 0 18px rgba(79, 208, 138, 0.6);
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"][aria-selected="true"] p {
+        color: #FFFFFF !important;
+        font-weight: 700;
+    }
+
+    /* Finished steps (before the current one) */
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:has(~ button[aria-selected="true"])::before {
+        content: "✓";
+        border-color: transparent;
+        background: rgba(43, 170, 99, 0.9);
+        color: #FFFFFF;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:has(~ button[aria-selected="true"])::after {
+        background: linear-gradient(90deg, #2BAA63, #4FD08A);
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:focus-visible {
+        outline: none;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]:focus-visible::before {
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
     }
 
     /* Step header: a glossy green orb with the step number. */
@@ -1542,6 +1624,70 @@ st.markdown(
         box-shadow: 0 8px 22px rgba(30, 123, 79, 0.16);
     }
 
+
+    /* Switch buttons: every segmented control is a pill-shaped track; the
+       selected option is a green thumb. */
+    [data-testid="stButtonGroup"] > div {
+        gap: 4px !important;
+        padding: 4px;
+        border: 1px solid rgba(61, 186, 116, 0.35);
+        border-radius: 999px;
+        background: rgba(20, 48, 42, 0.07);
+        box-shadow: inset 0 2px 5px rgba(20, 48, 42, 0.12);
+    }
+
+    [data-testid="stButtonGroup"] button {
+        border: none !important;
+        border-radius: 999px !important;
+        background: transparent !important;
+        color: var(--atlas-slate) !important;
+        font-weight: 600;
+        box-shadow: none !important;
+        transition: background 220ms ease, color 220ms ease, box-shadow 220ms ease;
+    }
+
+    [data-testid="stButtonGroup"] button:hover {
+        color: var(--atlas-ink) !important;
+        background: rgba(255, 255, 255, 0.55) !important;
+    }
+
+    [data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {
+        background: linear-gradient(120deg, #17864F 0%, #2BAA63 60%, #4FD08A 100%) !important;
+        color: #FFFFFF !important;
+        box-shadow:
+            0 3px 10px rgba(23, 134, 79, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    }
+
+    [data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] * {
+        color: #FFFFFF !important;
+    }
+
+    /* Sidebar switches stay on one line. */
+    [data-testid="stSidebar"] [data-testid="stButtonGroup"] > div {
+        flex-wrap: nowrap !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stButtonGroup"] button {
+        flex: 1 0 auto !important;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0;
+        padding-left: 0.55rem !important;
+        padding-right: 0.55rem !important;
+        white-space: nowrap;
+    }
+
+    .st-key-page-switch [data-testid="stButtonGroup"] button {
+        min-height: 2.6rem;
+        font-size: 1.02rem;
+    }
+
+    [data-testid="stButtonGroup"] button:focus-visible {
+        outline: 3px solid rgba(43, 170, 99, 0.45) !important;
+        outline-offset: 2px;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [class*="st-key-glass-"],
         div[data-testid="stTabs"] button[data-baseweb="tab"] {
@@ -1553,13 +1699,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-app_view = st.segmented_control(
+app_view = st.container(key="page-switch").segmented_control(
     "Page",
     ["Presentation", "Demo"],
+    required=True,
     default="Demo",
     format_func={
-        "Presentation": "🎞️  " + tr("Presentation"),
-        "Demo": "📊  " + tr("Demo"),
+        "Presentation": ":material/slideshow: " + tr("Presentation"),
+        "Demo": ":material/monitoring: " + tr("Demo"),
     }.get,
     label_visibility="collapsed",
     width="stretch",
@@ -1656,6 +1803,7 @@ if app_view == "Presentation":
 st.sidebar.segmented_control(
     "ພາສາ / Language",
     list(LANGUAGES),
+    required=True,
     default=DEFAULT_LANGUAGE,
     format_func=LANGUAGES.get,
     key="demo_language",
@@ -1706,6 +1854,32 @@ uploaded_file = st.sidebar.file_uploader(
     tr("Upload population CSV"), type=["csv"], key="upload_csv"
 )
 future_end = st.sidebar.slider(tr("Forecast through"), 2026, 2040, 2030, key="future_end")
+map_background_options = {
+    "osm": tr("OpenStreetMap"),
+    "none": tr("None"),
+}
+map_background_key = lang_key("map_background")
+show_basemap = (
+    remember(
+        "map_background",
+        st.sidebar.segmented_control(
+            tr("Map background"),
+            list(map_background_options),
+            required=True,
+            format_func=map_background_options.get,
+            default=None if map_background_key in st.session_state else "osm",
+            key=map_background_key,
+            width="stretch",
+            help=tr(
+                "OpenStreetMap needs an internet connection. Choose None to show the "
+                "maps offline."
+            ),
+        )
+        or "osm",
+    )
+    == "osm"
+)
+
 correction_threshold = st.sidebar.slider(
     tr("Outlier correction threshold"),
     min_value=2.5,
@@ -1746,6 +1920,7 @@ baseline_key = lang_key("baseline_type")
 forecast_input_option = st.segmented_control(
     tr("Baseline data type"),
     [ORIGINAL_INPUT_OPTION, CORRECTED_INPUT_OPTION],
+    required=True,
     default=None if baseline_key in st.session_state else CORRECTED_INPUT_OPTION,
     format_func={
         option: baseline_label(option)
@@ -2362,11 +2537,140 @@ CRYSTAL_CHART_CONFIG = {
     "modeBarButtonsToRemove": ["lasso2d", "select2d"],
 }
 
+
+def sex_view_switch(name: str) -> bool:
+    """Number / Share (%) switch for a year-and-sex chart; True means share."""
+    options = {"number": tr("Number"), "share": tr("Share (%)")}
+    key = lang_key(name)
+    view = remember(
+        name,
+        st.segmented_control(
+            tr("Show"),
+            list(options),
+            required=True,
+            format_func=options.get,
+            default=None if key in st.session_state else "number",
+            key=key,
+            label_visibility="collapsed",
+        )
+        or "number",
+    )
+    return view == "share"
+
+
+def sex_year_figure(
+    by_sex: pd.DataFrame, show_share: bool, forecast_years: list[int] | None = None
+) -> go.Figure:
+    """Stacked men/women bars per year with the total on top.
+
+    ``by_sex`` has one row per year and Male/Female columns.  Years listed in
+    ``forecast_years`` get hatched bars on a gold background.
+    """
+    years = [int(year) for year in by_sex.index]
+    forecast_years = [year for year in (forecast_years or []) if year in years]
+    is_forecast = [year in forecast_years for year in years]
+    totals = by_sex.sum(axis=1)
+    growth = totals.pct_change() * 100
+    figure = go.Figure()
+    if forecast_years:
+        figure.add_vrect(
+            x0=forecast_years[0] - 0.5,
+            x1=forecast_years[-1] + 0.5,
+            fillcolor="rgba(184, 144, 47, 0.12)",
+            line_width=0,
+            layer="below",
+        )
+        figure.add_annotation(
+            x=(forecast_years[0] + forecast_years[-1]) / 2,
+            y=1.0,
+            yref="paper",
+            yanchor="bottom",
+            text=f"<b>{tr('Forecast')}</b> {forecast_years[0]}–{forecast_years[-1]}",
+            showarrow=False,
+            font={"color": "#7A5F1C", "size": 12},
+        )
+    for sex_name, color in (("Male", ATLAS_MEKONG), ("Female", ATLAS_MADDER)):
+        if sex_name not in by_sex:
+            continue
+        values = by_sex[sex_name]
+        shares = values / totals * 100
+        figure.add_trace(
+            go.Bar(
+                x=years,
+                y=shares if show_share else values,
+                customdata=np.column_stack([values, shares]),
+                name=tr(sex_name),
+                marker={
+                    "color": color,
+                    "opacity": 0.82,
+                    "line": {"color": "#FFFFFF", "width": 1.2},
+                    "pattern": {
+                        "shape": ["/" if forecast else "" for forecast in is_forecast],
+                        "fgcolor": "rgba(255, 255, 255, 0.55)",
+                        "fillmode": "overlay",
+                        "size": 7,
+                        "solidity": 0.25,
+                    },
+                },
+                text=(
+                    [f"{share:.1f}%" for share in shares]
+                    if show_share
+                    else [f"{value / 1e6:.1f}M" for value in values]
+                ),
+                textposition="inside",
+                insidetextanchor="middle",
+                textangle=0,
+                textfont={"color": "#FFFFFF", "size": 10},
+                hovertemplate=(
+                    f"{tr(sex_name)}: %{{customdata[0]:,.0f}} (%{{customdata[1]:.1f}}%)<extra></extra>"
+                ),
+            )
+        )
+    if not show_share:
+        # Total on top of each stack, joined by a thin line to show the trend.
+        # With many years, only the first, last actual and last totals are written.
+        last_actual = max((year for year, forecast in zip(years, is_forecast) if not forecast), default=None)
+        label_years = set(years) if len(years) <= 11 else {years[0], years[-1], last_actual}
+        figure.add_trace(
+            go.Scatter(
+                x=years,
+                y=totals,
+                customdata=[["—" if np.isnan(value) else f"{value:+.2f}%"] for value in growth],
+                name=tr("Total"),
+                mode="lines+markers+text",
+                line={"color": ATLAS_INK, "width": 1.5, "dash": "dot"},
+                marker={
+                    "size": 7,
+                    "color": ["#FFFFFF" if not forecast else ATLAS_GOLD for forecast in is_forecast],
+                    "line": {"color": ATLAS_INK, "width": 2},
+                },
+                text=[f"{value / 1e6:.2f}M" if year in label_years else "" for year, value in zip(years, totals)],
+                textposition="top center",
+                textfont={"color": ATLAS_INK, "size": 11},
+                hovertemplate=(
+                    f"<b>{tr('Total')}: %{{y:,.0f}}</b>"
+                    f"<br>{tr('Growth vs previous year')}: %{{customdata[0]}}<extra></extra>"
+                ),
+            )
+        )
+    figure.update_layout(
+        barmode="stack",
+        bargap=0.22,
+        hovermode="x unified",
+        uniformtext={"minsize": 9, "mode": "hide"},
+    )
+    figure.update_xaxes(tickmode="array", tickvals=years)
+    if show_share:
+        figure.update_yaxes(range=[0, 100], ticksuffix="%")
+    else:
+        figure.update_yaxes(tickformat=",.0f", range=[0, float(totals.max()) * 1.14])
+    return figure
+
 step1_tab, step2_tab, step3_tab = st.tabs(
     [
-        ":material/database: " + tr("Step 1: Dataset and sources"),
-        ":material/model_training: " + tr("Step 2: Forecasting and visualization"),
-        ":material/dashboard: " + tr("Step 3: Summary dashboard"),
+        tr("Dataset and sources"),
+        tr("Forecasting and visualization"),
+        tr("Summary dashboard"),
     ],
     key="step-tabs",
 )
@@ -2522,6 +2826,7 @@ with step1_overview:
                         },
                         PLOTLY_TEMPLATE,
                         height=470,
+                        basemap=show_basemap,
                     ),
                     width="stretch",
                     config={"displaylogo": False, "scrollZoom": True},
@@ -2589,22 +2894,12 @@ with step1_overview:
                 .sum()
                 .T
             )
-            year_figure = go.Figure()
-            for sex_name, color in (("Male", ATLAS_MEKONG), ("Female", ATLAS_MADDER)):
-                if sex_name in by_sex:
-                    year_figure.add_trace(
-                        go.Bar(
-                            x=HISTORICAL_YEARS,
-                            y=by_sex[sex_name],
-                            name=tr(sex_name),
-                            marker={"color": color, "opacity": 0.78, "line": {"color": "#FFFFFF", "width": 1.2}},
-                            hovertemplate=f"<b>%{{x}}</b> · {tr(sex_name)}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>",
-                        )
-                    )
-            year_figure.update_layout(barmode="stack", bargap=0.28)
-            year_figure.update_xaxes(tickmode="array", tickvals=HISTORICAL_YEARS)
-            year_figure.update_yaxes(tickformat=",.0f")
-            st.plotly_chart(crystal(year_figure, 360), width="stretch", config=CRYSTAL_CHART_CONFIG)
+            show_share = sex_view_switch("sex_chart_view")
+            st.plotly_chart(
+                crystal(sex_year_figure(by_sex, show_share), 360),
+                width="stretch",
+                config=CRYSTAL_CHART_CONFIG,
+            )
     with age_chart_column:
         with glass():
             card_title("area_chart", tr("Population by single age, {year}", year=latest_year))
@@ -2798,6 +3093,7 @@ with step3_dashboard:
         st.segmented_control(
             tr("Show"),
             measure_options,
+            required=True,
             format_func=measure_labels.get,
             default=None if measure_key in st.session_state else "population",
             key=measure_key,
@@ -3362,6 +3658,7 @@ with pyramid_tab:
             map_level_column.segmented_control(
                 tr("Administrative level"),
                 list(MAP_LEVEL_OPTIONS),
+                required=True,
                 format_func={option: tr(option) for option in MAP_LEVEL_OPTIONS}.get,
                 default=None if map_level_key in st.session_state else "Province (level 2)",
                 key=map_level_key,
@@ -3436,6 +3733,7 @@ with pyramid_tab:
                 ),
                 PLOTLY_TEMPLATE,
                 height=620,
+                basemap=show_basemap,
                 value_label=tr("Population"),
                 hover_lines=[(tr("People per km²"), "Density", ",.1f")],
             ),
@@ -3454,6 +3752,7 @@ with pyramid_tab:
                 ),
                 PLOTLY_TEMPLATE,
                 height=620,
+                basemap=show_basemap,
                 value_label=tr("People per km²"),
                 value_column="Density",
                 value_format=",.1f",
@@ -3907,6 +4206,84 @@ province_summary_display = (
     else pd.DataFrame()
 )
 
+# ------------------------------------------------------------------ step 3: forecast vs past trend
+with step3_dashboard:
+    st.subheader(":material/compare_arrows: " + tr("Does the forecast follow the past trend?"))
+    st.caption(
+        tr(
+            "Actual {start}–{last} and forecast {first}–{end} ({model}), using the baseline "
+            "data and sidebar filters. Hatched bars and dashed lines are forecasts.",
+            start=HISTORICAL_YEARS[0],
+            last=last_actual_year,
+            first=future_years[0],
+            end=future_end,
+            model=forecast_model_label,
+        )
+    )
+    trend_year_column, trend_age_column = st.columns([1.35, 1])
+    trend_sex_column = "sexName" if "sexName" in summary_rows_raw else None
+    with glass(trend_year_column):
+        card_title(
+            "stacked_bar_chart",
+            tr("Population by year and sex, {start}–{end}", start=HISTORICAL_YEARS[0], end=future_end),
+        )
+        trend_share = sex_view_switch("trend_sex_chart_view")
+        forecast_columns = [f"{year}{MODEL_EXPORT_SUFFIXES[ribbon_model]}" for year in future_years]
+        trend_by_sex = summary_rows_raw.groupby(trend_sex_column)[
+            [str(year) for year in HISTORICAL_YEARS] + forecast_columns
+        ].sum().T
+        trend_by_sex.index = [*HISTORICAL_YEARS, *future_years]
+        st.plotly_chart(
+            crystal(sex_year_figure(trend_by_sex, trend_share, future_years), 400),
+            width="stretch",
+            config=CRYSTAL_CHART_CONFIG,
+        )
+    with glass(trend_age_column):
+        card_title(
+            "area_chart",
+            tr("Population by single age: {start} vs {end}", start=last_actual_year, end=future_end),
+        )
+        trend_ages = pd.to_numeric(
+            summary_rows_raw["cocCode"].astype(str).str.extract(r"(\d+)", expand=False),
+            errors="coerce",
+        )
+        trend_by_age = (
+            summary_rows_raw.assign(age=trend_ages)
+            .groupby(["age", trend_sex_column])[[str(last_actual_year), summary_end_column]]
+            .sum()
+        )
+        trend_age_figure = go.Figure()
+        for sex_name, color in (("Male", ATLAS_MEKONG), ("Female", ATLAS_MADDER)):
+            if sex_name not in trend_by_age.index.get_level_values(1):
+                continue
+            sex_rows = trend_by_age.xs(sex_name, level=1).sort_index()
+            for column, year, dash, width in (
+                (str(last_actual_year), last_actual_year, "solid", 2.5),
+                (summary_end_column, future_end, "dash", 2.5),
+            ):
+                label = f"{tr(sex_name)} {year}"
+                trend_age_figure.add_trace(
+                    go.Scatter(
+                        x=sex_rows.index,
+                        y=sex_rows[column],
+                        name=label,
+                        mode="lines",
+                        line={"color": color, "width": width, "dash": dash},
+                        opacity=1 if dash == "solid" else 0.85,
+                        hovertemplate=(
+                            f"{tr('Age')} %{{x}} · {label}<br>{tr('Population')}: %{{y:,.0f}}<extra></extra>"
+                        ),
+                    )
+                )
+        trend_age_figure.update_layout(hovermode="x unified")
+        trend_age_figure.update_xaxes(title_text=tr("Age"))
+        trend_age_figure.update_yaxes(tickformat=",.0f")
+        st.plotly_chart(
+            crystal(trend_age_figure, 448),
+            width="stretch",
+            config=CRYSTAL_CHART_CONFIG,
+        )
+
 # ------------------------------------------------------------------ step 3: key findings
 with step3_findings:
     st.subheader(":material/lightbulb: " + tr("Key findings"))
@@ -4068,6 +4445,9 @@ with export_tab:
 
 with step3_info:
     with st.expander(":material/info: " + tr("About this forecast: limitations and references")):
+        st.markdown("#### :material/warning: " + tr("Use responsibly"))
+        st.markdown(block("use_responsibly", current_language()))
+        st.markdown("#### :material/rule: " + tr("Limitations"))
         st.markdown(block("limitations", current_language()))
         st.caption(
             tr(
@@ -4075,6 +4455,7 @@ with step3_info:
                 "which total about 2% less than the official 236,800 km²."
             )
         )
+        st.markdown("#### :material/menu_book: " + tr("References"))
         st.markdown(block("references", current_language()))
 
 # ------------------------------------------------------------------ step 2: further analysis
