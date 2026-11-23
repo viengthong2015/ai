@@ -18,6 +18,7 @@ import plotly.io as pio
 from plotly.offline import get_plotlyjs
 from plotly.subplots import make_subplots
 import streamlit as st
+import streamlit.components.v1 as components
 
 from outlier_detection import (
     OutlierCorrectionResult,
@@ -57,20 +58,35 @@ MAP_LEVEL_OPTIONS = {
 }
 PRESENTATION_FILE = APP_DIR / "index.html"
 PLOTLY_JAVASCRIPT = get_plotlyjs()
+# UI style: "default" (light atlas design) or "crystal" (dark emerald glass).
+# The "Switch UI Style" button flips it; Streamlit reruns the script without a
+# page reload, so every selection in st.session_state is kept.
+UI_MODE = st.session_state.get("ui_mode", "default")
+CRYSTAL_MODE = UI_MODE == "crystal"
+
 # Atlas palette, shared with the presentation (image/style.css). Mekong, Madder
 # and Rice were checked for colour-blind separation as a set.
 ATLAS_PAPER = "#F6F7F3"
 ATLAS_INK = "#14302A"
 ATLAS_SLATE = "#5C6470"
 ATLAS_RULE = "#D3DED5"
-ATLAS_MEKONG = "#1D6AAE"
 ATLAS_MEKONG_SOFT = "#DCE8F3"
-ATLAS_FOREST = "#1E7B4F"
-ATLAS_FOREST_SOFT = "#DDEFE3"
-ATLAS_MADDER = "#A63D4F"
-ATLAS_RICE = "#5C8A2E"
 ATLAS_GOLD = "#B8902F"
 ATLAS_GOLD_SOFT = "#F4ECD8"
+if CRYSTAL_MODE:
+    # Data colours brightened for the dark UI; SLIDE_COLOURS maps them back to
+    # the original atlas colours for the light presentation slides.
+    ATLAS_MEKONG = "#4F9DEB"
+    ATLAS_FOREST = "#2BD98A"
+    ATLAS_FOREST_SOFT = "rgba(43, 217, 138, 0.28)"  # best-value highlight in tables
+    ATLAS_MADDER = "#E0607A"
+    ATLAS_RICE = "#9CCB5B"
+else:
+    ATLAS_MEKONG = "#1D6AAE"
+    ATLAS_FOREST = "#1E7B4F"
+    ATLAS_FOREST_SOFT = "#DDEFE3"
+    ATLAS_MADDER = "#A63D4F"
+    ATLAS_RICE = "#5C8A2E"
 MODEL_STYLES = {
     "Linear": {"color": ATLAS_MEKONG, "linestyle": "--"},
     "Polynomial": {"color": ATLAS_MADDER, "linestyle": "-."},
@@ -95,19 +111,106 @@ ALL_MODELS_OPTION = "All models"
 CORRECTED_INPUT_OPTION = "Corrected data (recommended)"
 ORIGINAL_INPUT_OPTION = "Original data"
 DEFAULT_CORRECTION_THRESHOLD = 3.5
-STREAMLIT_CHART_BLUE = ATLAS_INK  # actual (observed) values
-STREAMLIT_CHART_TEXT = ATLAS_INK
-STREAMLIT_CHART_MUTED = ATLAS_SLATE
-STREAMLIT_CHART_GRID = "#E4E7E0"
-STREAMLIT_CHART_FORECAST_BAND = ATLAS_GOLD_SOFT
+if CRYSTAL_MODE:
+    # Dark chart palette. Charts that also go to the (light) presentation slides
+    # are converted back with slide_json(), so every colour here must be unique
+    # to the charts.
+    CHART_TEXT = "#E3F1EA"
+    CHART_MUTED = "#8FB5A5"
+    CHART_GRID = "rgba(160, 230, 190, 0.10)"
+    CHART_SURFACE = "#0B2A21"
+    CHART_HOVER = "rgba(8, 36, 28, 0.96)"
+    CRYSTAL_GREEN = "#2BD98A"
+    CRYSTAL_CYAN = "#19C3D9"
+    STREAMLIT_CHART_FORECAST_BAND = "rgba(184, 144, 47, 0.16)"
+    FORECAST_LABEL_COLOUR = "#E2B954"
+    SEX_RGB = {"Male": "79,157,235", "Female": "224,96,122"}
+    SLIDE_COLOURS = {
+        CHART_TEXT: ATLAS_INK,
+        CHART_MUTED: ATLAS_SLATE,
+        CHART_GRID: "#E4E7E0",
+        CHART_SURFACE: "#FFFFFF",
+        CHART_HOVER: "#FFFFFF",
+        STREAMLIT_CHART_FORECAST_BAND: ATLAS_GOLD_SOFT,
+        "#4F9DEB": "#1D6AAE",
+        "#2BD98A": "#1E7B4F",
+        "#E0607A": "#A63D4F",
+        "#9CCB5B": "#5C8A2E",
+    }
+else:
+    CHART_TEXT = ATLAS_INK
+    CHART_MUTED = ATLAS_SLATE
+    CHART_GRID = "#E4E7E0"
+    CHART_SURFACE = "#FFFFFF"
+    CHART_HOVER = "#FFFFFF"
+    CRYSTAL_GREEN = ATLAS_INK  # actual line in the trajectory chart
+    CRYSTAL_CYAN = ATLAS_GOLD  # forecast line in the trajectory chart
+    STREAMLIT_CHART_FORECAST_BAND = ATLAS_GOLD_SOFT
+    FORECAST_LABEL_COLOUR = "#7A5F1C"
+    SEX_RGB = {"Male": "29,106,174", "Female": "166,61,79"}
+    SLIDE_COLOURS = {}
+STREAMLIT_CHART_BLUE = CHART_TEXT  # actual (observed) values
+STREAMLIT_CHART_TEXT = CHART_TEXT
+STREAMLIT_CHART_MUTED = CHART_MUTED
+STREAMLIT_CHART_GRID = CHART_GRID
 LAO_FONT_FAMILIES = ["Noto Sans Lao", "Phetsarath OT"]
 LAO_FONT_STACK = "'Noto Sans Lao', 'Phetsarath OT', sans-serif"
+CRYSTAL_FONT_STACK = "Inter, 'Noto Sans Lao', 'Phetsarath OT', sans-serif"
+CRYSTAL_MONO_STACK = "'JetBrains Mono', 'Noto Sans Lao', monospace"
 
 # Plotly charts (Streamlit and the embedded presentation): Lao font everywhere.
 pio.templates["lao_font"] = go.layout.Template(
     layout={"font": {"family": LAO_FONT_STACK}}
 )
-PLOTLY_TEMPLATE = "plotly_white+lao_font"
+pio.templates["lao_crystal"] = go.layout.Template(
+    layout={
+        "font": {"color": "#E3F1EA", "family": CRYSTAL_FONT_STACK},
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
+        "hoverlabel": {
+            "bgcolor": "rgba(8, 36, 28, 0.96)",
+            "bordercolor": "rgba(43, 217, 138, 0.45)",
+            "font": {"color": "#E3F1EA", "family": CRYSTAL_MONO_STACK},
+        },
+        "xaxis": {
+            "gridcolor": "rgba(160, 230, 190, 0.10)",
+            "linecolor": "rgba(160, 230, 190, 0.10)",
+            "zerolinecolor": "rgba(160, 230, 190, 0.10)",
+            "tickfont": {"color": "#8FB5A5", "family": CRYSTAL_MONO_STACK},
+        },
+        "yaxis": {
+            "gridcolor": "rgba(160, 230, 190, 0.10)",
+            "linecolor": "rgba(160, 230, 190, 0.10)",
+            "zerolinecolor": "rgba(160, 230, 190, 0.10)",
+            "tickfont": {"color": "#8FB5A5", "family": CRYSTAL_MONO_STACK},
+        },
+        "legend": {"font": {"color": "#E3F1EA"}},
+        "title": {"font": {"color": "#F8FAFC"}},
+        "annotationdefaults": {"font": {"color": "#A7F3D0"}},
+        "coloraxis": {"colorbar": {"tickfont": {"color": "#A7F3D0"}, "title": {"font": {"color": "#E3F1EA"}}}},
+    }
+)
+for _axis in ("xaxis", "yaxis"):
+    pio.templates["lao_crystal"].layout[_axis].title.font.color = "#A7F3D0"
+# Crystal charts carry their own dark template; Streamlit's chart theme (light
+# base theme) would override its text colours, so it is switched off there.
+CHART_THEME = None if CRYSTAL_MODE else "streamlit"
+PLOTLY_TEMPLATE = (
+    "plotly_white+lao_font+lao_crystal" if CRYSTAL_MODE else "plotly_white+lao_font"
+)
+
+
+def slide_json(figure: go.Figure) -> dict:
+    """Plotly JSON for the light presentation slides (Crystal colours swapped back)."""
+    payload = figure.to_json()
+    for dark, light in SLIDE_COLOURS.items():
+        payload = payload.replace(f'"{dark}"', f'"{light}"')
+    if CRYSTAL_MODE:
+        # The slides use the light template and fonts.
+        payload = payload.replace(CRYSTAL_MONO_STACK, LAO_FONT_STACK).replace(
+            CRYSTAL_FONT_STACK, LAO_FONT_STACK
+        )
+    return json.loads(payload)
 
 # Matplotlib charts: use whichever Lao fonts are installed, with DejaVu Sans
 # as the fallback for Latin characters.
@@ -456,7 +559,7 @@ def interactive_forecast_figure(
             mode="lines+markers",
             line={"color": STREAMLIT_CHART_BLUE, "width": 3},
             marker={
-                "color": "#FFFFFF",
+                "color": CHART_SURFACE,
                 "line": {"color": STREAMLIT_CHART_BLUE, "width": 2},
                 "size": 8,
             },
@@ -520,7 +623,7 @@ def interactive_forecast_figure(
                 ),
                 marker={
                     "color": MODEL_STYLES[name]["color"],
-                    "line": {"color": "#FFFFFF", "width": 1},
+                    "line": {"color": CHART_SURFACE, "width": 1},
                 },
                 text=residual_labels,
                 textposition="outside",
@@ -583,7 +686,7 @@ def interactive_forecast_figure(
             "xanchor": "left",
             "x": 0,
         },
-        hoverlabel={"bgcolor": "#FFFFFF", "font_color": STREAMLIT_CHART_TEXT},
+        hoverlabel={"bgcolor": CHART_HOVER, "font_color": STREAMLIT_CHART_TEXT},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
     )
@@ -767,7 +870,7 @@ def interactive_actual_vs_predicted_figure(
             label_colors.append(
                 STREAMLIT_CHART_MUTED
                 if rounded == 0
-                else ATLAS_INK
+                else CHART_TEXT
             )
 
         figure.add_trace(
@@ -779,7 +882,7 @@ def interactive_actual_vs_predicted_figure(
                 showlegend=row_number == 1,
                 marker={
                     "color": STREAMLIT_CHART_BLUE,
-                    "line": {"color": "#FFFFFF", "width": 1},
+                    "line": {"color": CHART_SURFACE, "width": 1},
                 },
                 hovertemplate=(
                     "<b>ຄ່າຈິງ (Actual)</b><br>ປີ (Year): %{x}<br>"
@@ -800,7 +903,7 @@ def interactive_actual_vs_predicted_figure(
                 showlegend=row_number == 1,
                 marker={
                     "color": MODEL_STYLES[name]["color"],
-                    "line": {"color": "#FFFFFF", "width": 1},
+                    "line": {"color": CHART_SURFACE, "width": 1},
                 },
                 text=difference_labels,
                 textfont={"color": label_colors, "size": 11},
@@ -871,7 +974,7 @@ def interactive_actual_vs_predicted_figure(
             "xanchor": "left",
             "x": 0,
         },
-        hoverlabel={"bgcolor": "#FFFFFF", "font_color": STREAMLIT_CHART_TEXT},
+        hoverlabel={"bgcolor": CHART_HOVER, "font_color": STREAMLIT_CHART_TEXT},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
     )
@@ -895,7 +998,7 @@ def interactive_validation_figure(
             ),
             mode="lines+markers",
             line={"color": STREAMLIT_CHART_BLUE, "width": 4},
-            marker={"size": 10, "color": "#FFFFFF", "line": {"color": STREAMLIT_CHART_BLUE, "width": 2.5}},
+            marker={"size": 10, "color": CHART_SURFACE, "line": {"color": STREAMLIT_CHART_BLUE, "width": 2.5}},
             hovertemplate=(
                 "ຄ່າຈິງ (Actual)<br>ປີ (Year): %{x}<br>ປະຊາກອນ (Population): %{y:,.0f}<extra></extra>"
                 if lao_presentation
@@ -1063,7 +1166,7 @@ def population_pyramid_figure(
                 customdata=np.column_stack([values, values / total * 100]),
                 name=label,
                 orientation="h",
-                marker={"color": color, "opacity": 0.82, "line": {"color": "#FFFFFF", "width": 1}},
+                marker={"color": color, "opacity": 0.82, "line": {"color": CHART_SURFACE, "width": 1}},
                 hovertemplate=(
                     f"<b>%{{y}}</b> · {label}<br>{tr('Population')}: %{{customdata[0]:,.0f}}"
                     f"<br>{tr('Share')}: %{{customdata[1]:.2f}}%<extra></extra>"
@@ -1092,7 +1195,7 @@ def population_pyramid_figure(
         height=max(460, 22 * len(profile.index) + 160),
         margin={"l": 10, "r": 10, "t": 60, "b": 10},
         legend={"orientation": "h", "x": 1, "xanchor": "right", "y": 1.0, "yanchor": "bottom"},
-        hoverlabel={"bgcolor": "rgba(255,255,255,0.95)", "font_color": ATLAS_INK},
+        hoverlabel={"bgcolor": CHART_HOVER, "font_color": CHART_TEXT},
     )
     figure.update_xaxes(
         title_text=tr("Population (people)"),
@@ -1101,7 +1204,7 @@ def population_pyramid_figure(
         ticktext=[f"{abs(value):,.0f}" for value in ticks],
         gridcolor="rgba(20,48,42,0.08)",
         zeroline=True,
-        zerolinecolor=ATLAS_INK,
+        zerolinecolor=CHART_TEXT,
     )
     figure.update_yaxes(title_text=tr(y_axis_label), automargin=True)
     return figure, int(np.rint(male_values.sum())), int(np.rint(female_values.sum()))
@@ -1752,6 +1855,88 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# UI style switch (Default | Crystal), in the same pill style as the other
+# switches. Its key is "ui_mode", so the choice is read at the top of the script
+# on the next run; switching keeps every other selection in session state.
+UI_MODE_LABELS = {
+    "default": ":material/light_mode: Default",
+    "crystal": ":material/diamond: Crystal",
+}
+st.container(key="ui-style-switch", horizontal=True, horizontal_alignment="right").segmented_control(
+    "Switch UI Style",
+    list(UI_MODE_LABELS),
+    required=True,
+    format_func=UI_MODE_LABELS.get,
+    default=None if "ui_mode" in st.session_state else "default",
+    key="ui_mode",
+    label_visibility="collapsed",
+    help="Switch UI Style",
+)
+st.markdown(
+    """
+    <style>
+    .st-key-ui-style-switch {
+        margin-bottom: -0.4rem;
+    }
+
+    .st-key-ui-style-switch [data-testid="stButtonGroup"] > div {
+        flex-wrap: nowrap !important;
+    }
+
+    .st-key-ui-style-switch [data-testid="stButtonGroup"] button {
+        min-height: 2rem !important;
+        padding: 0.15rem 0.8rem !important;
+        white-space: nowrap;
+    }
+
+    .st-key-ui-style-switch [data-testid="stButtonGroup"] button p {
+        font-size: 0.85rem;
+    }
+
+    /* Streamlit's header buttons (Deploy, menu, toolbar actions such as GitHub)
+       get the same pill look as the switch; their behaviour is unchanged. */
+    [data-testid="stToolbar"] :is([data-testid="stAppDeployButton"], [data-testid="stMainMenu"], [data-testid="stToolbarActions"]) button {
+        min-height: 2.55rem;
+        border: 1px solid rgba(61, 186, 116, 0.35) !important;
+        background: rgba(20, 48, 42, 0.07) !important;
+        box-shadow: inset 0 2px 5px rgba(20, 48, 42, 0.12);
+        transition: background 220ms ease, box-shadow 220ms ease;
+    }
+
+    [data-testid="stToolbar"] [data-testid="stAppDeployButton"] button,
+    [data-testid="stToolbar"] [data-testid="stToolbarActions"] button {
+        padding: 0 1.05rem !important;
+        border-radius: 9999px !important;
+    }
+
+    [data-testid="stToolbar"] [data-testid="stMainMenu"] button {
+        width: 2.55rem;
+        border-radius: 50% !important;
+        justify-content: center;
+    }
+
+    [data-testid="stToolbar"] :is([data-testid="stAppDeployButton"], [data-testid="stMainMenu"], [data-testid="stToolbarActions"]) button:hover {
+        background: linear-gradient(120deg, #17864F 0%, #2BAA63 60%, #4FD08A 100%) !important;
+        box-shadow: 0 3px 10px rgba(23, 134, 79, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    [data-testid="stToolbar"] :is([data-testid="stAppDeployButton"], [data-testid="stMainMenu"], [data-testid="stToolbarActions"]) button:hover * {
+        color: #FFFFFF !important;
+    }
+
+    [data-testid="stToolbar"] [data-testid="stAppDeployButton"] button p {
+        font-weight: 600;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+if CRYSTAL_MODE:
+    st.markdown(
+        "<style>" + (APP_DIR / "crystal_mode.css").read_text(encoding="utf-8") + "</style>",
+        unsafe_allow_html=True,
+    )
+
 app_view = st.container(key="page-switch").segmented_control(
     "Page",
     ["Presentation", "Demo"],
@@ -1890,6 +2075,62 @@ def remember(name: str, value: object) -> object:
     st.session_state[f"_{name}_value"] = value
     return value
 
+
+# Demo view: the "Switch UI Style" button joins Streamlit's header, just left of
+# the Deploy button / toolbar. A tiny script measures where the toolbar starts
+# (it is wider once deployed, e.g. with the GitHub icon) and the CSS uses that.
+st.markdown(
+    """
+    <style>
+    .st-key-ui-style-switch {
+        position: fixed;
+        top: 12px;
+        right: var(--ui-switch-right, 130px);
+        z-index: 999991;
+        width: auto !important;
+        margin: 0 !important;
+    }
+
+    .st-key-ui-style-measure {
+        display: none;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+with st.container(key="ui-style-measure"):
+    components.html(
+        """
+        <script>
+        (function () {
+          const doc = window.parent.document;
+          function place() {
+            const toolbar = doc.querySelector('[data-testid="stToolbar"]');
+            if (!toolbar) return;
+            const width = window.parent.innerWidth;
+            let left = width;
+            // Deploy, the main menu and toolbar actions (Share, GitHub, ...).
+            // The temporary "Running..." status widget is ignored.
+            toolbar
+              .querySelectorAll(
+                '[data-testid="stAppDeployButton"], [data-testid="stMainMenu"], ' +
+                  '[data-testid="stToolbarActions"] > *'
+              )
+              .forEach((el) => {
+                const box = el.getBoundingClientRect();
+                if (box.width > 0 && box.height > 0) left = Math.min(left, box.left);
+              });
+            const right = Math.max(width - left + 12, 16);
+            doc.documentElement.style.setProperty("--ui-switch-right", right + "px");
+          }
+          place();
+          setInterval(place, 1000);
+          window.parent.addEventListener("resize", place);
+        })();
+        </script>
+        """,
+        height=0,
+    )
 
 masthead = st.container()
 masthead.markdown(
@@ -2344,7 +2585,7 @@ if not presentation_corrections.empty:
                 "color": ATLAS_FOREST,
                 "size": 13,
                 "symbol": "diamond",
-                "line": {"color": "#FFFFFF", "width": 1.5},
+                "line": {"color": CHART_SURFACE, "width": 1.5},
             },
             customdata=annual_adjustments[corrected_positions],
             hovertemplate=(
@@ -2459,10 +2700,8 @@ live_results = {
     "correction_impact_rows": presentation_impact_rows,
     "correction_example": presentation_correction_example,
     "outlier_evidence": presentation_outlier_evidence,
-    "outlier_evidence_plotly": json.loads(outlier_evidence_figure.to_json()),
-    "correction_comparison_plotly": json.loads(
-        correction_comparison_figure.to_json()
-    ),
+    "outlier_evidence_plotly": slide_json(outlier_evidence_figure),
+    "correction_comparison_plotly": slide_json(correction_comparison_figure),
     "baseline_summaries": {
         "original": {
             "rows": f"{len(data):,}",
@@ -2494,12 +2733,12 @@ live_results = {
     "validation_test_period": (
         f"{validation_result.test_years[0]}–{validation_result.test_years[-1]}"
     ),
-    "validation_plotly": json.loads(
+    "validation_plotly": slide_json(
         interactive_validation_figure(
             validation_result,
             list(MODEL_NAMES),
             lao_presentation=True,
-        ).to_json()
+        )
     ),
     "validation_rows": [
         {
@@ -2582,13 +2821,19 @@ if BOUNDARY_FILE.exists() and "ouID" in filtered_data.columns:
 # ------------------------------------------------------------------ the three steps
 def crystal(figure: go.Figure, height: int | None = None) -> go.Figure:
     """Crystal chart style: transparent glass background, soft grid, clear hover."""
+    if CRYSTAL_MODE:
+        figure.update_layout(template=PLOTLY_TEMPLATE)
+        for trace in figure.data:
+            # Value labels outside bars sit on the dark panel: make them light.
+            if getattr(trace, "textposition", None) == "outside" and not trace.textfont.color:
+                trace.textfont.color = CHART_TEXT
     figure.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         hoverlabel={
-            "bgcolor": "rgba(255,255,255,0.95)",
+            "bgcolor": CHART_HOVER,
             "bordercolor": "rgba(20,48,42,0.18)",
-            "font_color": ATLAS_INK,
+            "font_color": CHART_TEXT,
         },
         margin={"l": 8, "r": 8, "t": 12, "b": 8},
         legend={"orientation": "h", "x": 0, "y": 1.02, "yanchor": "bottom"},
@@ -2679,7 +2924,7 @@ def sex_year_figure(
             yanchor="bottom",
             text=f"<b>{tr('Forecast')}</b> {forecast_years[0]}–{forecast_years[-1]}",
             showarrow=False,
-            font={"color": "#7A5F1C", "size": 12},
+            font={"color": FORECAST_LABEL_COLOUR, "size": 12},
         )
     for sex_name, color in (("Male", ATLAS_MEKONG), ("Female", ATLAS_MADDER)):
         if sex_name not in by_sex:
@@ -2695,7 +2940,7 @@ def sex_year_figure(
                 marker={
                     "color": color,
                     "opacity": 0.82,
-                    "line": {"color": "#FFFFFF", "width": 1.2},
+                    "line": {"color": CHART_SURFACE, "width": 1.2},
                     "pattern": {
                         "shape": ["/" if forecast else "" for forecast in is_forecast],
                         "fgcolor": "rgba(255, 255, 255, 0.55)",
@@ -2730,15 +2975,15 @@ def sex_year_figure(
                 customdata=[["—" if np.isnan(value) else f"{value:+.2f}%"] for value in growth],
                 name=tr("Total"),
                 mode="lines+markers+text",
-                line={"color": ATLAS_INK, "width": 1.5, "dash": "dot"},
+                line={"color": CHART_TEXT, "width": 1.5, "dash": "dot"},
                 marker={
                     "size": 7,
-                    "color": ["#FFFFFF" if not forecast else ATLAS_GOLD for forecast in is_forecast],
-                    "line": {"color": ATLAS_INK, "width": 2},
+                    "color": [CHART_SURFACE if not forecast else ATLAS_GOLD for forecast in is_forecast],
+                    "line": {"color": CHART_TEXT, "width": 2},
                 },
                 text=[f"{value / 1e6:.2f}M" if year in label_years else "" for year, value in zip(years, totals)],
                 textposition="top center",
-                textfont={"color": ATLAS_INK, "size": 11},
+                textfont={"color": CHART_TEXT, "size": 11},
                 hovertemplate=(
                     f"<b>{tr('Total')}: %{{y:,.0f}}</b>"
                     f"<br>{tr('Growth vs previous year')}: %{{customdata[0]}}<extra></extra>"
@@ -2921,7 +3166,7 @@ with step1_overview:
                         basemap=show_basemap,
                     ),
                     width="stretch",
-                    config={"displaylogo": False, "scrollZoom": True},
+                    config={"displaylogo": False, "scrollZoom": True}, theme=CHART_THEME,
                 )
                 if district_filter_active:
                     selected_area = area_table.loc[
@@ -2990,7 +3235,7 @@ with step1_overview:
             st.plotly_chart(
                 crystal(sex_year_figure(by_sex, show_share), 360),
                 width="stretch",
-                config=CRYSTAL_CHART_CONFIG,
+                config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME,
             )
     with age_chart_column:
         with glass():
@@ -3007,7 +3252,7 @@ with step1_overview:
                 .sort_index()
             )
             age_figure = go.Figure()
-            for sex_name, rgb in (("Male", "29,106,174"), ("Female", "166,61,79")):
+            for sex_name, rgb in SEX_RGB.items():
                 if sex_name in by_age:
                     age_figure.add_trace(
                         go.Scatter(
@@ -3026,7 +3271,7 @@ with step1_overview:
                     )
             age_figure.update_xaxes(title_text=tr("Age"))
             age_figure.update_yaxes(tickformat=",.0f")
-            st.plotly_chart(crystal(age_figure, 360), width="stretch", config=CRYSTAL_CHART_CONFIG)
+            st.plotly_chart(crystal(age_figure, 360), width="stretch", config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME)
 
     with glass():
         card_title(
@@ -3045,7 +3290,7 @@ with step1_overview:
                 marker={
                     "color": top_districts.values,
                     "colorscale": [[0, "rgba(61,186,116,0.55)"], [1, "rgba(11,93,59,0.9)"]],
-                    "line": {"color": "#FFFFFF", "width": 1.2},
+                    "line": {"color": CHART_SURFACE, "width": 1.2},
                 },
                 text=[f"{value:,.0f}" for value in top_districts.values],
                 textposition="outside",
@@ -3055,7 +3300,7 @@ with step1_overview:
         )
         district_figure.update_xaxes(tickformat=",.0f")
         st.plotly_chart(
-            crystal(district_figure, 420), width="stretch", config=CRYSTAL_CHART_CONFIG
+            crystal(district_figure, 420), width="stretch", config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME
         )
 
     with st.expander(":material/menu_book: " + tr("Data dictionary")):
@@ -3203,11 +3448,19 @@ with step3_dashboard:
         )
 
         trajectory = go.Figure()
-        phases = [
-            (ribbon_train_years, tr("Train"), "rgba(30, 123, 79, 0.07)", ATLAS_FOREST),
-            (ribbon_test_years, tr("Test"), "rgba(30, 123, 79, 0.16)", ATLAS_FOREST),
-            (future_years, tr("Forecast"), "rgba(184, 144, 47, 0.16)", "#7A5F1C"),
-        ]
+        phases = (
+            [
+                (ribbon_train_years, tr("Train"), "rgba(43, 217, 138, 0.04)", "#4FE0A0"),
+                (ribbon_test_years, tr("Test"), "rgba(43, 217, 138, 0.09)", "#4FE0A0"),
+                (future_years, tr("Forecast"), "rgba(25, 195, 217, 0.08)", "#5FD8E8"),
+            ]
+            if CRYSTAL_MODE
+            else [
+                (ribbon_train_years, tr("Train"), "rgba(30, 123, 79, 0.07)", ATLAS_FOREST),
+                (ribbon_test_years, tr("Test"), "rgba(30, 123, 79, 0.16)", ATLAS_FOREST),
+                (future_years, tr("Forecast"), "rgba(184, 144, 47, 0.16)", "#7A5F1C"),
+            ]
+        )
         for years, label, fill, text_color in phases:
             trajectory.add_vrect(
                 x0=years[0] - 0.5,
@@ -3225,27 +3478,75 @@ with step3_dashboard:
                 showarrow=False,
                 font={"color": text_color, "size": 12},
             )
+        history_x = summary_years[:history_count]
+        future_x = summary_years[history_count - 1 :]
+        if CRYSTAL_MODE:
+            # Soft gradient area under the actual line, then glow + line on top.
+            trajectory.add_trace(
+                go.Scatter(
+                    x=history_x,
+                    y=y_values[:history_count],
+                    mode="lines",
+                    line={"width": 0, "shape": "spline"},
+                    fill="tozeroy",
+                    fillgradient={
+                        "type": "vertical",
+                        "colorscale": [[0, "rgba(43, 217, 138, 0.0)"], [1, "rgba(43, 217, 138, 0.28)"]],
+                    },
+                    hoverinfo="skip",
+                    showlegend=False,
+                )
+            )
+            trajectory.add_trace(
+                go.Scatter(
+                    x=future_x,
+                    y=y_values[history_count - 1 :],
+                    mode="lines",
+                    line={"width": 0, "shape": "spline"},
+                    fill="tozeroy",
+                    fillgradient={
+                        "type": "vertical",
+                        "colorscale": [[0, "rgba(25, 195, 217, 0.0)"], [1, "rgba(25, 195, 217, 0.18)"]],
+                    },
+                    hoverinfo="skip",
+                    showlegend=False,
+                )
+            )
+            for x_values, y_line, colour in (
+                (history_x, y_values[:history_count], "rgba(43, 217, 138, 0.25)"),
+                (future_x, y_values[history_count - 1 :], "rgba(25, 195, 217, 0.25)"),
+            ):
+                trajectory.add_trace(
+                    go.Scatter(
+                        x=x_values,
+                        y=y_line,
+                        mode="lines",
+                        line={"color": colour, "width": 10, "shape": "spline"},
+                        hoverinfo="skip",
+                        showlegend=False,
+                    )
+                )
         trajectory.add_trace(
             go.Scatter(
-                x=summary_years[:history_count],
+                x=history_x,
                 y=y_values[:history_count],
                 customdata=hover_data[:history_count],
                 name=tr("Actual"),
                 mode="lines+markers",
-                line={"color": ATLAS_INK, "width": 3},
-                marker={"size": 7, "color": "#FFFFFF", "line": {"color": ATLAS_INK, "width": 2}},
+                line={"color": CRYSTAL_GREEN, "width": 3, "shape": "spline" if CRYSTAL_MODE else "linear"},
+                marker={"size": 7, "color": CHART_SURFACE, "line": {"color": CRYSTAL_GREEN, "width": 2}},
                 hovertemplate=f"<b>%{{x}}</b> · {tr('Actual')}<br>{hover_rows}<extra></extra>",
             )
         )
         trajectory.add_trace(
             go.Scatter(
-                x=summary_years[history_count - 1 :],
+                x=future_x,
                 y=y_values[history_count - 1 :],
                 customdata=hover_data[history_count - 1 :],
                 name=tr("Forecast ({model})", model=forecast_model_label),
                 mode="lines+markers",
-                line={"color": ATLAS_GOLD, "width": 3, "dash": "dash"},
-                marker={"size": 7, "color": ATLAS_GOLD},
+                line={"color": CRYSTAL_CYAN, "width": 3, "dash": "dash", "shape": "spline" if CRYSTAL_MODE else "linear"},
+                marker={"size": 7, "color": CRYSTAL_CYAN},
                 hovertemplate=f"<b>%{{x}}</b> · {tr('Forecast')}<br>{hover_rows}<extra></extra>",
             )
         )
@@ -3265,7 +3566,7 @@ with step3_dashboard:
             legend={"orientation": "h", "x": 1, "xanchor": "right", "y": -0.12},
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            hoverlabel={"bgcolor": "#FFFFFF", "font_color": ATLAS_INK},
+            hoverlabel={"bgcolor": CHART_HOVER, "font_color": CHART_TEXT},
         )
         trajectory.update_xaxes(
             tickmode="array",
@@ -3273,15 +3574,18 @@ with step3_dashboard:
             showgrid=False,
             range=[summary_years[0] - 0.5, summary_years[-1] + 0.5],
         )
+        y_low, y_high = float(np.nanmin(y_values)), float(np.nanmax(y_values))
+        y_pad = (y_high - y_low) * 0.12 or abs(y_high) * 0.05 or 1.0
         trajectory.update_yaxes(
             tickformat=",.1f" if summary_measure == "density" else ",.0f",
             gridcolor=STREAMLIT_CHART_GRID,
             zeroline=False,
+            range=[y_low - y_pad, y_high + y_pad],
         )
         st.plotly_chart(
             trajectory,
             width="stretch",
-            config={"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]},
+            config={"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]}, theme=CHART_THEME,
         )
 
     with glass(age_column):
@@ -3322,7 +3626,7 @@ with step3_dashboard:
                     customdata=age_structure[column],
                     name=str(year),
                     orientation="h",
-                    marker={"color": color, "line": {"color": "#FFFFFF", "width": 1}},
+                    marker={"color": color, "line": {"color": CHART_SURFACE, "width": 1}},
                     hovertemplate=(
                         f"<b>%{{y}}</b> · {year}<br>{tr('Share')}: %{{x:.1f}}%"
                         f"<br>{tr('Population')}: %{{customdata:,.0f}}<extra></extra>"
@@ -3353,7 +3657,7 @@ with step3_dashboard:
             },
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            hoverlabel={"bgcolor": "#FFFFFF", "font_color": ATLAS_INK},
+            hoverlabel={"bgcolor": CHART_HOVER, "font_color": CHART_TEXT},
         )
         age_chart.update_xaxes(
             title_text=tr("Share of population (%)"),
@@ -3362,7 +3666,7 @@ with step3_dashboard:
             zeroline=False,
         )
         age_chart.update_yaxes(title_text=tr("Age group"))
-        st.plotly_chart(age_chart, width="stretch", config={"displaylogo": False})
+        st.plotly_chart(age_chart, width="stretch", config={"displaylogo": False}, theme=CHART_THEME)
 
     st.markdown(
         '<p class="atlas-meta">'
@@ -3445,7 +3749,7 @@ with overview_tab:
             "displaylogo": False,
             "responsive": True,
             "modeBarButtonsToRemove": ["lasso2d", "select2d"],
-        },
+        }, theme=CHART_THEME,
     )
     validation_table = validation_result.metrics.loc[selected_models].reset_index()
     validation_table["Model"] = validation_table["Model"].map(MODEL_LABELS)
@@ -3476,12 +3780,12 @@ with overview_tab:
     )
     st.subheader(":material/timeline: " + tr("Final fit and forecast: retrained on all 2016–2025 observations"))
     interactive_forecast_chart = interactive_forecast_figure(result, selected_models)
-    live_results["forecast_plotly"] = json.loads(
+    live_results["forecast_plotly"] = slide_json(
         interactive_forecast_figure(
             result,
             selected_models,
             lao_presentation=True,
-        ).to_json()
+        )
     )
     glass().plotly_chart(
         interactive_forecast_chart,
@@ -3490,7 +3794,7 @@ with overview_tab:
             "displaylogo": False,
             "responsive": True,
             "modeBarButtonsToRemove": ["lasso2d", "select2d"],
-        },
+        }, theme=CHART_THEME,
     )
     st.markdown(
             '<hr style="border: none; border-top: 1px solid #D3DED5;">',
@@ -3530,12 +3834,12 @@ with overview_tab:
     interactive_actual_predicted_chart = interactive_actual_vs_predicted_figure(
         result, selected_models
     )
-    live_results["actual_predicted_plotly"] = json.loads(
+    live_results["actual_predicted_plotly"] = slide_json(
         interactive_actual_vs_predicted_figure(
             result,
             selected_models,
             lao_presentation=True,
-        ).to_json()
+        )
     )
     glass().plotly_chart(
         interactive_actual_predicted_chart,
@@ -3544,7 +3848,7 @@ with overview_tab:
             "displaylogo": False,
             "responsive": True,
             "modeBarButtonsToRemove": ["lasso2d", "select2d"],
-        },
+        }, theme=CHART_THEME,
     )
     st.session_state["presentation_results"] = live_results
 
@@ -3728,7 +4032,7 @@ with pyramid_tab:
                         "slightly more than the total."
                     )
                 )
-            glass().plotly_chart(pyramid_chart, width="stretch", config={"displaylogo": False})
+            glass().plotly_chart(pyramid_chart, width="stretch", config={"displaylogo": False}, theme=CHART_THEME)
 
     st.divider()
     st.subheader(":material/map: " + tr("Population map"))
@@ -3830,7 +4134,7 @@ with pyramid_tab:
                 hover_lines=[(tr("People per km²"), "Density", ",.1f")],
             ),
             width="stretch",
-            config=map_config,
+            config=map_config, theme=CHART_THEME,
         )
         glass(density_column).plotly_chart(
             population_map_figure(
@@ -3855,7 +4159,7 @@ with pyramid_tab:
                 ],
             ),
             width="stretch",
-            config=map_config,
+            config=map_config, theme=CHART_THEME,
         )
         st.caption(
             tr(
@@ -4328,7 +4632,7 @@ with step3_dashboard:
         st.plotly_chart(
             crystal(sex_year_figure(trend_by_sex, trend_share, future_years), 400),
             width="stretch",
-            config=CRYSTAL_CHART_CONFIG,
+            config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME,
         )
     with glass(trend_age_column):
         card_title(
@@ -4373,7 +4677,7 @@ with step3_dashboard:
         st.plotly_chart(
             crystal(trend_age_figure, 448),
             width="stretch",
-            config=CRYSTAL_CHART_CONFIG,
+            config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME,
         )
 
 # ------------------------------------------------------------------ step 3: key findings
@@ -4574,7 +4878,7 @@ with analysis_tab:
                         marker={
                             "color": ranked["change_pct"],
                             "colorscale": [[0, "rgba(184,144,47,0.45)"], [1, "rgba(184,144,47,0.95)"]],
-                            "line": {"color": "#FFFFFF", "width": 1.2},
+                            "line": {"color": CHART_SURFACE, "width": 1.2},
                         },
                         text=[f"{value:+.1f}%" for value in ranked["change_pct"]],
                         textposition="outside",
@@ -4586,7 +4890,7 @@ with analysis_tab:
                     )
                 )
                 province_figure.update_xaxes(ticksuffix="%")
-                st.plotly_chart(crystal(province_figure, 560), width="stretch", config=CRYSTAL_CHART_CONFIG)
+                st.plotly_chart(crystal(province_figure, 560), width="stretch", config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME)
     with models_column:
         with glass():
             card_title(
@@ -4601,7 +4905,7 @@ with analysis_tab:
                     y=result.actual,
                     name=tr("Actual"),
                     mode="lines+markers",
-                    line={"color": ATLAS_INK, "width": 3, "shape": "spline"},
+                    line={"color": CHART_TEXT, "width": 3, "shape": "spline"},
                     marker={"size": 6},
                     hovertemplate=f"<b>%{{x}}</b> · {tr('Actual')}<br>%{{y:,.0f}}<extra></extra>",
                 )
@@ -4629,7 +4933,7 @@ with analysis_tab:
                 x0=HISTORICAL_YEARS[-1], x1=future_end, fillcolor="rgba(184,144,47,0.10)", line_width=0, layer="below"
             )
             models_figure.update_yaxes(tickformat=",.0f")
-            st.plotly_chart(crystal(models_figure, 560), width="stretch", config=CRYSTAL_CHART_CONFIG)
+            st.plotly_chart(crystal(models_figure, 560), width="stretch", config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME)
     if not district_summary.empty:
         with glass():
             card_title(
@@ -4647,7 +4951,7 @@ with analysis_tab:
                     marker={
                         "color": densest["density_end"],
                         "colorscale": [[0, "rgba(29,106,174,0.45)"], [1, "rgba(14,63,110,0.95)"]],
-                        "line": {"color": "#FFFFFF", "width": 1.2},
+                        "line": {"color": CHART_SURFACE, "width": 1.2},
                     },
                     text=[f"{value:,.0f}" for value in densest["density_end"]],
                     textposition="outside",
@@ -4660,4 +4964,4 @@ with analysis_tab:
                 )
             )
             density_figure.update_xaxes(tickformat=",.0f")
-            st.plotly_chart(crystal(density_figure, 440), width="stretch", config=CRYSTAL_CHART_CONFIG)
+            st.plotly_chart(crystal(density_figure, 440), width="stretch", config=CRYSTAL_CHART_CONFIG, theme=CHART_THEME)

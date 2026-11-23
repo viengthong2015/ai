@@ -1,0 +1,570 @@
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    /* ===================== Crystal UI mode =====================
+       Based on the Crystal Analytics reference: emerald/cyan glass on a deep
+       forest canvas, Inter + JetBrains Mono. Loaded only in Crystal mode; the
+       base Streamlit theme stays light, so widgets are restyled here too. */
+    :root {
+        --atlas-ink: #F8FAFC;
+        --atlas-slate: rgba(167, 243, 208, 0.62);
+        --atlas-rule: rgba(52, 211, 153, 0.19);
+        --atlas-forest: #34D399;
+        --atlas-gradient: linear-gradient(120deg, #A7F3D0 0%, #34D399 45%, #06B6D4 100%);
+        --cr-void: #02130D;
+        --cr-text: #F8FAFC;
+        --cr-mint: #A7F3D0;
+        --cr-dim: rgba(167, 243, 208, 0.62);
+        --cr-emerald: #10B981;
+        --cr-accent: #34D399;
+        --cr-teal: #06B6D4;
+        --cr-border: rgba(52, 211, 153, 0.19);
+        --cr-border-strong: rgba(52, 211, 153, 0.38);
+        --cr-specular: rgba(209, 250, 229, 0.16);
+        --cr-panel: linear-gradient(155deg, rgba(10, 52, 37, 0.62) 0%, rgba(4, 25, 18, 0.72) 100%);
+        --cr-field: rgba(2, 19, 13, 0.6);
+        --cr-sans: Inter, 'Noto Sans Lao', 'Phetsarath OT', -apple-system, sans-serif;
+        --cr-mono: 'JetBrains Mono', 'Noto Sans Lao', monospace;
+    }
+
+    /* ---------- Canvas: radial forest, ambient orbs, prism grid ---------- */
+    .stApp {
+        background: radial-gradient(circle at 12% 10%, #093526 0%, #041D14 42%, #02130D 100%) fixed !important;
+        color: var(--cr-text);
+        isolation: isolate;
+    }
+
+    .stApp::before {
+        content: "";
+        position: fixed;
+        inset: -10%;
+        z-index: -1;
+        pointer-events: none;
+        background:
+            radial-gradient(520px circle at 24% 6%, rgba(16, 185, 129, 0.30), transparent 70%),
+            radial-gradient(460px circle at 88% 92%, rgba(6, 182, 212, 0.20), transparent 70%),
+            radial-gradient(340px circle at 52% 48%, rgba(52, 211, 153, 0.12), transparent 70%);
+        filter: blur(30px);
+        animation: crystalOrbs 18s ease-in-out infinite alternate;
+    }
+
+    .stApp::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image:
+            linear-gradient(rgba(52, 211, 153, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(52, 211, 153, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+        -webkit-mask-image: radial-gradient(ellipse at center, black 35%, transparent 85%);
+        mask-image: radial-gradient(ellipse at center, black 35%, transparent 85%);
+    }
+
+    @keyframes crystalOrbs {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(35px, 28px) scale(1.06); }
+    }
+
+    /* ---------- Type ---------- */
+    .stApp :is(p, li, label, h1, h2, h3, h4, h5, h6, input, textarea, td, th, summary):not(.katex *) {
+        font-family: var(--cr-sans);
+    }
+
+    .stApp :is(p, li, label, span, h1, h2, h3, h4, h5, h6, summary, strong, em) {
+        color: inherit;
+    }
+
+    .stApp [data-testid="stMarkdownContainer"],
+    .stApp [data-testid="stHeading"],
+    .stApp [data-testid="stWidgetLabel"],
+    .stApp [data-testid="stExpander"] summary,
+    .stApp [data-testid="stText"] {
+        color: var(--cr-text);
+    }
+
+    .stApp [data-testid="stCaptionContainer"],
+    .stApp [data-testid="stCaptionContainer"] p,
+    .stApp small {
+        color: var(--cr-dim) !important;
+    }
+
+    .stApp [data-testid="stHeading"] h1,
+    .stApp [data-testid="stHeading"] h2,
+    .stApp [data-testid="stHeading"] h3 {
+        color: var(--cr-text);
+        letter-spacing: -0.02em;
+    }
+
+    .stApp a {
+        color: var(--cr-accent);
+    }
+
+    .stApp code {
+        background: rgba(16, 185, 129, 0.14);
+        color: var(--cr-accent);
+        font-family: var(--cr-mono);
+    }
+
+    .stApp [data-testid="stIconMaterial"] {
+        color: var(--cr-accent);
+    }
+
+    /* ---------- Header (Streamlit toolbar kept as is, only recoloured) ---------- */
+    [data-testid="stHeader"] {
+        background: rgba(3, 22, 15, 0.72) !important;
+        border-bottom: 1px solid var(--cr-border);
+        backdrop-filter: blur(16px);
+    }
+
+    [data-testid="stHeader"] :is(button, a, span, p, svg) {
+        color: var(--cr-mint) !important;
+    }
+
+    [data-testid="stHeader"] button:hover {
+        background: rgba(16, 185, 129, 0.14) !important;
+    }
+
+    /* ---------- Sidebar ---------- */
+    [data-testid="stSidebar"] > div:first-child {
+        background: rgba(3, 22, 15, 0.82) !important;
+        border-right: 1px solid var(--cr-border);
+        box-shadow: inset -1px 0 0 rgba(209, 250, 229, 0.05);
+    }
+
+    [data-testid="stSidebar"] [data-testid="stHeading"] h2 {
+        font-size: 0.7rem !important;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--cr-dim) !important;
+    }
+
+    /* ---------- Crystal panels ---------- */
+    [class*="st-key-glass-"],
+    [data-testid="stExpander"] details {
+        background: var(--cr-panel) !important;
+        border: 1px solid var(--cr-border) !important;
+        border-radius: 20px !important;
+        box-shadow:
+            0 20px 44px -16px rgba(0, 0, 0, 0.65),
+            inset 0 1px 0 0 var(--cr-specular),
+            inset 0 0 24px rgba(16, 185, 129, 0.04) !important;
+        transition: border-color 0.28s ease, box-shadow 0.28s ease;
+    }
+
+    [class*="st-key-glass-"]:hover {
+        border-color: var(--cr-border-strong) !important;
+        box-shadow:
+            0 24px 52px -16px rgba(0, 0, 0, 0.72),
+            inset 0 1px 0 0 rgba(209, 250, 229, 0.25),
+            inset 0 0 30px rgba(16, 185, 129, 0.08) !important;
+    }
+
+    [class*="st-key-glass-"] ul li::marker {
+        color: var(--cr-accent);
+    }
+
+    [data-testid="stExpander"] summary:hover {
+        color: var(--cr-text);
+    }
+
+    /* ---------- KPI tiles ---------- */
+    [data-testid="stMetric"] {
+        position: relative;
+        overflow: hidden;
+        background: var(--cr-panel) !important;
+        border: 1px solid var(--cr-border) !important;
+        border-radius: 20px !important;
+        backdrop-filter: blur(18px);
+        box-shadow:
+            0 20px 44px -16px rgba(0, 0, 0, 0.65),
+            inset 0 1px 0 0 var(--cr-specular),
+            inset 0 0 24px rgba(16, 185, 129, 0.04) !important;
+    }
+
+    [data-testid="stMetric"]::after {
+        content: "";
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 110px;
+        height: 110px;
+        background: radial-gradient(circle, rgba(52, 211, 153, 0.16), transparent 70%);
+        pointer-events: none;
+    }
+
+    [data-testid="stMetric"]:hover {
+        border-color: var(--cr-border-strong) !important;
+    }
+
+    [data-testid="stMetric"] svg {
+        background: transparent !important;
+    }
+
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] p {
+        color: var(--cr-mint) !important;
+        font-weight: 500;
+    }
+
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricValue"] div {
+        color: var(--cr-text) !important;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums;
+    }
+
+    [data-testid="stMetricDelta"] {
+        font-family: var(--cr-mono) !important;
+        background: rgba(16, 185, 129, 0.16) !important;
+        border: 1px solid rgba(52, 211, 153, 0.28);
+        border-radius: 9999px;
+        color: var(--cr-accent) !important;
+    }
+
+    [data-testid="stMetricDelta"] * {
+        font-family: var(--cr-mono) !important;
+        color: var(--cr-accent) !important;
+    }
+
+    /* ---------- Masthead as a crystal header panel ---------- */
+    .atlas-masthead {
+        padding: 1.1rem 1.5rem;
+        border: 1px solid var(--cr-border);
+        border-radius: 20px;
+        background: var(--cr-panel);
+        box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.65), inset 0 1px 0 0 var(--cr-specular);
+    }
+
+    .atlas-masthead h1 {
+        font-family: var(--cr-sans) !important;
+        font-stretch: 100% !important;
+        letter-spacing: -0.03em !important;
+    }
+
+    .atlas-masthead p {
+        color: var(--cr-mint) !important;
+        opacity: 0.85;
+    }
+
+    .atlas-meta {
+        font-family: var(--cr-mono);
+        font-size: 0.82rem !important;
+        color: var(--cr-dim) !important;
+    }
+
+    /* ---------- Step header orb and step bar ---------- */
+    .step-hero h2 {
+        font-family: var(--cr-sans) !important;
+        font-stretch: 100% !important;
+        letter-spacing: -0.02em;
+        color: var(--cr-text) !important;
+    }
+
+    .step-hero p {
+        color: var(--cr-mint) !important;
+    }
+
+    .step-hero__number {
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.32), rgba(6, 182, 212, 0.26)) !important;
+        border: 1px solid rgba(52, 211, 153, 0.48);
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+        font-family: var(--cr-mono) !important;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) {
+        border: 1px solid var(--cr-border) !important;
+        background: var(--cr-panel) !important;
+        box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.65), inset 0 1px 0 0 var(--cr-specular) !important;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"] {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .st-key-step-tabs div[data-baseweb="tab-list"]:not([role="tabpanel"] div[data-baseweb="tab-list"]) > button[data-baseweb="tab"]::before {
+        font-family: var(--cr-mono);
+    }
+
+    /* ---------- Sub-tabs: pill bar ---------- */
+    div[data-testid="stTabs"] div[data-baseweb="tab-list"] {
+        border: 1px solid var(--cr-border);
+        border-radius: 9999px;
+        background: rgba(2, 19, 13, 0.65);
+        box-shadow: none;
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"] {
+        border-radius: 9999px;
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"] p {
+        color: var(--cr-mint);
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.45) !important;
+    }
+
+    div[data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] p {
+        color: #02130D !important;
+        font-weight: 700;
+    }
+
+    /* ---------- Switch buttons (segmented controls) ---------- */
+    [data-testid="stButtonGroup"] > div {
+        border: 1px solid var(--cr-border) !important;
+        background: rgba(2, 19, 13, 0.65) !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stButtonGroup"] button {
+        color: var(--cr-mint) !important;
+    }
+
+    [data-testid="stButtonGroup"] button:hover {
+        background: rgba(16, 185, 129, 0.11) !important;
+        color: var(--cr-text) !important;
+    }
+
+    [data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.45) !important;
+    }
+
+    [data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"],
+    [data-testid="stButtonGroup"] button[data-testid="stBaseButton-segmented_controlActive"] * {
+        color: #02130D !important;
+        font-weight: 700;
+    }
+
+    /* ---------- Sidebar numbered sections: nav buttons ---------- */
+    [class*="st-key-side-step-"] details {
+        border-radius: 14px !important;
+        background: rgba(2, 19, 13, 0.45) !important;
+        box-shadow: none !important;
+    }
+
+    [class*="st-key-side-step-"] details[open] {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(6, 182, 212, 0.14)) !important;
+        border-color: rgba(52, 211, 153, 0.42) !important;
+        box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.32), inset 0 1px 0 rgba(209, 250, 229, 0.25) !important;
+    }
+
+    [class*="st-key-side-step-"] summary::before {
+        font-family: var(--cr-mono);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.32), rgba(6, 182, 212, 0.26)) !important;
+        border: 1px solid rgba(52, 211, 153, 0.48);
+        border-radius: 8px !important;
+        box-shadow: 0 0 14px rgba(16, 185, 129, 0.28) !important;
+    }
+
+    [class*="st-key-side-step-"] summary p {
+        color: var(--cr-accent) !important;
+        font-family: var(--cr-mono) !important;
+        font-size: 0.78rem !important;
+    }
+
+    [class*="st-key-side-step-"] summary p strong {
+        color: var(--cr-text) !important;
+        font-family: var(--cr-sans) !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* ---------- Inputs ---------- */
+    .stApp [data-baseweb="select"] > div,
+    .stApp [data-baseweb="input"],
+    .stApp [data-baseweb="input"] > div,
+    .stApp input,
+    .stApp textarea {
+        background: var(--cr-field) !important;
+        border-color: var(--cr-border) !important;
+        color: var(--cr-text) !important;
+    }
+
+    .stApp [data-baseweb="select"] :is(span, div, input, svg) {
+        color: var(--cr-text) !important;
+    }
+
+    .stApp [data-baseweb="select"] [aria-hidden="true"] svg,
+    .stApp [data-baseweb="select"] svg {
+        fill: var(--cr-mint) !important;
+    }
+
+    .stApp [data-baseweb="tag"] {
+        background: rgba(16, 185, 129, 0.22) !important;
+        border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+
+    [data-baseweb="popover"] ul,
+    [data-baseweb="popover"] [role="listbox"],
+    [data-baseweb="menu"] {
+        background: rgba(4, 24, 17, 0.97) !important;
+        border: 1px solid var(--cr-border-strong) !important;
+    }
+
+    [data-baseweb="popover"] li,
+    [data-baseweb="popover"] li * {
+        color: var(--cr-mint) !important;
+    }
+
+    [data-baseweb="popover"] li:hover,
+    [data-baseweb="popover"] li[aria-selected="true"] {
+        background: rgba(16, 185, 129, 0.18) !important;
+    }
+
+    .stApp [data-testid="stSliderThumbValue"],
+    .stApp [data-testid="stSliderTickBarMin"],
+    .stApp [data-testid="stSliderTickBarMax"] {
+        color: var(--cr-accent) !important;
+        font-family: var(--cr-mono);
+    }
+
+    .stApp [data-testid="stFileUploaderDropzone"] {
+        background: var(--cr-field) !important;
+        border: 1px dashed var(--cr-border-strong) !important;
+    }
+
+    .stApp [data-testid="stFileUploaderDropzone"] :is(span, small, p) {
+        color: var(--cr-mint) !important;
+    }
+
+    .stApp [data-testid^="stBaseButton-secondary"],
+    .stApp [data-testid="stDownloadButton"] button {
+        background: rgba(2, 19, 13, 0.55) !important;
+        border: 1px solid var(--cr-border) !important;
+        color: var(--cr-mint) !important;
+    }
+
+    .stApp [data-testid^="stBaseButton-secondary"]:hover,
+    .stApp [data-testid="stDownloadButton"] button:hover {
+        border-color: var(--cr-accent) !important;
+        background: rgba(16, 185, 129, 0.16) !important;
+        color: var(--cr-text) !important;
+    }
+
+    .stApp [data-testid^="stBaseButton-secondary"] p,
+    .stApp [data-testid="stDownloadButton"] button p {
+        color: inherit !important;
+    }
+
+    /* ---------- Alerts, code ---------- */
+    .stApp [data-testid="stAlertContainer"] {
+        background: rgba(6, 182, 212, 0.12) !important;
+        border: 1px solid rgba(6, 182, 212, 0.32);
+        color: #A5F3FC !important;
+    }
+
+    .stApp [data-testid="stAlertContainer"] * {
+        color: #A5F3FC !important;
+    }
+
+    .stApp [data-testid="stCode"] pre,
+    .stApp pre {
+        background: rgba(2, 19, 13, 0.7) !important;
+        border: 1px solid var(--cr-border);
+    }
+
+    .stApp pre code, .stApp pre span {
+        color: var(--cr-mint) !important;
+        background: transparent !important;
+    }
+
+    .stApp .katex {
+        color: var(--cr-text);
+    }
+
+    /* ---------- Tables: Streamlit draws them on a canvas with the light
+       theme, so they are inverted into dark glass here. ---------- */
+    .stApp [data-testid="stDataFrame"] {
+        filter: invert(0.93) hue-rotate(180deg) saturate(1.3);
+        border-radius: 14px;
+    }
+
+    /* ---------- Element toolbars (fullscreen etc.) ---------- */
+    [data-testid="stElementToolbar"] {
+        background: rgba(3, 22, 15, 0.9) !important;
+        border: 1px solid var(--cr-border);
+        border-radius: 10px;
+    }
+
+    [data-testid="stElementToolbar"] button,
+    [data-testid="stElementToolbar"] svg {
+        color: var(--cr-mint) !important;
+    }
+
+    /* ---------- Map frame and presentation frame ---------- */
+    .st-key-dark-map {
+        border-color: var(--cr-border-strong) !important;
+        box-shadow: 0 0 24px rgba(16, 185, 129, 0.14) !important;
+    }
+
+    iframe[title="st.iframe"] {
+        border: 1px solid var(--cr-border-strong) !important;
+        box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.65);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .stApp::before {
+            animation: none;
+        }
+    }
+
+    /* ---------- Fixes on top of the light base theme ---------- */
+    [data-testid="stSidebar"],
+    [data-testid="stSidebar"] > div:first-child {
+        background: linear-gradient(180deg, #04190F 0%, #02130D 100%) !important;
+    }
+
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] details[open] > summary {
+        background: transparent !important;
+    }
+
+    [data-testid="stExpander"] summary:hover {
+        background: rgba(16, 185, 129, 0.08) !important;
+    }
+
+    /* Tile trend charts (Vega SVG): emerald area instead of the light fill */
+    [data-testid="stMetric"] svg .mark-area path {
+        fill: rgba(52, 211, 153, 0.16) !important;
+    }
+
+    [data-testid="stMetric"] svg .mark-line path {
+        stroke: #34D399 !important;
+    }
+
+    [data-testid="stMetric"] svg .mark-rect path {
+        fill: #06B6D4 !important;
+    }
+
+    [data-testid="stTooltipIcon"] svg,
+    [data-testid="stTooltipHoverTarget"] svg {
+        color: var(--cr-dim) !important;
+        stroke: var(--cr-dim) !important;
+    }
+
+    .stApp hr {
+        border-color: var(--cr-border) !important;
+    }
+
+    /* Header buttons in the Crystal style */
+    [data-testid="stToolbar"] :is([data-testid="stAppDeployButton"], [data-testid="stMainMenu"], [data-testid="stToolbarActions"]) button {
+        border: 1px solid var(--cr-border) !important;
+        background: rgba(2, 19, 13, 0.65) !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stToolbar"] :is([data-testid="stAppDeployButton"], [data-testid="stMainMenu"], [data-testid="stToolbarActions"]) button:hover {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+        box-shadow: 0 2px 12px rgba(16, 185, 129, 0.45) !important;
+    }
+
+    [data-testid="stToolbar"] :is([data-testid="stAppDeployButton"], [data-testid="stMainMenu"], [data-testid="stToolbarActions"]) button:hover * {
+        color: #02130D !important;
+    }
