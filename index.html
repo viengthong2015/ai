@@ -127,34 +127,60 @@
     <div class="slide-container">
         <!-- Slide 1 -->
         <div class="slide active atlas-sheet atlas-cover">
-            <p class="atlas-sheet__course">ໂຄງການຮຽນຮູ້ AI Developer, Samsung Innovation Campus 2026</p>
+            <p class="atlas-sheet__course">AI Developer Course, Samsung Innovation Campus, ຄວທ, ມ.ຊ</p>
 
-            <div class="atlas-sheet__body">
-                <h1 class="atlas-sheet__title">ການຄາດຄະເນ<br>ປະຊາກອນລາວ</h1>
-                <p class="atlas-sheet__lede">ແຍກຕາມ 148 ເມືອງ, ອາຍຸ ແລະ ເພດ, ຈາກຂໍ້ມູນ DHIS2 ຂອງກະຊວງສາທາລະນະສຸກ.</p>
+            <div class="atlas-sheet__body atlas-cover__body">
+                <div class="atlas-cover__intro">
+                    <h1 class="atlas-sheet__title">ການຄາດຄະເນ<br>ປະຊາກອນລາວ</h1>
+                    <p class="atlas-sheet__lede">ແຍກຕາມ 148 ເມືອງ, ອາຍຸ ແລະ ເພດ, ຈາກຂໍ້ມູນ DHIS2 ຂອງກະຊວງສາທາລະນະສຸກ.</p>
+                </div>
 
-                <section class="atlas-ribbon" aria-label="ປະຊາກອນລາວ: ປີຝຶກສອນ, ປີທົດສອບ ແລະ ປີຄາດຄະເນ">
-                    <div class="atlas-ribbon__seg atlas-ribbon__seg--train">
-                        <div class="atlas-ribbon__span" data-result-key="validation_train_period">2016–2022</div>
+                <figure class="atlas-cover__chart">
+                    <figcaption>
+                        <strong>ແນວໂນ້ມປະຊາກອນລາວ</strong>
+                        <span data-result-key="cover_period">2016–2030</span>
+                    </figcaption>
+                    <div id="cover-trajectory-plotly" class="live-interactive-chart cover-trajectory-chart" hidden
+                        aria-label="ແຜນພູມປະຊາກອນຕົວຈິງ ແລະ ຄາດຄະເນ (Actual and forecast population)"></div>
+                    <p class="cover-chart-wait">ລໍຖ້າຜົນຈາກສ່ວນສາທິດ Streamlit (Demo)…</p>
+                </figure>
+
+                <section class="atlas-cover__cards" aria-label="ປະຊາກອນລາວ: ຂໍ້ມູນຕົວຈິງ ແລະ ຜົນຄາດຄະເນ">
+                    <article class="cover-card atlas-ribbon__seg--train">
+                        <div class="cover-card__head">
+                            <span class="cover-card__tag">ຂໍ້ມູນຕົວຈິງ · ຝຶກສອນ (Train)</span>
+                            <span class="cover-card__period" data-result-key="validation_train_period">2016–2022</span>
+                        </div>
                         <div class="atlas-ribbon__band" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                        <div class="atlas-ribbon__label">ຝຶກສອນ (Train)</div>
-                        <strong class="atlas-ribbon__value" data-result-key="population_2016">—</strong>
-                        <div class="atlas-ribbon__note">ປະຊາກອນ ປີ 2016</div>
-                    </div>
-                    <div class="atlas-ribbon__seg atlas-ribbon__seg--test">
-                        <div class="atlas-ribbon__span" data-result-key="validation_test_period">2023–2025</div>
+                        <strong class="cover-card__value" data-result-key="population_2016">—</strong>
+                        <div class="cover-card__foot">
+                            <span>ປະຊາກອນ ປີ 2016</span>
+                        </div>
+                    </article>
+                    <article class="cover-card atlas-ribbon__seg--test">
+                        <div class="cover-card__head">
+                            <span class="cover-card__tag">ຂໍ້ມູນຕົວຈິງ · ທົດສອບ (Test)</span>
+                            <span class="cover-card__period" data-result-key="validation_test_period">2023–2025</span>
+                        </div>
                         <div class="atlas-ribbon__band" aria-hidden="true"><i></i><i></i><i></i></div>
-                        <div class="atlas-ribbon__label">ທົດສອບ (Test)</div>
-                        <strong class="atlas-ribbon__value" data-result-key="population_2025">—</strong>
-                        <div class="atlas-ribbon__note">ປະຊາກອນ ປີ 2025</div>
-                    </div>
-                    <div class="atlas-ribbon__seg atlas-ribbon__seg--forecast">
-                        <div class="atlas-ribbon__span" data-result-key="forecast_period">2026–2030</div>
+                        <strong class="cover-card__value" data-result-key="population_2025">—</strong>
+                        <div class="cover-card__foot">
+                            <span>ປະຊາກອນ ປີ 2025</span>
+                            <b class="cover-card__delta" data-result-key="cover_growth_history">—</b>
+                        </div>
+                    </article>
+                    <article class="cover-card cover-card--forecast atlas-ribbon__seg--forecast">
+                        <div class="cover-card__head">
+                            <span class="cover-card__tag">ຜົນການຄາດຄະເນ (Forecast)</span>
+                            <span class="cover-card__period" data-result-key="forecast_period">2026–2030</span>
+                        </div>
                         <div class="atlas-ribbon__band" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-                        <div class="atlas-ribbon__label">ຄາດຄະເນ (Forecast)</div>
-                        <strong class="atlas-ribbon__value" data-result-key="best_model_end_value">—</strong>
-                        <div class="atlas-ribbon__note">ປີ <span data-result-key="best_model_end_year">2030</span>, <span data-result-key="best_model">Polynomial Regression</span></div>
-                    </div>
+                        <strong class="cover-card__value" data-result-key="best_model_end_value">—</strong>
+                        <div class="cover-card__foot">
+                            <span>ປີ <span data-result-key="best_model_end_year">2030</span>, <span data-result-key="best_model">Polynomial Regression</span></span>
+                            <b class="cover-card__delta" data-result-key="cover_growth_forecast">—</b>
+                        </div>
+                    </article>
                 </section>
             </div>
 
@@ -166,6 +192,10 @@
                     <li>ກົ້ງເມັ່ງ ທໍ່</li>
                 </ul>
                 <span class="atlas-team__cohort">ຮຸ່ນ 2, ມີນາ – ພະຈິກ 2026</span>
+            </footer>
+            <footer class="atlas-team">
+                <strong>ເຂົ້າຫາທາງອອນລາຍ:</strong> <a href="https://aisamsung.streamlit.app" target="_blank">https://aisamsung.streamlit.app</a>
+                
             </footer>
         </div>
 

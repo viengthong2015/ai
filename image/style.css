@@ -2932,12 +2932,48 @@ body {
 }
 
 /* Time ribbon (same structure as the masthead ribbon in the app). */
+/* Two separate sections: actual data (train + test) and the forecast. */
 .atlas-ribbon {
     display: grid;
-    grid-template-columns: minmax(12rem, 7fr) minmax(12rem, 3fr) minmax(12rem, 5fr);
-    gap: 0 0.5rem;
+    grid-template-columns: minmax(24rem, 10fr) minmax(14rem, 5fr);
+    gap: 0 clamp(24px, 3vw, 48px);
     margin-top: clamp(24px, 4vh, 48px);
     font-variant-numeric: tabular-nums lining-nums;
+}
+
+.atlas-ribbon__group-title {
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 2px solid var(--atlas-forest);
+    color: var(--atlas-ink);
+    font-size: calc(clamp(0.95rem, 1.05vw, 1.1rem) * var(--slide-font-scale));
+    font-weight: 800;
+}
+
+.atlas-ribbon__group-title span {
+    margin-left: 0.35rem;
+    color: var(--atlas-slate);
+    font-weight: 600;
+}
+
+.atlas-ribbon__group--forecast {
+    padding-left: clamp(24px, 3vw, 48px);
+    border-left: 2px dashed rgba(184, 144, 47, 0.55);
+}
+
+.atlas-ribbon__group--forecast .atlas-ribbon__group-title {
+    border-bottom-color: var(--atlas-gold);
+    color: var(--atlas-gold-text);
+}
+
+.atlas-ribbon__group-body {
+    display: grid;
+    grid-template-columns: minmax(12rem, 7fr) minmax(12rem, 3fr);
+    gap: 0 0.5rem;
+}
+
+.atlas-ribbon__group--forecast .atlas-ribbon__group-body {
+    grid-template-columns: 1fr;
 }
 
 .atlas-ribbon__span {
@@ -3111,6 +3147,7 @@ body {
     }
 
     .atlas-ribbon,
+    .atlas-ribbon__group-body,
     .atlas-closing__grid {
         grid-template-columns: 1fr;
         gap: 1.2rem;
@@ -3118,6 +3155,11 @@ body {
 
     .atlas-team__cohort {
         margin-left: 0;
+    }
+
+    .atlas-ribbon__group--forecast {
+        padding-left: 0;
+        border-left: none;
     }
 }
 
@@ -3171,4 +3213,213 @@ body {
 
 .card-orange {
     border-top-color: var(--atlas-forest);
+}
+
+/* ---------- Cover: title + interactive chart, then three cards ---------- */
+.atlas-cover .atlas-cover__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-areas:
+        "intro chart"
+        "cards cards";
+    gap: clamp(16px, 2.6vh, 30px) clamp(24px, 3vw, 48px);
+    align-items: center;
+}
+
+.atlas-cover__intro {
+    grid-area: intro;
+}
+
+.atlas-cover .atlas-sheet__title {
+    font-size: clamp(3rem, 6.4vw, 7rem);
+}
+
+.atlas-cover__chart {
+    grid-area: chart;
+    margin: 0;
+    padding: 14px 16px 4px;
+    border: 1px solid var(--atlas-rule);
+    border-radius: 16px;
+    background: #FFFFFF;
+}
+
+.atlas-cover__chart figcaption {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: var(--atlas-ink);
+    font-size: calc(clamp(0.9rem, 1vw, 1.05rem) * var(--slide-font-scale));
+}
+
+.atlas-cover__chart figcaption span {
+    color: var(--atlas-slate);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.cover-trajectory-chart {
+    min-height: 0;
+    height: clamp(210px, 30vh, 320px);
+    background: transparent;
+}
+
+.cover-chart-wait {
+    display: grid;
+    place-items: center;
+    height: clamp(210px, 30vh, 320px);
+    margin: 0;
+    color: var(--atlas-slate);
+}
+
+.cover-trajectory-chart:not([hidden]) + .cover-chart-wait {
+    display: none;
+}
+
+.atlas-cover__cards {
+    grid-area: cards;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(12px, 1.4vw, 20px);
+}
+
+.cover-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 14px 18px 12px;
+    border: 1px solid var(--atlas-rule);
+    border-top: 4px solid var(--atlas-forest);
+    border-radius: 14px;
+    background: #FFFFFF;
+    transition: transform 200ms ease, border-color 200ms ease;
+}
+
+.cover-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--atlas-forest);
+}
+
+.cover-card--forecast {
+    border-top-color: var(--atlas-gold);
+    background: linear-gradient(180deg, #FFFDF6 0%, #FFFFFF 100%);
+}
+
+.cover-card--forecast:hover {
+    border-color: var(--atlas-gold);
+}
+
+.cover-card__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.cover-card__tag {
+    color: var(--atlas-ink);
+    font-size: calc(clamp(0.85rem, 0.95vw, 1rem) * var(--slide-font-scale));
+    font-weight: 700;
+}
+
+.cover-card__period {
+    flex: none;
+    color: var(--atlas-slate);
+    font-size: calc(clamp(0.8rem, 0.9vw, 0.95rem) * var(--slide-font-scale));
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.cover-card--forecast .cover-card__period,
+.cover-card--forecast .cover-card__tag {
+    color: var(--atlas-gold-text);
+}
+
+.cover-card .atlas-ribbon__band {
+    height: 10px;
+    margin: 0.2rem 0 0.3rem;
+}
+
+.slide .cover-card__value {
+    color: var(--atlas-ink);
+    font-size: clamp(1.7rem, 2.6vw, 2.7rem);
+    font-weight: 800;
+    font-stretch: 85%;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+.cover-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--atlas-slate);
+    font-size: calc(clamp(0.82rem, 0.9vw, 0.95rem) * var(--slide-font-scale));
+}
+
+.slide .cover-card__delta {
+    flex: none;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(30, 123, 79, 0.12);
+    color: var(--atlas-forest);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.slide .cover-card--forecast .cover-card__delta {
+    background: rgba(184, 144, 47, 0.16);
+    color: var(--atlas-gold-text);
+}
+
+.cover-card__delta:empty,
+.cover-card__delta:is([data-result-key]):not(:empty)[data-empty] {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .atlas-cover .atlas-cover__body {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "intro"
+            "chart"
+            "cards";
+    }
+
+    .atlas-cover__cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Cover chart: no toolbar (hover and zoom still work); tighter on short screens */
+#cover-trajectory-plotly .modebar-container {
+    display: none !important;
+}
+
+.atlas-cover .cover-trajectory-chart,
+.atlas-cover .cover-chart-wait {
+    height: clamp(180px, 26vh, 300px);
+}
+
+.atlas-cover .atlas-cover__body {
+    row-gap: clamp(12px, 2vh, 26px);
+}
+
+.atlas-cover .cover-card {
+    padding: 12px 16px 10px;
+    gap: 0.25rem;
+}
+
+.atlas-cover .cover-card__value {
+    font-size: clamp(1.5rem, 2.3vw, 2.5rem);
+}
+
+@media (max-height: 820px) {
+    .atlas-cover .atlas-sheet__title {
+        font-size: clamp(2.6rem, 5.4vw, 5.6rem);
+    }
+
+    .slide.atlas-sheet.atlas-cover {
+        gap: 12px;
+    }
 }

@@ -3349,6 +3349,107 @@ average_forecast_growth = (
 ) * 100
 
 
+# Cover slide of the presentation: interactive actual + forecast chart and the
+# growth figures on its cards. Built with the light slide colours in both UI
+# styles (the slides are always light).
+cover_figure = go.Figure()
+for band_years, band_fill, band_label, band_colour in (
+    (ribbon_train_years, "rgba(30, 123, 79, 0.06)", "ຝຶກສອນ", "#1E7B4F"),
+    (ribbon_test_years, "rgba(30, 123, 79, 0.14)", "ທົດສອບ", "#1E7B4F"),
+    (future_years, "rgba(184, 144, 47, 0.14)", "ຄາດຄະເນ", "#7A5F1C"),
+):
+    cover_figure.add_vrect(
+        x0=band_years[0] - 0.5,
+        x1=band_years[-1] + 0.5,
+        fillcolor=band_fill,
+        line_width=0,
+        layer="below",
+    )
+    cover_figure.add_annotation(
+        x=(band_years[0] + band_years[-1]) / 2,
+        y=1.0,
+        yref="paper",
+        yanchor="bottom",
+        text=f"<b>{band_label}</b>",
+        showarrow=False,
+        font={"color": band_colour, "size": 12},
+    )
+cover_growth = [
+    "—" if np.isnan(value) else f"{value:+.2f}%" for value in summary_growth
+]
+cover_figure.add_trace(
+    go.Scatter(
+        x=HISTORICAL_YEARS,
+        y=summary_population[:history_count],
+        customdata=cover_growth[:history_count],
+        name="ຂໍ້ມູນຕົວຈິງ (Actual)",
+        mode="lines+markers",
+        line={"color": "#1E7B4F", "width": 3},
+        marker={"size": 7, "color": "#FFFFFF", "line": {"color": "#1E7B4F", "width": 2}},
+        fill="tozeroy",
+        fillcolor="rgba(30, 123, 79, 0.10)",
+        hovertemplate=(
+            "<b>%{x}</b> · ຂໍ້ມູນຕົວຈິງ<br>ປະຊາກອນ: %{y:,.0f}"
+            "<br>ເຕີບໂຕຕໍ່ປີ: %{customdata}<extra></extra>"
+        ),
+    )
+)
+cover_figure.add_trace(
+    go.Scatter(
+        x=summary_years[history_count - 1 :],
+        y=summary_population[history_count - 1 :],
+        customdata=cover_growth[history_count - 1 :],
+        name=f"ຄາດຄະເນ ({forecast_model_label})",
+        mode="lines+markers",
+        line={"color": "#B8902F", "width": 3, "dash": "dash"},
+        marker={"size": 7, "color": "#B8902F"},
+        hovertemplate=(
+            "<b>%{x}</b> · ຄາດຄະເນ<br>ປະຊາກອນ: %{y:,.0f}"
+            "<br>ເຕີບໂຕຕໍ່ປີ: %{customdata}<extra></extra>"
+        ),
+    )
+)
+cover_low, cover_high = float(summary_population.min()), float(summary_population.max())
+cover_pad = (cover_high - cover_low) * 0.12 or cover_high * 0.05 or 1.0
+cover_figure.update_layout(
+    template="atlas_default",
+    margin={"l": 8, "r": 8, "t": 26, "b": 8},
+    hovermode="closest",
+    legend={"orientation": "h", "x": 0, "y": -0.16, "yanchor": "top"},
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    hoverlabel={"bgcolor": "#FFFFFF", "font": {"color": ATLAS_INK}},
+    font={"color": ATLAS_INK},
+)
+cover_figure.update_xaxes(
+    tickmode="array",
+    tickvals=summary_years,
+    showgrid=False,
+    tickfont={"color": ATLAS_SLATE},
+    range=[summary_years[0] - 0.5, summary_years[-1] + 0.5],
+)
+cover_figure.update_yaxes(
+    tickformat=".2s",
+    gridcolor="#E4E7E0",
+    zeroline=False,
+    tickfont={"color": ATLAS_SLATE},
+    range=[cover_low - cover_pad, cover_high + cover_pad],
+)
+live_results.update(
+    {
+        "cover_trajectory_plotly": json.loads(cover_figure.to_json()),
+        "cover_period": f"{first_year}–{future_end}",
+        "cover_growth_history": (
+            f"{(last_actual_population / first_population - 1) * 100:+.1f}% ນັບແຕ່ {first_year}"
+        ),
+        "cover_growth_forecast": (
+            f"{(end_population / last_actual_population - 1) * 100:+.1f}% ທຽບກັບ {last_actual_year}"
+        ),
+    }
+)
+st.session_state["presentation_results"] = live_results
+
+
 def sparkline(values) -> list[float]:
     """Change from the first value: the tile charts show the trend's shape."""
     values = np.asarray(values, dtype=float)

@@ -274,6 +274,10 @@ function applyLiveResults() {
         results.forecast_plotly
     );
     renderLivePlotlyChart(
+        'cover-trajectory-plotly',
+        results.cover_trajectory_plotly
+    );
+    renderLivePlotlyChart(
         'live-actual-predicted-plotly',
         results.actual_predicted_plotly
     );
