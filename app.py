@@ -195,9 +195,11 @@ for _axis in ("xaxis", "yaxis"):
 # Crystal charts carry their own dark template; Streamlit's chart theme (light
 # base theme) would override its text colours, so it is switched off there.
 CHART_THEME = None if CRYSTAL_MODE else "streamlit"
-PLOTLY_TEMPLATE = (
-    "plotly_white+lao_font+lao_crystal" if CRYSTAL_MODE else "plotly_white+lao_font"
+pio.templates["atlas_default"] = pio.templates.merge_templates("plotly_white", "lao_font")
+pio.templates["atlas_crystal"] = pio.templates.merge_templates(
+    "plotly_white", "lao_font", "lao_crystal"
 )
+PLOTLY_TEMPLATE = "atlas_crystal" if CRYSTAL_MODE else "atlas_default"
 
 
 def slide_json(figure: go.Figure) -> dict:
@@ -242,9 +244,10 @@ def tr_table(df: pd.DataFrame, value_columns: tuple[str, ...] = ()) -> pd.DataFr
     table = df.copy()
     for column in value_columns:
         if column in table:
-            table[column] = table[column].map(
-                lambda value: tr(value) if isinstance(value, str) else value
-            )
+            lookup = {
+                value: tr(value) for value in table[column].dropna().unique() if isinstance(value, str)
+            }
+            table[column] = table[column].map(lambda value: lookup.get(value, value))
     return table.rename(columns=lambda column: tr(column) if isinstance(column, str) else column)
 
 
@@ -1254,24 +1257,24 @@ def show_outlier_check(
         st.success(tr("No observations exceed the selected robust-score threshold."))
         return visible
     st.bar_chart(visible.groupby("Year").size().rename(tr("Flags")), height=220)
+    # Streamlit's column formatting instead of a pandas Styler: these tables
+    # can hold thousands of rows, and a Styler re-renders every cell each run.
     st.dataframe(
-        tr_table(visible, ("Check", "Reason", "Unit")).style.format(
-            tr_formats(
-                {
-                    "Population": "{:,.0f}",
-                    "Observed": "{:,.3f}",
-                    "Expected": "{:,.3f}",
-                    "Robust score": "{:+.2f}",
-                }
-            )
-        ),
+        tr_table(visible, ("Check", "Reason", "Unit")),
         hide_index=True,
         width="stretch",
         height=360,
+        column_config={
+            tr("Year"): st.column_config.NumberColumn(format="%d"),
+            tr("Population"): st.column_config.NumberColumn(format="localized"),
+            tr("Observed"): st.column_config.NumberColumn(format="%.3f"),
+            tr("Expected"): st.column_config.NumberColumn(format="%.3f"),
+            tr("Robust score"): st.column_config.NumberColumn(format="%+.2f"),
+        },
     )
     st.download_button(
         tr("Download flags: {title}", title=tr(title)),
-        visible.to_csv(index=False).encode("utf-8-sig"),
+        lambda visible=visible: visible.to_csv(index=False).encode("utf-8-sig"),
         file_name=f"{title.lower().replace(' ', '_')}_flags.csv",
         mime="text/csv",
         key=f"download-{title}",
@@ -4299,14 +4302,14 @@ with data_tab:
     correction_download, corrected_data_download = st.columns(2)
     correction_download.download_button(
         tr("Download correction audit"),
-        visible_corrections.to_csv(index=False).encode("utf-8-sig"),
+        lambda: visible_corrections.to_csv(index=False).encode("utf-8-sig"),
         file_name="population_outlier_correction_audit.csv",
         mime="text/csv",
         width="stretch",
     )
     corrected_data_download.download_button(
         tr("Download corrected source data"),
-        dataframe_to_csv_bytes(corrected_data),
+        lambda: dataframe_to_csv_bytes(corrected_data),
         file_name="dataDistrict_Corrected.csv",
         mime="text/csv",
         width="stretch",
@@ -4457,7 +4460,6 @@ with export_tab:
         )
     )
     predicted = row_predictions
-    html_table = polynomial_html_table(predicted, future_end)
     prediction_suffixes = tuple(MODEL_EXPORT_SUFFIXES[name] for name in MODEL_NAMES)
     selected_suffixes = tuple(MODEL_EXPORT_SUFFIXES[name] for name in selected_models)
     preview_columns = [
@@ -4478,14 +4480,15 @@ with export_tab:
     csv_column, html_column = st.columns(2)
     csv_column.download_button(
         tr("Download all-model CSV"),
-        dataframe_to_csv_bytes(predicted),
+        lambda: dataframe_to_csv_bytes(predicted),
         file_name="dataDistrict_Predicted_All_Models.csv",
         mime="text/csv",
         width="stretch",
     )
     html_column.download_button(
         tr("Download Polynomial HTML"),
-        dataframe_to_html_bytes(html_table),
+        # Built only when clicked: the 23,976-row HTML takes ~20 s to render.
+        lambda: dataframe_to_html_bytes(polynomial_html_table(predicted, future_end)),
         file_name="dataDistrict_Predicted_Polynomial.html",
         mime="text/html",
         width="stretch",
@@ -4824,7 +4827,7 @@ with export_tab:
     )
     summary_downloads[2].download_button(
         ":material/rule: " + tr("Download correction audit"),
-        correction_result.corrections.to_csv(index=False).encode("utf-8-sig"),
+        lambda: correction_result.corrections.to_csv(index=False).encode("utf-8-sig"),
         file_name="population_outlier_correction_audit_all.csv",
         mime="text/csv",
         width="stretch",
@@ -4832,7 +4835,7 @@ with export_tab:
     )
     summary_downloads[3].download_button(
         ":material/database: " + tr("Download corrected source data"),
-        dataframe_to_csv_bytes(corrected_data),
+        lambda: dataframe_to_csv_bytes(corrected_data),
         file_name="dataDistrict_Corrected.csv",
         mime="text/csv",
         width="stretch",
